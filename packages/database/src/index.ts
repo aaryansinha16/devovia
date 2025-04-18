@@ -6,10 +6,11 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma = global.prisma || new PrismaClient();
+// Use type assertion to fix TypeScript error
+export const prisma = (global as any).prisma || new PrismaClient();
 
 if (process.env.NODE_ENV !== 'production') {
-  global.prisma = prisma;
+  (global as any).prisma = prisma;
 }
 
 export * from '@prisma/client';
