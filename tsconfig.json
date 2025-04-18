@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@repo/database": ["packages/database/src/index.ts"],
+      "@repo/database/*": ["packages/database/src/*"],
+      "@repo/ui": ["packages/ui/src/index.ts"],
+      "@repo/ui/*": ["packages/ui/src/*"]
+    }
+  },
+  "files": [],
+  "references": [
+    { "path": "packages/database" },
+    { "path": "packages/ui" },
+    { "path": "apps/api" },
+    { "path": "apps/web" }
+  ]
+}

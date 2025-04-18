@@ -11,10 +11,13 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/database": "workspace:*",
     "@repo/ui": "workspace:*",
     "next": "^15.3.0",
+    "next-auth": "^5.0.0-beta.15",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^15.3.0",
