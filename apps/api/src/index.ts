@@ -1,8 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { json, urlencoded } from 'express';
-// Import mock Prisma client instead of the real one
-import { mockPrisma as prisma } from './utils/mock-prisma';
+// Import the real Prisma client from the database package
+import { prisma } from '@repo/database';
 import authRoutes from './routes/auth.routes';
 
 // Load environment variables

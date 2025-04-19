@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+out
+.next
+.turbo
+
+# Prisma generated files
+**/generated/
+**/*.generated.*
+**/prisma/client/
+**/.prisma/
+
+# Misc
+.DS_Store
+*.pem
+.env
+.env.*
+!.env.example

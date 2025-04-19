@@ -16,5 +16,10 @@ module.exports = {
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "no-unused-vars": "off",
   },
-  ignorePatterns: ["node_modules/", "dist/"],
+  ignorePatterns: [
+    "node_modules/",
+    "dist/",
+    "src/generated/",
+    "**/*.generated.*",
+  ],
 };

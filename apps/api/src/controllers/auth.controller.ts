@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-// Import mock Prisma client instead of the real one
-import { mockPrisma as prisma } from '../utils/mock-prisma';
+// Import the real Prisma client from the database package
+import { prisma } from '@repo/database';
 import bcrypt from 'bcrypt';
 import { generateTokens, verifyRefreshToken } from '../utils/jwt.utils';
 
@@ -123,7 +123,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     // Check if session exists
     const session = await prisma.session.findUnique({
       where: {
-        refreshToken,
+        token: refreshToken, // Use token field instead of refreshToken
       },
     });
 
@@ -140,7 +140,8 @@ export const refreshToken = async (req: Request, res: Response) => {
         id: session.id,
       },
       data: {
-        refreshToken: tokens.refreshToken,
+        token: tokens.refreshToken, // Use token field instead of refreshToken
+        lastActive: new Date(), // Update last active time
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
     });
@@ -165,10 +166,10 @@ export const logout = async (req: Request, res: Response) => {
     await prisma.session.updateMany({
       where: {
         userId,
-        refreshToken,
+        token: refreshToken, // Use token field instead of refreshToken
       },
       data: {
-        isActive: false,
+        isValid: false, // Use isValid field instead of isActive
       },
     });
 
@@ -190,7 +191,7 @@ export const logoutAll = async (req: Request, res: Response) => {
         userId,
       },
       data: {
-        isActive: false,
+        isValid: false, // Use isValid field instead of isActive
       },
     });
 
@@ -212,7 +213,7 @@ export const getSessions = async (req: Request, res: Response) => {
     const sessions = await prisma.session.findMany({
       where: {
         userId,
-        isActive: true,
+        isValid: true, // Use isValid field instead of isActive
         expiresAt: {
           gt: new Date(),
         },
@@ -223,10 +224,10 @@ export const getSessions = async (req: Request, res: Response) => {
         ipAddress: true,
         createdAt: true,
         expiresAt: true,
-        lastUsedAt: true,
+        lastActive: true, // Use lastActive field instead of lastUsedAt
       },
       orderBy: {
-        lastUsedAt: 'desc',
+        lastActive: 'desc', // Use lastActive field instead of lastUsedAt
       },
     });
 
@@ -248,12 +249,12 @@ const createSession = async (userId: string, refreshToken: string) => {
   return prisma.session.create({
     data: {
       userId,
-      refreshToken,
+      token: refreshToken, // Use token field instead of refreshToken
       userAgent,
       ipAddress,
-      isActive: true,
+      isValid: true, // Use isValid field instead of isActive
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      lastUsedAt: new Date(),
+      lastActive: new Date(), // Use lastActive field instead of lastUsedAt
     },
   });
 };
