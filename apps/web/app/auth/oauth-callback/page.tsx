@@ -1,5 +1,9 @@
 'use client';
 
+// Mark this route as dynamic to prevent static prerendering
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../lib/auth-context';

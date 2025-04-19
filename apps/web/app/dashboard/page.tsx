@@ -1,5 +1,9 @@
 'use client';
 
+// Mark this route as dynamic to prevent static prerendering
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 import { useEffect } from 'react';
 import { useAuth } from '../../lib/auth-context';
 import { ThemeToggle } from '../../components/ui/theme-toggle';

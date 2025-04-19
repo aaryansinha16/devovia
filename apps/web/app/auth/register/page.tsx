@@ -1,5 +1,9 @@
 'use client';
 
+// Mark this route as dynamic to prevent static prerendering
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
