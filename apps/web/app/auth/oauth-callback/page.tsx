@@ -1,8 +1,7 @@
 'use client';
 
-// Mark this route as dynamic to prevent static prerendering
+// This ensures the page is always rendered at request time, not build time
 export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
