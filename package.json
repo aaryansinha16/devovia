@@ -28,5 +28,8 @@
     "*.{json,md}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@prisma/client": "^5.11.0"
   }
 }

@@ -1,16 +1,39 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
-// Prevent multiple instances of Prisma Client in development
+/**
+ * Production-ready Prisma Client initialization for monorepo setups.
+ * This approach follows best practices for Prisma in Turborepo environments.
+ */
+
+// Add prisma to the NodeJS global type
 declare global {
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
-// Use type assertion to fix TypeScript error
-export const prisma = (global as any).prisma || new PrismaClient();
+// Prevent multiple instances of Prisma Client in development
+const prismaGlobal = global as unknown as { prisma?: PrismaClient };
 
-if (process.env.NODE_ENV !== 'production') {
-  (global as any).prisma = prisma;
+// Function to get or create the Prisma instance
+function createPrismaClient() {
+  // In development, use a global variable to avoid exhausting your
+  // database connection limit due to hot reloading.
+  if (process.env.NODE_ENV === "production") {
+    // For production, create a new client
+    return new PrismaClient();
+  } else {
+    // For development, use a global singleton
+    if (!prismaGlobal.prisma) {
+      prismaGlobal.prisma = new PrismaClient({
+        log: ["query", "error", "warn"],
+      });
+    }
+    return prismaGlobal.prisma;
+  }
 }
 
-export * from '@prisma/client';
+// Export the Prisma client instance
+export const prisma = createPrismaClient();
+
+// Export types from Prisma client
+export * from "@prisma/client";

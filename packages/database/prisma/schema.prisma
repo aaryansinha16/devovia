@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -27,11 +26,30 @@ model User {
   updatedAt     DateTime  @updatedAt
   
   // Relations
+  sessions      Session[]
   projects      Project[]
   snippets      Snippet[]
   posts         Post[]
   comments      Comment[]
   likes         Like[]
+}
+
+// User sessions for authentication and token management
+model Session {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token         String    @unique // Refresh token
+  device        String?   // Device information
+  ipAddress     String?   // IP address
+  userAgent     String?   // Browser/app info
+  isValid       Boolean   @default(true) // For invalidating sessions
+  lastActive    DateTime  @default(now())
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([token])
 }
 
 // Projects showcase
