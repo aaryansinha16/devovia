@@ -7,10 +7,14 @@
 // Import required modules
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
+import { prisma } from '@repo/database';
+import { Role } from '@prisma/client';
 
 // Define the JWT payload interface
 export interface JwtPayload {
   sub: string;
+  role?: Role;
+  isVerified?: boolean;
   iat: number;
   exp: number;
 }
@@ -23,9 +27,19 @@ export interface JwtPayload {
 export const generateTokens = async (
   userId: string,
 ): Promise<{ accessToken: string; refreshToken: string }> => {
+  // Get user role and verification status
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true, isVerified: true },
+  });
+
   // Type assertion to handle the string type for expiresIn
   const accessToken = jwt.sign(
-    { sub: userId },
+    { 
+      sub: userId,
+      role: user?.role || Role.USER,
+      isVerified: user?.isVerified || false
+    },
     config.jwt.secret,
     // Using any to bypass the type checking for expiresIn
     // This is safe because we know the config values are correct

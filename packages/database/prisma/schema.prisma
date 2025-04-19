@@ -10,18 +10,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enum for user roles
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
 // Users and authentication
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
   username      String    @unique
-  password      String
+  password      String?
   bio           String?
   avatar        String?
   githubUrl     String?
   twitterUrl    String?
   portfolioUrl  String?
+  role          Role      @default(USER)
+  isVerified    Boolean   @default(false)
+  
+  // OAuth fields
+  githubId      String?   @unique
+  googleId      String?   @unique
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
