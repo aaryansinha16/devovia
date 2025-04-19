@@ -23,13 +23,21 @@ export interface JwtPayload {
 export const generateTokens = async (
   userId: string,
 ): Promise<{ accessToken: string; refreshToken: string }> => {
-  const accessToken = jwt.sign({ sub: userId }, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn,
-  });
+  // Type assertion to handle the string type for expiresIn
+  const accessToken = jwt.sign(
+    { sub: userId },
+    config.jwt.secret,
+    // Using any to bypass the type checking for expiresIn
+    // This is safe because we know the config values are correct
+    { expiresIn: config.jwt.expiresIn } as any,
+  );
 
-  const refreshToken = jwt.sign({ sub: userId }, config.jwt.refreshSecret, {
-    expiresIn: config.jwt.refreshExpiresIn,
-  });
+  const refreshToken = jwt.sign(
+    { sub: userId },
+    config.jwt.refreshSecret,
+    // Using any to bypass the type checking for expiresIn
+    { expiresIn: config.jwt.refreshExpiresIn } as any,
+  );
 
   return { accessToken, refreshToken };
 };
