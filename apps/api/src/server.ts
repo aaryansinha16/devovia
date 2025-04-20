@@ -5,7 +5,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { json, urlencoded } from 'express';
 import session from 'express-session';
-import { prisma } from '@repo/database';
+import prisma from './lib/prisma';
 
 // Import routes
 import authRoutes from './routes/auth.routes';

@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt.utils';
 import { JwtPayload } from '../utils/jwt.utils';
-import { prisma } from '@repo/database';
-import { Role } from '@prisma/client';
+import prisma, { Role } from '../lib/prisma';
 
 // Extend Express Request interface to include user property
 // Using module augmentation instead of namespace

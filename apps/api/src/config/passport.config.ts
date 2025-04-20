@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
-import { prisma } from '@repo/database';
+import prisma from '../lib/prisma';
 import { oauthConfig } from './oauth.config';
 import { generateTokens } from '../utils/jwt.utils';
 

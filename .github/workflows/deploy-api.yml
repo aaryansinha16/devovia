@@ -64,6 +64,6 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           cd apps/api
-          railway link --yes
+          echo "sweet-empathy" | railway link
           railway project
           railway up

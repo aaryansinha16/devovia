@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-// Import the real Prisma client from the database package
-import { prisma } from '@repo/database';
+// Import the local Prisma client
+import prisma from '../lib/prisma';
 import bcrypt from 'bcrypt';
 import { generateTokens, verifyRefreshToken } from '../utils/jwt.utils';
 
