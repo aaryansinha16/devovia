@@ -1,0 +1,15 @@
+[phases.setup]
+aptPkgs = ["nodejs"]
+
+[phases.install]
+cmds = [
+  "npm install -g pnpm",
+  "cd ../.. && pnpm install",
+  "cd packages/database && pnpm run db:generate"
+]
+
+[phases.build]
+cmds = ["cd ../../apps/api && pnpm run build"]
+
+[start]
+cmd = "cd ../../apps/api && node dist/index.js"
