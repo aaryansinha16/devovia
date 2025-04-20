@@ -3,6 +3,9 @@
   "build": {
     "builder": "NIXPACKS"
   },
+  "monorepo": {
+    "directory": "apps/api"
+  },
   "deploy": {
     "startCommand": "npm run start",
     "buildCommand": "npm run build:railway",
