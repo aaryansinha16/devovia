@@ -1,7 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
-
-// Define the API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { API_URL } from './config';
 
 // Define the token types
 export interface AuthTokens {
@@ -149,5 +147,7 @@ export async function logoutUser(): Promise<void> {
 
 // GitHub OAuth login URL
 export function getGitHubLoginUrl(): string {
-  return `${API_URL}/auth/github`;
+  // Add a timestamp parameter to prevent caching issues
+  const timestamp = Date.now();
+  return `${API_URL}/auth/github?t=${timestamp}`;
 }

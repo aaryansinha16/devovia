@@ -1,0 +1,14 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd ../.. && pnpm install && cd packages/database && pnpm run db:generate && cd ../../apps/api && pnpm run build"
+  },
+  "deploy": {
+    "startCommand": "cd ../.. && cd apps/api && node dist/index.js",
+    "healthcheckPath": "/api/hc",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}

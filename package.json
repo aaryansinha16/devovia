@@ -23,7 +23,8 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "prettier --write --list-different && eslint --fix"
+      "prettier --write --list-different",
+      "eslint --max-warnings=9999 --fix"
     ],
     "*.{json,md}": [
       "prettier --write"

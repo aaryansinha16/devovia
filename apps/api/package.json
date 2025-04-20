@@ -17,10 +17,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "vercel-build": "cd ../../packages/database && npx prisma generate && cd ../../apps/api && tsc"
   },
   "dependencies": {
-    "@repo/database": "workspace:*",
+    "@prisma/client": "^5.11.0",
+    "@vercel/node": "^3.0.17",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
