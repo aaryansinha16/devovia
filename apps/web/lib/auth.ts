@@ -1,5 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
-import { API_URL, IS_DEVELOPMENT } from './config';
+import { API_URL } from './config';
 
 // Define the token types
 export interface AuthTokens {

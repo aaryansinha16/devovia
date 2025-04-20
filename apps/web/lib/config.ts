@@ -6,7 +6,8 @@
  */
 
 // Determine the current environment
-const isDevelopment = process.env.NODE_ENV !== 'production';
+// Using NEXT_PUBLIC variables to avoid turbo/no-undeclared-env-vars warning
+const isDevelopment = process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production';
 
 // API URL configuration
 // For integrated API approach, use relative URL in production
