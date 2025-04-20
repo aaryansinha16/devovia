@@ -3,8 +3,20 @@ aptPkgs = ["nodejs"]
 
 [phases.install]
 cmds = [
-  # Use npm directly instead of pnpm
-  "npm install && cd packages/database && npm run build && cd ../../apps/api && npm run build"
+  "# Make sure we're in the API directory",
+  "echo 'Current directory:' && pwd",
+  
+  "# Install pnpm globally",
+  "npm install -g pnpm",
+  
+  "# Install packages with workspace protocol support",
+  "pnpm install",
+  
+  "# Generate Prisma client in the shared database package",
+  "cd ../../packages/database && pnpm run db:generate && pnpm run build && cd ../../apps/api",
+  
+  "# Build the API",
+  "pnpm run build"
 ]
 
 [start]
