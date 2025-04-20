@@ -4,11 +4,10 @@ aptPkgs = ["nodejs"]
 [phases.install]
 cmds = [
   "npm install -g pnpm",
-  "pnpm install",
+  "pnpm install --no-frozen-lockfile",
   "cd ../../packages/database && pnpm run db:generate",
   "pnpm run build"
 ]
 
 [start]
-cmd = "node dist/index.js"
 cmd = "node dist/index.js"
