@@ -74,7 +74,20 @@ jobs:
           ls -la $GITHUB_WORKSPACE/apps/api
           
           # Deploy to Railway with explicit token
-          echo "Using Railway CLI to deploy:"
-          railway login --browserless
-          railway link --project devovia-api
+          echo "Using Railway CLI to deploy with token:"
+          echo "Setting up Railway token in CI environment"
+          
+          # Create the Railway config directory and file
+          mkdir -p ~/.railway
+          cat > ~/.railway/config.json << EOF
+          {
+            "token": "${RAILWAY_TOKEN}"
+          }
+          EOF
+          
+          # Double check the file is created correctly
+          ls -la ~/.railway
+          
+          # Deploy to Railway
+          railway project devovia-api
           railway up --detach
