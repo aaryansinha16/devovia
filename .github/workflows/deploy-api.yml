@@ -57,14 +57,20 @@ jobs:
           pnpm run build
       
       - name: Install Railway CLI
-        run: npm install -g @railway/cli
+        run: npm install -g @railway/cli@latest
       
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
+          # Create config directory and file with proper permissions
+          mkdir -p ~/.railway
+          echo '{"token":"'"$RAILWAY_TOKEN"'"}' > ~/.railway/config.json
+          chmod 600 ~/.railway/config.json
+          
+          # Verify config file exists (without showing content)
+          ls -la ~/.railway
+          
           cd apps/api
-          # Link your local folder to the Railway project (non-interactive)
-          railway link --project devovia-api --environment production
-          # Deploy in detached/CI mode
-          railway up --detach
+          # Deploy with project ID directly
+          railway up --service devovia-api --detach
