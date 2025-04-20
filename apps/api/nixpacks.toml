@@ -6,17 +6,14 @@ cmds = [
   "# Make sure we're in the API directory",
   "echo 'Current directory:' && pwd",
   
-  "# Install pnpm globally",
-  "npm install -g pnpm",
-  
-  "# Install packages with workspace protocol support",
-  "pnpm install",
+  "# Install packages using npm instead of pnpm",
+  "npm install",
   
   "# Generate Prisma client in the shared database package",
-  "cd ../../packages/database && pnpm run db:generate && pnpm run build && cd ../../apps/api",
+  "cd ../../packages/database && npm run db:generate && npm run build && cd ../../apps/api",
   
   "# Build the API",
-  "pnpm run build"
+  "npm run build"
 ]
 
 [start]
