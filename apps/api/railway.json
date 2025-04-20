@@ -1,9 +1,8 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
-  "rootDirectory": "apps/api",
   "build": {
-    "builder": "NIXPACKS",
-    "nixpacksConfigPath": "nixpacks.toml"
+    "builder": "DOCKERFILE",
+    "dockerfile": "Dockerfile"
   },
   "deploy": {
     "startCommand": "node dist/index.js",

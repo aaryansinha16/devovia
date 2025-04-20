@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum for user roles
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+// Users and authentication
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  username      String    @unique
+  password      String?
+  bio           String?
+  avatar        String?
+  githubUrl     String?
+  twitterUrl    String?
+  portfolioUrl  String?
+  role          Role      @default(USER)
+  isVerified    Boolean   @default(false)
+  
+  // OAuth fields
+  githubId      String?   @unique
+  googleId      String?   @unique
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  posts         Post[]    @relation("UserPosts")
+  comments      Comment[] @relation("UserComments")
+  likes         Like[]    @relation("UserLikes")
+  sessions      Session[] @relation("UserSessions")
+}
+
+// Sessions for tracking user logins
+model Session {
+  id            String    @id @default(cuid())
+  userId        String
+  token         String    @unique
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  ipAddress     String?
+  userAgent     String?
+  isActive      Boolean   @default(true)
+  isValid       Boolean   @default(true)
+  lastActive    DateTime  @default(now())
+  
+  // Relations
+  user          User      @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Posts / Articles
+model Post {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  content       String
+  excerpt       String?
+  coverImage    String?
+  published     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  publishedAt   DateTime?
+  
+  // Relations
+  authorId      String
+  author        User      @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  comments      Comment[] @relation("PostComments")
+  likes         Like[]    @relation("PostLikes")
+}
+
+// Comments on posts
+model Comment {
+  id            String    @id @default(cuid())
+  content       String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  authorId      String
+  author        User      @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
+  postId        String
+  post          Post      @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
+}
+
+// Likes on posts
+model Like {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  
+  // Relations
+  userId        String
+  user          User      @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
+  postId        String
+  post          Post      @relation("PostLikes", fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+}

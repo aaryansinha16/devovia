@@ -3,11 +3,8 @@ aptPkgs = ["nodejs"]
 
 [phases.install]
 cmds = [
-  "npm install -g pnpm",
-  "export PATH=/root/.npm-global/bin:/usr/local/bin:$PATH",
-  "pnpm install",
-  "cd ../../packages/database && pnpm run build",
-  "cd ../../apps/api && pnpm run build"
+  # Use npm directly instead of pnpm
+  "npm install && cd packages/database && npm run build && cd ../../apps/api && npm run build"
 ]
 
 [start]
