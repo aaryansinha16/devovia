@@ -23,7 +23,7 @@
     "vercel-build": "cd ../../packages/database && npx prisma generate && cd ../../apps/api && tsc"
   },
   "dependencies": {
-    "@repo/database": "file:../../packages/database",
+    "@prisma/client": "^5.10.0",
     "prisma": "^5.10.0",
     "@vercel/node": "^3.0.17",
     "bcrypt": "^5.1.1",

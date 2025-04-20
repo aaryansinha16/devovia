@@ -1,24 +1,25 @@
-import { PrismaClient, Role as PrismaRole } from '@repo/database';
+import { PrismaClient } from '@prisma/client';
 
-// Re-export Role enum for use in the API
-export const Role = PrismaRole;
-// Also export the type for use in type annotations
-export type Role = PrismaRole;
+// Define Role enum directly for Railway deployment
+// This matches the enum in the shared database package
+export enum Role {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+  MODERATOR = 'MODERATOR'
+}
 
 // Type guard to check if a value is a valid Role
-export function isRole(value: any): value is PrismaRole {
-  return Object.values(Role).includes(value as PrismaRole);
+export function isRole(value: any): value is Role {
+  return Object.values(Role).includes(value as Role);
 }
 
 // Helper function to convert string to Role enum
-export function toRole(value: string): PrismaRole {
+export function toRole(value: string): Role {
   if (isRole(value)) {
-    return value as PrismaRole;
+    return value as Role;
   }
   throw new Error(`Invalid role: ${value}`);
 }
-
-// Role is already exported in the enum declaration above
 
 // Create a singleton Prisma client
 const prismaClientSingleton = () => {
@@ -31,11 +32,8 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClientSingleton | undefined;
 };
 
-// Export the Prisma client
 const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
-
 export default prisma;
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

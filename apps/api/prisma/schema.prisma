@@ -1,0 +1,70 @@
+// This is a Railway deployment-only schema copy
+// The source of truth remains in packages/database/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core models from the shared schema
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  firstName         String?
+  lastName          String?
+  password          String?
+  role              Role      @default(USER)
+  verified          Boolean   @default(false)
+  isValid           Boolean   @default(true)
+  lastActive        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  githubId          String?   @unique
+  githubAccessToken String?
+  sessions          Session[]
+  posts             Post[]
+  likes             Like[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  published Boolean  @default(false)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+  likes     Like[]
+}
+
+model Like {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@unique([userId, postId])
+}
