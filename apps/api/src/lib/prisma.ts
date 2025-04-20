@@ -1,4 +1,7 @@
-import { PrismaClient, Role } from '@repo/database';
+import { PrismaClient, Role as PrismaRole } from '@repo/database';
+
+// Re-export Role enum for use in the API
+export const Role = PrismaRole;
 
 // Type guard to check if a value is a valid Role
 export function isRole(value: any): value is Role {
