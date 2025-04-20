@@ -64,6 +64,5 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           cd apps/api
-          echo "$RAILWAY_TOKEN" | railway login --browserless
-          railway link 091b1de7-3a3a-4cb4-83c4-f33fc23d9b35
+          railway link 091b1de7-3a3a-4cb4-83c4-f33fc23d9b35 --yes
           railway up
