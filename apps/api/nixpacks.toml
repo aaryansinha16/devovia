@@ -4,9 +4,9 @@ aptPkgs = ["nodejs"]
 [phases.install]
 cmds = [
   "npm install -g pnpm",
-  "pnpm install --no-frozen-lockfile",
-  "cd ../../packages/database && pnpm run db:generate",
-  "pnpm run build"
+  "export PATH=/root/.npm-global/bin:/usr/local/bin:$PATH",
+  "npm install",
+  "npm run build"
 ]
 
 [start]

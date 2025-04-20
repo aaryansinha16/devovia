@@ -64,5 +64,6 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           cd apps/api
-          railway link 091b1de7-3a3a-4cb4-83c4-f33fc23d9b35 --yes
+          railway link --yes
+          railway project
           railway up
