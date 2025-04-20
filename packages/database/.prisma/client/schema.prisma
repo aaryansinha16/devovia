@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum for user roles
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+// Users and authentication
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String?
+  username     String  @unique
+  password     String?
+  bio          String?
+  avatar       String?
+  githubUrl    String?
+  twitterUrl   String?
+  portfolioUrl String?
+  role         Role    @default(USER)
+  isVerified   Boolean @default(false)
+
+  // OAuth fields
+  githubId String? @unique
+  googleId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessions Session[]
+  projects Project[]
+  snippets Snippet[]
+  posts    Post[]
+  comments Comment[]
+  likes    Like[]
+}
+
+// User sessions for authentication and token management
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String   @unique // Refresh token
+  device     String? // Device information
+  ipAddress  String? // IP address
+  userAgent  String? // Browser/app info
+  isValid    Boolean  @default(true) // For invalidating sessions
+  lastActive DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+// Projects showcase
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  repoUrl     String?
+  demoUrl     String?
+  thumbnail   String?
+  techStack   String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+  tags     Tag[]     @relation("ProjectTags")
+}
+
+// Code snippets
+model Snippet {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  code        String
+  language    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+  tags     Tag[]     @relation("SnippetTags")
+}
+
+// Blog posts and guides
+model Post {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  content    String
+  excerpt    String?
+  coverImage String?
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+  tags     Tag[]     @relation("PostTags")
+}
+
+// Templates
+model Template {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  repoUrl     String
+  techStack   String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tags Tag[] @relation("TemplateTags")
+}
+
+// Shared models
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  snippetId String?
+  snippet   Snippet? @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  snippetId String?
+  snippet   Snippet? @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId, snippetId, postId])
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @unique
+
+  // Relations
+  projects  Project[]  @relation("ProjectTags")
+  snippets  Snippet[]  @relation("SnippetTags")
+  posts     Post[]     @relation("PostTags")
+  templates Template[] @relation("TemplateTags")
+}

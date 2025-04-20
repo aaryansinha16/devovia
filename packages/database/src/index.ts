@@ -1,9 +1,13 @@
-import { PrismaClient } from "@prisma/client";
-
 /**
  * Production-ready Prisma Client initialization for monorepo setups.
  * This approach follows best practices for Prisma in Turborepo environments.
  */
+
+// Import the PrismaClient directly
+import { PrismaClient } from '@prisma/client';
+
+// Re-export all types from Prisma client
+export * from '@prisma/client';
 
 // Add prisma to the NodeJS global type
 declare global {
@@ -19,13 +23,11 @@ function createPrismaClient() {
   // In development, use a global variable to avoid exhausting your
   // database connection limit due to hot reloading.
   if (process.env.NODE_ENV === "production") {
-    // For production, create a new client
     return new PrismaClient();
   } else {
-    // For development, use a global singleton
     if (!prismaGlobal.prisma) {
       prismaGlobal.prisma = new PrismaClient({
-        log: ["query", "error", "warn"],
+        log: ['query', 'error', 'warn'],
       });
     }
     return prismaGlobal.prisma;
@@ -34,6 +36,3 @@ function createPrismaClient() {
 
 // Export the Prisma client instance
 export const prisma = createPrismaClient();
-
-// Export types from Prisma client
-export * from "@prisma/client";

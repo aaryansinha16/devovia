@@ -3,15 +3,24 @@
   "version": "0.0.0",
   "private": true,
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsup",
+    "build": "prisma generate && tsc",
     "clean": "rimraf .turbo node_modules dist",
     "db:generate": "prisma generate",
     "db:push": "prisma db push --skip-generate",
     "db:studio": "prisma studio",
-    "dev": "tsup --watch",
+    "dev": "prisma generate && tsc --watch",
     "format": "prisma format",
     "lint": "eslint .",
     "check-types": "tsc --noEmit"

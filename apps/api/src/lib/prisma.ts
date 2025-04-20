@@ -1,11 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-// Define the Role enum manually to match the Prisma schema
-export enum Role {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-  MODERATOR = 'MODERATOR'
-}
+import { PrismaClient, Role } from '@repo/database';
 
 // Type guard to check if a value is a valid Role
 export function isRole(value: any): value is Role {
@@ -20,11 +13,12 @@ export function toRole(value: string): Role {
   throw new Error(`Invalid role: ${value}`);
 }
 
+// Export the Role enum for convenience
+export { Role };
+
 // Create a singleton Prisma client
 const prismaClientSingleton = () => {
-  return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+  return new PrismaClient();
 };
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
@@ -33,8 +27,11 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClientSingleton | undefined;
 };
 
-export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+// Export the Prisma client
+const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 
 export default prisma;
