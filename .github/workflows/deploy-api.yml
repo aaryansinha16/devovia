@@ -63,14 +63,8 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          # Create Railway config directory and file
-          mkdir -p ~/.railway
-          echo '{"token":"'"$RAILWAY_TOKEN"'"}' > ~/.railway/config.json
-          # Verify the config file was created correctly (without showing the token)
-          ls -la ~/.railway
-          
           cd apps/api
-          # Link to the project
-          railway link --project devovia-api
-          # Deploy the project
-          railway up
+          # Link your local folder to the Railway project (non-interactive)
+          railway link --project devovia-api --environment production
+          # Deploy in detached/CI mode
+          railway up --detach
