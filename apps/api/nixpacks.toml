@@ -5,10 +5,9 @@ aptPkgs = ["nodejs"]
 cmds = [
   "npm install -g pnpm",
   "export PATH=/root/.npm-global/bin:/usr/local/bin:$PATH",
-  "npm install",
-  "chmod +x ./prisma-setup.sh",
-  "./prisma-setup.sh",
-  "npm run build"
+  "pnpm install",
+  "cd ../../packages/database && pnpm run build",
+  "cd ../../apps/api && pnpm run build"
 ]
 
 [start]
