@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt.utils';
 import { JwtPayload } from '../utils/jwt.utils';
-import prisma, { Role } from '../lib/prisma';
+import prisma, { Role, toRole } from '../lib/prisma';
 
 // Extend Express Request interface to include user property
 // Using module augmentation instead of namespace
@@ -44,7 +44,7 @@ export const authenticateJWT = async (
 
     // Attach user info and role to request
     req.user = payload;
-    req.userRole = user.role;
+    req.userRole = toRole(user.role as string);
     next();
   } catch (error) {
     console.error('Authentication error:', error);
@@ -95,7 +95,7 @@ export const requireRole = (roles: Role[]) => {
         select: { role: true },
       });
 
-      if (!user || !roles.includes(user.role)) {
+      if (!user || !roles.includes(toRole(user.role as string))) {
         return res.status(403).json({ 
           message: 'Insufficient permissions', 
           code: 'INSUFFICIENT_PERMISSIONS'

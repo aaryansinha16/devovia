@@ -7,7 +7,7 @@
 // Import required modules
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
-import prisma, { Role } from '../lib/prisma';
+import prisma, { Role, toRole } from '../lib/prisma';
 
 // Define the JWT payload interface
 export interface JwtPayload {
