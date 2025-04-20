@@ -13,81 +13,58 @@ jobs:
   deploy:
     name: Deploy API
     runs-on: ubuntu-latest
-    
+
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
           run_install: false
-      
+
       - name: Get pnpm store directory
-        id: pnpm-cache
+        id: pnpm-store
         shell: bash
         run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      
+          STORE_PATH=$(pnpm store path)
+          echo "STORE_PATH=$STORE_PATH" >> $GITHUB_OUTPUT
+
       - name: Setup pnpm cache
         uses: actions/cache@v3
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      
+
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-      
+
       - name: Generate Prisma client
         run: |
           cd packages/database
           pnpm run db:generate
-      
+
       - name: Build API
         run: |
           cd apps/api
           pnpm run build
-      
+
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-      
+
       - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          # Change to the API directory explicitly
-          cd $GITHUB_WORKSPACE/apps/api
-          pwd
-          
-          # Create a debug script to verify environment
-          echo "Verifying workspace structure:"
-          ls -la $GITHUB_WORKSPACE
-          echo "Verifying API directory structure:"
-          ls -la $GITHUB_WORKSPACE/apps/api
-          
-          # Deploy to Railway with explicit token
-          echo "Using Railway CLI to deploy with token:"
-          echo "Setting up Railway token in CI environment"
-          
-          # Create the Railway config directory and file
-          mkdir -p ~/.railway
-          cat > ~/.railway/config.json << EOF
-          {
-            "token": "${RAILWAY_TOKEN}"
-          }
-          EOF
-          
-          # Double check the file is created correctly
-          ls -la ~/.railway
-          
-          # Deploy to Railway
-          railway project devovia-api
-          railway up --detach
+          cd apps/api
+          echo "🚀 Deploying to Railway via CLI using project token"
+          railway up --service 78b2b18b-bb84-41e0-be9f-7ba52648069e --detach
