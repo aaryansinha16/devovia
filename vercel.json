@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/api && pnpm run vercel-build",
+  "buildCommand": "pnpm install && cd packages/database && npx prisma generate && cd ../../apps/api && tsc",
   "outputDirectory": "apps/api/dist",
   "installCommand": "pnpm install",
   "builds": [

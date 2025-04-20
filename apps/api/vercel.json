@@ -19,5 +19,6 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "buildCommand": "cd ../../packages/database && npx prisma generate && cd ../../apps/api && tsc"
 }
