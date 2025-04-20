@@ -32,11 +32,20 @@ This project uses GitHub Actions to deploy the API to Railway. This approach pre
 5. Value: [The token you generated in step 1]
 6. Click "Add secret"
 
-### 3. Create a Project in Railway
+### 3. Link Your Existing Railway Project
 
-1. Create a new project in Railway
-2. Add a PostgreSQL database to your project
-3. Note the project name and service name
+1. After merging to main, navigate to your API directory:
+   ```bash
+   cd apps/api
+   ```
+
+2. Link your local repository to your existing Railway project:
+   ```bash
+   railway link
+   ```
+   (Select your existing project when prompted)
+
+3. Make sure your PostgreSQL database is properly set up in your Railway project
 
 ### 4. Update the GitHub Actions Workflow (if needed)
 

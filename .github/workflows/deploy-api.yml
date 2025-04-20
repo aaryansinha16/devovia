@@ -64,4 +64,4 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           cd apps/api
-          railway up --service api
+          railway up
