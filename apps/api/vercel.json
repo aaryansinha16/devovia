@@ -3,12 +3,7 @@
   "builds": [
     {
       "src": "src/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "../../packages/database/prisma/**"
-        ]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -19,6 +14,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "buildCommand": "cd ../../packages/database && npx prisma generate && cd ../../apps/api && tsc"
+  }
 }

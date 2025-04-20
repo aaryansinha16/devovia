@@ -1,23 +1,7 @@
 {
-  "version": 2,
-  "buildCommand": "pnpm install && cd packages/database && npx prisma generate && cd ../../apps/api && tsc",
-  "outputDirectory": "apps/api/dist",
-  "installCommand": "pnpm install",
-  "builds": [
-    {
-      "src": "apps/api/src/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "packages/database/prisma/**"
-        ]
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "apps/api/src/index.ts"
-    }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": null,
+  "devCommand": null,
+  "installCommand": null,
+  "framework": null
 }
