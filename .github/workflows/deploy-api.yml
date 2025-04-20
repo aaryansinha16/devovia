@@ -57,9 +57,8 @@ jobs:
           pnpm run build
       
       - name: Deploy to Railway
-        uses: railway/cli-action@master
+        uses: bervProject/railway-deploy@main
         with:
-          # Use the API directory as the root
-          root: "apps/api"
-          # Specify the Railway token from secrets
-          railway-token: ${{ secrets.RAILWAY_TOKEN }}
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: "devovia-api"
+          detach: true
