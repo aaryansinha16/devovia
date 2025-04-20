@@ -1,16 +1,20 @@
 [phases.setup]
-aptPkgs = ["nodejs"]
+aptPkgs = ["nodejs", "git"]
 
 [phases.install]
 cmds = [
-  "# Make sure we're in the API directory",
-  "echo 'Current directory:' && pwd",
+  "# Clone just the database package to access the Prisma schema",
+  "mkdir -p /tmp/database-package",
+  "git clone --depth 1 https://github.com/aaryansinha16/devovia.git /tmp/repo",
+  "cp -r /tmp/repo/packages/database /tmp/database-package",
   
-  "# Install packages using npm instead of pnpm",
-  "npm install",
+  "# Install only the API dependencies without using workspace protocols",
+  "npm install --legacy-peer-deps",
   
-  "# Generate Prisma client in the shared database package",
-  "cd ../../packages/database && npm run db:generate && npm run build && cd ../../apps/api",
+  "# Generate Prisma client from the shared schema",
+  "mkdir -p node_modules/.prisma",
+  "export DATABASE_URL=\"postgresql://placeholder:placeholder@localhost:5432/placeholder\" && cd /tmp/database-package/database && npx prisma generate",
+  "cp -r /tmp/database-package/database/node_modules/.prisma node_modules/",
   
   "# Build the API",
   "npm run build"
