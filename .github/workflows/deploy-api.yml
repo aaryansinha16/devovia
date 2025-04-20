@@ -66,5 +66,5 @@ jobs:
       - name: Deploy to Railway
         run: |
           echo "🚀 Deploying to Railway via CLI using project token"
-          # Deploy from the repository root with service directory specified
-          railway up --service 78b2b18b-bb84-41e0-be9f-7ba52648069e --detach --service-path apps/api
+          # Deploy from the repository root
+          railway up --service 78b2b18b-bb84-41e0-be9f-7ba52648069e --detach
