@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "buildCommand": "cd apps/api && pnpm run vercel-build",
+  "outputDirectory": "apps/api/dist",
+  "installCommand": "pnpm install",
+  "builds": [
+    {
+      "src": "apps/api/src/index.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "packages/database/prisma/**"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/api/src/index.ts"
+    }
+  ]
+}
