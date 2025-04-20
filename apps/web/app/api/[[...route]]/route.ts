@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { apiApp } from '../../../../api/src/server'; // Import the Express app from the correct path
-import { connectToDatabase } from '../../../../api/src/server';
+
+// Use dynamic imports for server-side only code
+// This prevents bundling of native Node.js modules with client-side code
+let apiApp: any;
+let connectToDatabase: any;
+
+// Only import server modules on the server
+if (typeof window === 'undefined') {
+  const serverModule = require('../../../../api/src/server');
+  apiApp = serverModule.apiApp;
+  connectToDatabase = serverModule.connectToDatabase;
+}
 
 // Initialize database connection
 let dbInitialized = false;

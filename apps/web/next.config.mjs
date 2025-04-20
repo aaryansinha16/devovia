@@ -21,6 +21,33 @@ const nextConfig = {
     NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
   },
   
+  // Configure webpack to handle native Node.js modules
+  webpack: (config, { isServer }) => {
+    // If it's a client-side bundle, ignore Node.js specific modules
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        os: false,
+        path: false,
+        stream: false,
+        zlib: false,
+        http: false,
+        https: false,
+        dns: false,
+        child_process: false,
+        'mock-aws-s3': false,
+        'aws-sdk': false,
+        'nock': false,
+      };
+    }
+    
+    return config;
+  },
+  
   // Configure redirects for OAuth callback handling
   async redirects() {
     return [
