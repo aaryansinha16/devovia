@@ -70,11 +70,6 @@ jobs:
           echo "🚀 Deploying to Railway via CLI using project token"
           cd apps/api
           
-          # For Railway CLI in CI environment, we don't use 'railway login'
-          # Instead, we rely on the RAILWAY_TOKEN env var and go straight to deployment commands
-          echo "Linking to Railway project..."
-          railway project
-          
-          # Deploy the API
+          # Use the simplest possible approach with just the deployment command
           echo "Deploying to Railway..."
-          railway up --detach
+          railway up
