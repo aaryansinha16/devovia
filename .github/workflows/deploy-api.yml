@@ -56,9 +56,25 @@ jobs:
           cd apps/api
           pnpm run build
       
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
       - name: Deploy to Railway
-        uses: bervProject/railway-deploy@main
-        with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          service: "devovia-api"
-          detach: true
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          # Change to the API directory explicitly
+          cd $GITHUB_WORKSPACE/apps/api
+          pwd
+          
+          # Create a debug script to verify environment
+          echo "Verifying workspace structure:"
+          ls -la $GITHUB_WORKSPACE
+          echo "Verifying API directory structure:"
+          ls -la $GITHUB_WORKSPACE/apps/api
+          
+          # Deploy to Railway with explicit token
+          echo "Using Railway CLI to deploy:"
+          railway login --browserless
+          railway link --project devovia-api
+          railway up --detach
