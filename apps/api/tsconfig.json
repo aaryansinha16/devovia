@@ -15,6 +15,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": false,
+    "esModuleInterop": true,
     "paths": {
       "@repo/database": ["../../packages/database/src"],
       "@repo/database/*": ["../../packages/database/src/*"]

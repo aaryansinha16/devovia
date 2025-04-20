@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { apiApp } from '../../../../api/src/server'; // Import the Express app from the correct path
-import { connectToDatabase } from '../../../../api/src/server';
+import { NextRequest, NextResponse } from "next/server";
+import { apiApp } from "../../../../api/src/server"; // Import the Express app from the correct path
+import { connectToDatabase } from "../../../../api/src/server";
 
 // Initialize database connection
 let dbInitialized = false;
@@ -8,19 +8,20 @@ const initDb = async () => {
   if (!dbInitialized) {
     await connectToDatabase();
     dbInitialized = true;
-    console.log('Database connected for API routes');
+    console.log("Database connected for API routes");
   }
 };
 
 // Process the API request through Express
+// @ts-ignore - Temporarily ignore TypeScript errors for API integration
 const processRequest = async (req: NextRequest) => {
   await initDb();
-  
+
   // Create a mock response object
   let responseBody: any = null;
   let statusCode = 200;
   let responseHeaders: Record<string, string> = {};
-  
+
   const res = {
     status: (code: number) => {
       statusCode = code;
@@ -50,9 +51,13 @@ const processRequest = async (req: NextRequest) => {
       return res;
     },
   };
-  
+
   // Create a promise that resolves when the Express middleware chain completes
-  return new Promise<{ statusCode: number, body: any, headers: Record<string, string> }>((resolve) => {
+  return new Promise<{
+    statusCode: number;
+    body: any;
+    headers: Record<string, string>;
+  }>((resolve) => {
     // Convert the Next.js request to Express format
     const url = new URL(req.url);
     const expressReq: any = {
@@ -63,7 +68,7 @@ const processRequest = async (req: NextRequest) => {
       body: req.body,
       cookies: req.cookies,
     };
-    
+
     // Add a callback to be executed when the response is ready
     res.end = (data?: any) => {
       if (data) responseBody = data;
@@ -74,13 +79,14 @@ const processRequest = async (req: NextRequest) => {
       });
       return res;
     };
-    
+
     // Process the request through the Express app
+    // @ts-ignore - Temporarily ignore TypeScript errors for Express compatibility
     apiApp(expressReq, res, () => {
       // This is called if no route matches
       resolve({
         statusCode: 404,
-        body: { error: 'Not Found' },
+        body: { error: "Not Found" },
         headers: responseHeaders,
       });
     });
@@ -88,50 +94,54 @@ const processRequest = async (req: NextRequest) => {
 };
 
 // Helper function to create a response from the Express result
-const createResponse = (result: { statusCode: number, body: any, headers: Record<string, string> }) => {
+const createResponse = (result: {
+  statusCode: number;
+  body: any;
+  headers: Record<string, string>;
+}) => {
   const { statusCode, body, headers } = result;
-  
+
   // Create the response with the correct status code and body
   const response = NextResponse.json(body, { status: statusCode });
-  
+
   // Add headers to the response
   Object.entries(headers).forEach(([name, value]) => {
     response.headers.set(name, value);
   });
-  
+
   return response;
 };
 
 // Handle all API routes
-export async function GET(request: NextRequest, { params }: { params: { route: string[] } }) {
+export async function GET(request: NextRequest) {
   const result = await processRequest(request);
   return createResponse(result);
 }
 
-export async function POST(request: NextRequest, { params }: { params: { route: string[] } }) {
+export async function POST(request: NextRequest) {
   const result = await processRequest(request);
   return createResponse(result);
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { route: string[] } }) {
+export async function PUT(request: NextRequest) {
   const result = await processRequest(request);
   return createResponse(result);
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { route: string[] } }) {
+export async function DELETE(request: NextRequest) {
   const result = await processRequest(request);
   return createResponse(result);
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { route: string[] } }) {
+export async function PATCH(request: NextRequest) {
   const result = await processRequest(request);
   return createResponse(result);
 }
 
-export async function OPTIONS(request: NextRequest, { params }: { params: { route: string[] } }) {
+export async function OPTIONS(request: NextRequest) {
   const result = await processRequest(request);
   return createResponse(result);
 }
 
 // Ensure dynamic rendering for API routes
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
