@@ -1,18 +1,26 @@
-FROM node:18-alpine AS builder
+FROM node:18-alpine
 
 # Set up working directory
 WORKDIR /app
 
-# First stage: Install dependencies and clone the repo
-RUN apk add --no-cache git
-
-# Clone the repository (this way we get the entire monorepo)
-RUN git clone https://github.com/aaryansinha16/devovia.git .
-
-# Install pnpm
-RUN npm install -g pnpm
+# Create necessary directory structure
+RUN mkdir -p packages/database/prisma packages/database/src apps/api/src
 
 # Install dependencies
+RUN npm install -g prisma
+
+# Copy the shared database package first
+COPY packages/database/package.json packages/database/
+COPY packages/database/prisma/schema.prisma packages/database/prisma/
+COPY packages/database/src/ packages/database/src/
+
+# Copy API package files
+COPY apps/api/package.json apps/api/
+COPY apps/api/src/ apps/api/src/
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install pnpm and dependencies
+RUN npm install -g pnpm
 RUN pnpm install
 
 # Generate Prisma client in the database package
@@ -20,20 +28,6 @@ RUN cd packages/database && pnpm run db:generate && pnpm run build
 
 # Build the API
 RUN cd apps/api && pnpm run build
-
-# Second stage: Create a smaller image for running the app
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Copy only what we need from the first stage
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/database/node_modules ./packages/database/node_modules
-COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=builder /app/packages/database/dist ./packages/database/dist
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
-COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 
 # Expose the port the app runs on
 EXPOSE 3001
