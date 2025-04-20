@@ -58,9 +58,11 @@ model Session {
   ipAddress     String?   // IP address
   userAgent     String?   // Browser/app info
   isValid       Boolean   @default(true) // For invalidating sessions
+  isActive      Boolean   @default(true) // Backward compatibility
   lastActive    DateTime  @default(now())
   expiresAt     DateTime
   createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   
   @@index([userId])
   @@index([token])

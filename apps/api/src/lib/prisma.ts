@@ -1,11 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-// Define Role enum directly to match the schema
-export enum Role {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-  MODERATOR = 'MODERATOR'
-}
+import { PrismaClient, Role } from '@repo/database';
 
 // Type guard to check if a value is a valid Role
 export function isRole(value: any): value is Role {

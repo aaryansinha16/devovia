@@ -30,9 +30,9 @@ importers:
 
   apps/api:
     dependencies:
-      '@prisma/client':
-        specifier: ^5.10.0
-        version: 5.22.0(prisma@5.22.0)
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@vercel/node':
         specifier: ^3.0.17
         version: 3.2.29
