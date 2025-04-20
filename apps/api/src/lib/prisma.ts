@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import { Role } from '@prisma/client';
 
-// Export the Role enum directly from @prisma/client
-export { Role };
+// Define the Role enum manually to match the Prisma schema
+export enum Role {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+  MODERATOR = 'MODERATOR'
+}
 
 // Create a singleton Prisma client
 const prismaClientSingleton = () => {

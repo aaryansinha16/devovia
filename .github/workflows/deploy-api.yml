@@ -64,6 +64,8 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           cd apps/api
-          echo "sweet-empathy" | railway link
-          railway project
+          # Create a Railway config file with the token
+          mkdir -p ~/.railway
+          echo '{"token":"'"$RAILWAY_TOKEN"'"}' > ~/.railway/config.json
+          railway link --environment production
           railway up
