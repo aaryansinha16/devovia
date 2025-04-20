@@ -1,146 +1,77 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Use dynamic imports for server-side only code
-// This prevents bundling of native Node.js modules with client-side code
-let apiApp: any;
-let connectToDatabase: any;
+// Simple API proxy that forwards requests to the actual API server
+// This avoids bundling native Node.js modules with the Next.js app
+async function handleApiRequest(request: NextRequest, params: { route: string[] }) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+  const route = params.route?.join('/') || '';
+  const url = `${apiUrl}/${route}`;
+  
+  // Get the request body if it exists
+  let body;
+  try {
+    if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+      body = await request.json();
+    }
+  } catch (error) {
+    // No body or invalid JSON
+  }
 
-// Only import server modules on the server
-if (typeof window === 'undefined') {
-  const serverModule = require('../../../../api/src/server');
-  apiApp = serverModule.apiApp;
-  connectToDatabase = serverModule.connectToDatabase;
+  try {
+    // Forward the request to the actual API server
+    const response = await fetch(url, {
+      method: request.method,
+      headers: {
+        'Content-Type': 'application/json',
+        // Forward authorization header if present
+        ...request.headers.get('authorization') ? 
+          { 'Authorization': request.headers.get('authorization') || '' } : {}
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    // Get the response data
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      data = { message: 'No response body' };
+    }
+
+    // Return the response with the same status code
+    return NextResponse.json(data, { status: response.status });
+  } catch (error) {
+    console.error(`API proxy error for ${url}:`, error);
+    return NextResponse.json(
+      { error: 'API service unavailable' },
+      { status: 500 }
+    );
+  }
 }
 
-// Initialize database connection
-let dbInitialized = false;
-const initDb = async () => {
-  if (!dbInitialized) {
-    await connectToDatabase();
-    dbInitialized = true;
-    console.log('Database connected for API routes');
-  }
-};
-
-// Process the API request through Express
-const processRequest = async (req: NextRequest) => {
-  await initDb();
-  
-  // Create a mock response object
-  let responseBody: any = null;
-  let statusCode = 200;
-  let responseHeaders: Record<string, string> = {};
-  
-  const res = {
-    status: (code: number) => {
-      statusCode = code;
-      return res;
-    },
-    json: (data: any) => {
-      responseBody = data;
-      return res;
-    },
-    send: (data: any) => {
-      responseBody = data;
-      return res;
-    },
-    setHeader: (name: string, value: string) => {
-      responseHeaders[name] = value;
-      return res;
-    },
-    end: (data?: any) => {
-      if (data) responseBody = data;
-      return res;
-    },
-    writeHead: (code: number, headers?: Record<string, string>) => {
-      statusCode = code;
-      if (headers) {
-        responseHeaders = { ...responseHeaders, ...headers };
-      }
-      return res;
-    },
-  };
-  
-  // Create a promise that resolves when the Express middleware chain completes
-  return new Promise<{ statusCode: number, body: any, headers: Record<string, string> }>((resolve) => {
-    // Convert the Next.js request to Express format
-    const url = new URL(req.url);
-    const expressReq: any = {
-      method: req.method,
-      url: url.pathname + url.search,
-      headers: Object.fromEntries(req.headers),
-      query: Object.fromEntries(url.searchParams),
-      body: req.body,
-      cookies: req.cookies,
-    };
-    
-    // Add a callback to be executed when the response is ready
-    res.end = (data?: any) => {
-      if (data) responseBody = data;
-      resolve({
-        statusCode,
-        body: responseBody,
-        headers: responseHeaders,
-      });
-      return res;
-    };
-    
-    // Process the request through the Express app
-    apiApp(expressReq, res, () => {
-      // This is called if no route matches
-      resolve({
-        statusCode: 404,
-        body: { error: 'Not Found' },
-        headers: responseHeaders,
-      });
-    });
-  });
-};
-
-// Helper function to create a response from the Express result
-const createResponse = (result: { statusCode: number, body: any, headers: Record<string, string> }) => {
-  const { statusCode, body, headers } = result;
-  
-  // Create the response with the correct status code and body
-  const response = NextResponse.json(body, { status: statusCode });
-  
-  // Add headers to the response
-  Object.entries(headers).forEach(([name, value]) => {
-    response.headers.set(name, value);
-  });
-  
-  return response;
-};
-
-// Handle all API routes
+// Handle all HTTP methods
 export async function GET(request: NextRequest, { params }: { params: { route: string[] } }) {
-  const result = await processRequest(request);
-  return createResponse(result);
+  return handleApiRequest(request, params);
 }
 
 export async function POST(request: NextRequest, { params }: { params: { route: string[] } }) {
-  const result = await processRequest(request);
-  return createResponse(result);
+  return handleApiRequest(request, params);
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { route: string[] } }) {
-  const result = await processRequest(request);
-  return createResponse(result);
+  return handleApiRequest(request, params);
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { route: string[] } }) {
-  const result = await processRequest(request);
-  return createResponse(result);
+  return handleApiRequest(request, params);
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { route: string[] } }) {
-  const result = await processRequest(request);
-  return createResponse(result);
+  return handleApiRequest(request, params);
 }
 
 export async function OPTIONS(request: NextRequest, { params }: { params: { route: string[] } }) {
-  const result = await processRequest(request);
-  return createResponse(result);
+  return handleApiRequest(request, params);
 }
 
 // Ensure dynamic rendering for API routes
