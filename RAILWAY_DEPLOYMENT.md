@@ -23,14 +23,19 @@ This project uses GitHub Actions to deploy the API to Railway. This approach pre
    
    This will output a token that you'll need for GitHub Actions.
 
-### 2. Add the Token to GitHub Secrets
+### 2. Add the Required Secrets to GitHub
 
 1. Go to your GitHub repository
 2. Navigate to Settings > Secrets and variables > Actions
-3. Click "New repository secret"
-4. Name: `RAILWAY_TOKEN`
-5. Value: [The token you generated in step 1]
-6. Click "Add secret"
+3. Add the following secrets:
+
+   a. **RAILWAY_TOKEN**
+      - Name: `RAILWAY_TOKEN`
+      - Value: [The token you generated in step 1]
+
+   b. **RAILWAY_PROJECT_ID**
+      - Name: `RAILWAY_PROJECT_ID`
+      - Value: `091b1de7-3a3a-4cb4-83c4-f33fc23d9b35`
 
 ### 3. Link Your Existing Railway Project
 
