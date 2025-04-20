@@ -70,6 +70,8 @@ jobs:
           echo "🚀 Deploying to Railway via CLI using project token"
           cd apps/api
           
-          # Use the simplest approach with service ID and detach flag
+          # Change to the repo root and deploy with root path
+          cd ../../
+          echo "Current directory (should be repo root): $(pwd)"
           echo "Deploying to Railway..."
           railway up --service 78b2b18b-bb84-41e0-be9f-7ba52648069e --detach
