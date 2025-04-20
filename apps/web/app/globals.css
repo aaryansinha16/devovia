@@ -3,25 +3,49 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Light theme variables */
+  --background: 255, 255, 255;
+  --foreground: 15, 23, 42;
+  --primary: 79, 70, 229;
+  --primary-foreground: 255, 255, 255;
+  --secondary: 226, 232, 240;
+  --secondary-foreground: 15, 23, 42;
+  --accent: 249, 250, 251;
+  --accent-foreground: 15, 23, 42;
+  --muted: 241, 245, 249;
+  --muted-foreground: 100, 116, 139;
+  --card: 255, 255, 255;
+  --card-foreground: 15, 23, 42;
+  --border: 226, 232, 240;
+  --input: 226, 232, 240;
+  --ring: 79, 70, 229;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+.dark {
+  /* Dark theme variables */
+  --background: 15, 23, 42;
+  --foreground: 248, 250, 252;
+  --primary: 79, 70, 229;
+  --primary-foreground: 255, 255, 255;
+  --secondary: 30, 41, 59;
+  --secondary-foreground: 248, 250, 252;
+  --accent: 30, 41, 59;
+  --accent-foreground: 248, 250, 252;
+  --muted: 51, 65, 85;
+  --muted-foreground: 148, 163, 184;
+  --card: 15, 23, 42;
+  --card-foreground: 248, 250, 252;
+  --border: 51, 65, 85;
+  --input: 51, 65, 85;
+  --ring: 79, 70, 229;
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }

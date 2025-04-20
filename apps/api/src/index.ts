@@ -1,9 +1,16 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { json, urlencoded } from 'express';
+import session from 'express-session';
 // Import the real Prisma client from the database package
 import { prisma } from '@repo/database';
+
+// Import routes
 import authRoutes from './routes/auth.routes';
+import oauthRoutes from './routes/oauth.routes';
+
+// Import Passport configuration
+import passport from './config/passport.config';
 
 // Load environment variables
 dotenv.config();
@@ -26,8 +33,26 @@ app.use((req, res, next) => {
   next();
 });
 
+// Session middleware (required for Passport)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'devovia-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  })
+);
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', oauthRoutes);
 
 // Health check endpoint
 app.get('/api/hc', (req, res) => {

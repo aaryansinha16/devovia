@@ -1,12 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt.utils';
 import { JwtPayload } from '../utils/jwt.utils';
+import { prisma } from '@repo/database';
+import { Role } from '@prisma/client';
 
 // Extend Express Request interface to include user property
 // Using module augmentation instead of namespace
 declare module 'express' {
   interface Request {
     user?: JwtPayload;
+    userRole?: Role;
   }
 }
 
@@ -30,11 +33,86 @@ export const authenticateJWT = async (
       return res.status(401).json({ message: 'Invalid or expired token' });
     }
 
-    // Attach user info to request
+    // Fetch user role from database
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { role: true, isVerified: true },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Attach user info and role to request
     req.user = payload;
+    req.userRole = user.role;
     next();
   } catch (error) {
     console.error('Authentication error:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+// Middleware to check if user is verified
+export const requireVerified = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.sub },
+      select: { isVerified: true },
+    });
+
+    if (!user || !user.isVerified) {
+      return res.status(403).json({ 
+        message: 'Email verification required', 
+        code: 'EMAIL_NOT_VERIFIED'
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Verification check error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Middleware to check user role
+export const requireRole = (roles: Role[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.sub },
+        select: { role: true },
+      });
+
+      if (!user || !roles.includes(user.role)) {
+        return res.status(403).json({ 
+          message: 'Insufficient permissions', 
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Role check error:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+};
+
+// Middleware to require admin role
+export const requireAdmin = requireRole([Role.ADMIN]);
+
+// Middleware to require moderator or admin role
+export const requireModerator = requireRole([Role.ADMIN, Role.MODERATOR]);
