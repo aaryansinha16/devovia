@@ -3,7 +3,11 @@
   "builds": [
     {
       "src": "src/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "installCommand": "npm install --no-frozen-lockfile",
+        "buildCommand": "npx prisma generate && npm run build"
+      }
     }
   ],
   "routes": [
