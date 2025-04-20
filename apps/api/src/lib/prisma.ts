@@ -2,16 +2,18 @@ import { PrismaClient, Role as PrismaRole } from '@repo/database';
 
 // Re-export Role enum for use in the API
 export const Role = PrismaRole;
+// Also export the type for use in type annotations
+export type Role = PrismaRole;
 
 // Type guard to check if a value is a valid Role
-export function isRole(value: any): value is Role {
-  return Object.values(Role).includes(value as Role);
+export function isRole(value: any): value is PrismaRole {
+  return Object.values(Role).includes(value as PrismaRole);
 }
 
 // Helper function to convert string to Role enum
-export function toRole(value: string): Role {
+export function toRole(value: string): PrismaRole {
   if (isRole(value)) {
-    return value as Role;
+    return value as PrismaRole;
   }
   throw new Error(`Invalid role: ${value}`);
 }
