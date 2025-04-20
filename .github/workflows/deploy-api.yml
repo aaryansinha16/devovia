@@ -67,5 +67,8 @@ jobs:
         run: |
           echo "🚀 Deploying to Railway via CLI using project token"
           cd apps/api
+          
+          # Using the token explicitly with each command
+          railway login --token "$RAILWAY_TOKEN"
           railway link --environment production --project 78b2b18b-bb84-41e0-be9f-7ba52648069e
           railway up --detach
