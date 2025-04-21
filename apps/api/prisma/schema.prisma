@@ -56,8 +56,10 @@ model Session {
   ipAddress     String?   // IP address
   userAgent     String?   // Browser/app info
   isValid       Boolean   @default(true) // For invalidating sessions
+  isActive      Boolean   @default(true) // For backward compatibility
   expiresAt     DateTime
   createdAt     DateTime  @default(now())
+  lastActive    DateTime  @default(now()) // Added to match code expectations
 }
 
 model Project {
