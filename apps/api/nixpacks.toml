@@ -6,11 +6,14 @@ cmds = [
   "# Display environment for debugging",
   "echo 'Current directory:' && pwd && ls -la",
   
-  "# Install dependencies and build directly",
+  "# Install dependencies using NPM as a fallback",
   "npm install --legacy-peer-deps",
   
-  "# Just build the API - we'll use the Prisma client from @repo/database",
-  "npm run build"
+  "# Generate Prisma client in database package first",
+  "cd packages/database && npm run build && cd ../../",
+  
+  "# Then build the API",
+  "cd apps/api && npm run build"
 ]
 
 [start]

@@ -1,7 +1,12 @@
-import { PrismaClient } from '@prisma/client';
+/**
+ * Prisma Client import and re-export for API usage
+ * This file imports from the shared database package to ensure schema consistency
+ */
 
-// Define Role enum directly for Railway deployment
-// This matches the enum in the shared database package
+// Import PrismaClient and all other exports from the shared database package
+import { prisma, PrismaClient } from '@repo/database';
+
+// Re-export Role enum to maintain API compatibility
 export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
@@ -21,19 +26,9 @@ export function toRole(value: string): Role {
   throw new Error(`Invalid role: ${value}`);
 }
 
-// Create a singleton Prisma client
-const prismaClientSingleton = () => {
-  return new PrismaClient();
-};
-
-type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClientSingleton | undefined;
-};
-
-const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
-
+// Export the shared prisma instance as default
 export default prisma;
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Re-export necessary types from the database package
+export * from '@repo/database';
+
