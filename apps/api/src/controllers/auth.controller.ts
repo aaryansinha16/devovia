@@ -102,10 +102,11 @@ export const login = async (req: Request, res: Response) => {
     }
     
     const { email, password } = req.body;
+    let user: any = null;
 
     // Find user by email
     try {
-      const user = await prisma.user.findUnique({
+      user = await prisma.user.findUnique({
         where: { email },
       });
 
@@ -127,22 +128,31 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate tokens
-    const tokens = await generateTokens(user.id);
+    try {
+      // Generate tokens
+      const tokens = await generateTokens(user.id);
 
-    // Create session
-    await createSession(user.id, tokens.refreshToken);
+      // Create session
+      await createSession(user.id, tokens.refreshToken);
 
-    return res.status(200).json({
-      message: 'Login successful',
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-      },
-      tokens,
-    });
+      // Return user data and tokens
+      return res.status(200).json({
+        message: 'Login successful',
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+        },
+        tokens,
+      });
+    } catch (tokenError) {
+      console.error('Error generating tokens or creating session:', tokenError);
+      return res.status(500).json({
+        message: 'Error during authentication',
+        error: tokenError instanceof Error ? tokenError.message : String(tokenError)
+      });
+    }
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({ message: 'Internal server error' });
