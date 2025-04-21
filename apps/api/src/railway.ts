@@ -66,16 +66,28 @@ app.get('/', (req: any, res: any) => {
   res.end ? res.end('Devovia API Healthcheck Server') : res.send('Devovia API Healthcheck Server');
 });
 
+// Import and mount the main application routes
+try {
+  console.log('Attempting to import and mount main application...');
+  const { apiApp, connectToDatabase } = require('./server');
+  
+  // Mount all routes from the main app
+  app.use('/', apiApp);
+  
+  console.log('Successfully mounted main application routes');
+} catch (error) {
+  console.error('Error mounting main application:', error);
+}
+
 // Start the healthcheck server first
 const server = app.listen(PORT, () => {
-  console.log(`Healthcheck server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
   
-  // Try to import database logic in the background
+  // Try to connect to the database in the background
   setTimeout(async () => {
     try {
-      console.log('Attempting to import database connection...');
-      const { connectToDatabase } = require('./server');
       console.log('Attempting to connect to database...');
+      const { connectToDatabase } = require('./server');
       const connected = await connectToDatabase();
       console.log('Database connection result:', connected);
     } catch (error) {
