@@ -3,18 +3,11 @@ aptPkgs = ["nodejs", "git"]
 
 [phases.install]
 cmds = [
-  "# Install dependencies",
-  "npm install --legacy-peer-deps",
-  "npm install prisma @prisma/client",
-  
-  "# Create minimal schema with proper formatting",
-  "mkdir -p prisma",
-  "printf 'generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}' > prisma/schema.prisma",
-  
-  "# Generate Prisma client",
-  "npx prisma generate",
-  
-  "# Build the API",
+  "npm install --legacy-peer-deps"
+]
+
+[phases.build]
+cmds = [
   "npm run build"
 ]
 
