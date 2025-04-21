@@ -6,6 +6,7 @@
     "prebuild": "rimraf dist && npx prisma generate",
     "build": "tsc",
     "build:railway": "npx prisma generate && tsc",
+    "start:railway": "node dist/railway.js",
     "postinstall": "echo 'Skipping prisma generate in postinstall'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/index.js",
