@@ -1,0 +1,17 @@
+[phases.setup]
+aptPkgs = [\"nodejs\", \"git\"]
+
+[phases.install]
+cmds = [
+  \"# Display environment for debugging\",
+  \"echo 'Current directory:' && pwd && ls -la\",
+  
+  \"# Install dependencies\",
+  \"npm install --legacy-peer-deps\",
+  
+  \"# Build database package first, then API\",
+  \"npm run railway-build\"
+]
+
+[start]
+cmd = \"cd apps/api && npm run start\"

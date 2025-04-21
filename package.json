@@ -9,7 +9,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
     "cleanup-duplicates": "./scripts/cleanup-duplicates.sh",
-    "vercel-build": "turbo run build --filter=web"
+    "vercel-build": "turbo run build --filter=web",
+    "railway-build": "npm run build --filter=@repo/database... --filter=api..."
   },
   "devDependencies": {
     "husky": "^9.1.7",
