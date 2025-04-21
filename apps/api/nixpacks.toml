@@ -3,139 +3,16 @@ aptPkgs = ["nodejs", "git"]
 
 [phases.install]
 cmds = [
-  "# Display environment for debugging",
-  "echo 'Current directory:' && pwd && ls -la",
-  
-  "# Install dependencies directly",
+  "# Install dependencies",
   "npm install --legacy-peer-deps",
+  "npm install prisma @prisma/client",
   
-  "# Create directory and copy shared Prisma schema for deployment",
+  "# Create minimal schema",
   "mkdir -p prisma",
-  "cat > prisma/schema.prisma << 'EOF'
-// This is a Railway deployment schema
-// The original schema is in the monorepo at packages/database/prisma/schema.prisma
-
-generator client {
-  provider = \"prisma-client-js\"
-}
-
-datasource db {
-  provider = \"postgresql\"
-  url      = env(\"DATABASE_URL\")
-}
-
-enum Role {
-  USER
-  ADMIN
-  MODERATOR
-}
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  username      String    @unique
-  password      String?
-  bio           String?
-  avatar        String?
-  githubUrl     String?
-  twitterUrl    String?
-  portfolioUrl  String?
-  role          Role      @default(USER)
-  isVerified    Boolean   @default(false)
+  "echo 'generator client { provider = \"prisma-client-js\" }' > prisma/schema.prisma",
+  "echo 'datasource db { provider = \"postgresql\" url = env(\"DATABASE_URL\") }' >> prisma/schema.prisma",
   
-  // OAuth fields
-  githubId      String?   @unique
-  googleId      String?   @unique
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // Relations
-  sessions      Session[]
-  projects      Project[]
-  snippets      Snippet[]
-  posts         Post[]
-  comments      Comment[]
-  likes         Like[]
-}
-
-// User sessions for authentication and token management
-model Session {
-  id            String    @id @default(cuid())
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token         String    @unique // Refresh token
-  device        String?   // Device information
-  ipAddress     String?   // IP address
-  userAgent     String?   // Browser/app info
-  isValid       Boolean   @default(true) // For invalidating sessions
-  expiresAt     DateTime
-  createdAt     DateTime  @default(now())
-}
-
-model Project {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  content     String?
-  published   Boolean   @default(false)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Snippet {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  code        String
-  language    String
-  published   Boolean   @default(false)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Post {
-  id          String    @id @default(cuid())
-  title       String
-  content     String
-  published   Boolean   @default(false)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  comments    Comment[]
-  likes       Like[]
-}
-
-model Comment {
-  id          String    @id @default(cuid())
-  content     String
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  postId      String
-  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Like {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  postId      String
-  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-
-  @@unique([userId, postId])
-}
-EOF",
-  
-  "# Generate Prisma client locally for deployment",
+  "# Generate Prisma client",
   "npx prisma generate",
   
   "# Build the API",
