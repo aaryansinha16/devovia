@@ -7,22 +7,44 @@ import { generateTokens, verifyRefreshToken } from '../utils/jwt.utils';
 // Register a new user
 export const register = async (req: Request, res: Response) => {
   try {
+    console.log('Register endpoint called with:', { email: req.body.email, username: req.body.username });
+    
+    // Check if Prisma client is connected
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('Database connection is working');
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return res.status(500).json({
+        message: 'Database connection error',
+        error: dbError instanceof Error ? dbError.message : String(dbError)
+      });
+    }
+    
     const { email, username, password, name } = req.body;
 
     // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { username }],
-      },
-    });
+    try {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email }, { username }],
+        },
+      });
 
-    if (existingUser) {
-      return res.status(409).json({
-        message: 'User already exists',
-        error:
-          existingUser.email === email
-            ? 'Email already in use'
-            : 'Username already taken',
+      if (existingUser) {
+        return res.status(409).json({
+          message: 'User already exists',
+          error:
+            existingUser.email === email
+              ? 'Email already in use'
+              : 'Username already taken',
+        });
+      }
+    } catch (findError) {
+      console.error('Error checking for existing user:', findError);
+      return res.status(500).json({
+        message: 'Error checking for existing user',
+        error: findError instanceof Error ? findError.message : String(findError)
       });
     }
 
@@ -65,26 +87,44 @@ export const register = async (req: Request, res: Response) => {
 // Login user
 export const login = async (req: Request, res: Response) => {
   try {
+    console.log('Login endpoint called with email:', req.body.email);
+    
+    // Check if Prisma client is connected
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('Database connection is working');
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return res.status(500).json({
+        message: 'Database connection error',
+        error: dbError instanceof Error ? dbError.message : String(dbError)
+      });
+    }
+    
     const { email, password } = req.body;
 
-    // Find user
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email },
-          { username: email }, // Allow login with username or email
-        ],
-      },
-    });
+    // Find user by email
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
 
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      // Check password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+    } catch (findError) {
+      console.error('Error finding user:', findError);
+      return res.status(500).json({
+        message: 'Error finding user',
+        error: findError instanceof Error ? findError.message : String(findError)
+      });
     }
 
     // Generate tokens
