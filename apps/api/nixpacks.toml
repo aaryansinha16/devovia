@@ -7,10 +7,9 @@ cmds = [
   "npm install --legacy-peer-deps",
   "npm install prisma @prisma/client",
   
-  "# Create minimal schema",
+  "# Create minimal schema with proper formatting",
   "mkdir -p prisma",
-  "echo 'generator client { provider = \"prisma-client-js\" }' > prisma/schema.prisma",
-  "echo 'datasource db { provider = \"postgresql\" url = env(\"DATABASE_URL\") }' >> prisma/schema.prisma",
+  "printf 'generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}' > prisma/schema.prisma",
   
   "# Generate Prisma client",
   "npx prisma generate",
