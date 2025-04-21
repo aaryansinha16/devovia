@@ -62,9 +62,11 @@ export function createExpressApp() {
   app.use('/api/auth', authRoutes);
   app.use('/api/auth', oauthRoutes);
 
-  // Health check endpoint
+  // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {
-    res.json({ status: 'ok', message: 'Server is running' });
+    // Always return 200 for Railway health checks
+    console.log('Health check endpoint called');
+    res.status(200).json({ status: 'ok', message: 'Server is running' });
   });
 
   // Root endpoint
@@ -90,6 +92,14 @@ export async function connectToDatabase() {
     return true;
   } catch (error) {
     console.error('Failed to connect to database:', error);
+    // Log connection parameters (without sensitive info)
+    console.log('DATABASE_URL env var exists:', !!process.env.DATABASE_URL);
+    if (process.env.DATABASE_URL) {
+      console.log('DATABASE_URL prefix:', process.env.DATABASE_URL.split('://')[0] + '://');
+    }
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    
+    // Return false but don't throw error - allow app to start without DB
     return false;
   }
 }

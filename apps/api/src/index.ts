@@ -26,20 +26,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 // Start the server when running directly (not in serverless environment)
 if (require.main === module) {
-  // Start the server
-  const server = apiApp.listen(PORT, async () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  try {
+    // Log basic environment info
+    console.log(`Running in ${process.env.NODE_ENV || 'development'} mode`);
+    console.log(`API Base URL: ${process.env.API_URL || `http://localhost:${PORT}/api`}`);
+    console.log(`Frontend Base URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
     
-    // Connect to the database
-    isConnected = await connectToDatabase();
-  });
-
-  // Handle graceful shutdown
-  process.on('SIGINT', async () => {
-    await disconnectFromDatabase();
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
+    // Start the server first - important to handle healthchecks even if DB fails
+    const server = apiApp.listen(PORT, async () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+      
+      try {
+        // Connect to the database - don't crash the app if this fails
+        isConnected = await connectToDatabase();
+      } catch (err) {
+        console.error('Error during database connection:', err);
+        // Continue running even if DB connection fails
+      }
     });
-  });
+
+    // Handle graceful shutdown
+    process.on('SIGINT', async () => {
+      if (isConnected) {
+        await disconnectFromDatabase();
+      }
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
+    });
+    
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error) => {
+      console.error('Uncaught exception:', error);
+      // Don't exit - keep the server running for healthchecks
+    });
+    
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+      // Don't exit - keep the server running for healthchecks
+    });
+    
+  } catch (error) {
+    console.error('Server startup error:', error);
+    // Still exit on catastrophic startup errors
+    process.exit(1);
+  }
 }
