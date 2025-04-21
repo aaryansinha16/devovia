@@ -17,25 +17,23 @@ try {
   console.error('Failed to import express:', error);
   // Create minimal replacement for express if import fails
   const http = require('http');
-  express = {
-    (): { get: Function; listen: Function } => {
-      const routes: Record<string, Function> = {};
-      return {
-        get: (path: string, handler: Function) => { routes[path] = handler; },
-        listen: (port: number, callback: Function) => {
-          const server = http.createServer((req: any, res: any) => {
-            if (routes[req.url]) {
-              routes[req.url](req, res);
-            } else {
-              res.writeHead(404);
-              res.end('Not found');
-            }
-          });
-          server.listen(port, callback);
-          return server;
-        }
-      };
-    }
+  express = function() {
+    const routes: Record<string, Function> = {};
+    return {
+      get: function(path: string, handler: Function) { routes[path] = handler; },
+      listen: function(port: number, callback: Function) {
+        const server = http.createServer((req: any, res: any) => {
+          if (routes[req.url]) {
+            routes[req.url](req, res);
+          } else {
+            res.writeHead(404);
+            res.end('Not found');
+          }
+        });
+        server.listen(port, callback);
+        return server;
+      }
+    };
   };
 }
 
