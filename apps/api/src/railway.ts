@@ -83,13 +83,26 @@ try {
 const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   
-  // Try to connect to the database in the background
+  // Try to connect to the database and run migrations in the background
   setTimeout(async () => {
     try {
       console.log('Attempting to connect to database...');
       const { connectToDatabase } = require('./server');
       const connected = await connectToDatabase();
       console.log('Database connection result:', connected);
+      
+      // Run Prisma migrations if connected
+      if (connected) {
+        console.log('Running Prisma migrations...');
+        try {
+          const { execSync } = require('child_process');
+          // Run migration in production mode to actually apply changes
+          execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+          console.log('Migrations completed successfully');
+        } catch (migrationError) {
+          console.error('Migration error:', migrationError);
+        }
+      }
     } catch (error) {
       console.error('Error with database:', error);
     }
