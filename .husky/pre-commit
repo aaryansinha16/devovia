@@ -1,4 +1,14 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
 
+# Run the Prisma schema sync script
+echo "Running Prisma schema synchronization..."
+pnpm run sync-prisma
+
+# If the sync made changes, add them to the commit
+if git diff --name-only | grep -q "prisma"; then
+  echo "Prisma schema changes detected, adding synced files to commit"
+  git add apps/api/prisma/
+fi
+
+# Run the original lint-staged command
 pnpm lint-staged

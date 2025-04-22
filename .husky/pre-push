@@ -1,4 +1,16 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
 
+# Run the Prisma schema sync check before pushing
+echo "Checking Prisma schema synchronization..."
+pnpm run sync-prisma
+
+# If there are still differences after sync, abort the push
+if git diff --name-only | grep -q "prisma"; then
+  echo "⚠️ Prisma schema changes were made during sync."
+  echo "Please commit these changes before pushing:"
+  git diff --name-only | grep "prisma"
+  exit 1
+fi
+
+# Run type checking before push
 pnpm turbo run check-types

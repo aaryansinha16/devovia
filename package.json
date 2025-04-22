@@ -7,6 +7,7 @@
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "sync-prisma": "node scripts/sync-prisma.js",
     "prepare": "husky",
     "cleanup-duplicates": "./scripts/cleanup-duplicates.sh",
     "vercel-build": "turbo run build --filter=web",
