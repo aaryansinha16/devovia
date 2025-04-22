@@ -30,9 +30,12 @@ importers:
 
   apps/api:
     dependencies:
+      '@prisma/client':
+        specifier: ^5.10.0
+        version: 5.22.0(prisma@5.22.0)
       '@repo/database':
-        specifier: workspace:*
-        version: link:../../packages/database
+        specifier: file:../../packages/database
+        version: file:packages/database(prisma@5.22.0)
       '@vercel/node':
         specifier: ^3.0.17
         version: 3.2.29
@@ -133,6 +136,9 @@ importers:
       prettier:
         specifier: ^3.2.5
         version: 3.5.3
+      prisma:
+        specifier: ^5.10.0
+        version: 5.22.0
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
@@ -8813,4 +8819,14 @@ packages:
 
   /zod@3.24.3:
     resolution: {integrity: sha512-HhY1oqzWCQWuUqvBFnsyrtZRhyPeR7SUGv+C4+MsisMuVfSPx8HpwWqH8tRahSlt6M3PiFAcoeFhZAqIXTxoSg==}
+    dev: false
+
+  file:packages/database(prisma@5.22.0):
+    resolution: {directory: packages/database, type: directory}
+    id: file:packages/database
+    name: '@repo/database'
+    dependencies:
+      '@prisma/client': 5.22.0(prisma@5.22.0)
+    transitivePeerDependencies:
+      - prisma
     dev: false
