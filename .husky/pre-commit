@@ -10,5 +10,18 @@ if git diff --name-only | grep -q "prisma"; then
   git add apps/api/prisma/
 fi
 
+# Run tests for affected components
+echo "Running tests..."
+
+# Always run the Prisma sync tests
+pnpm run test:sync-prisma || { echo "❌ Prisma sync tests failed"; exit 1; }
+
+# Check if API controller tests should run (if any controller files changed)
+if git diff --cached --name-only | grep -q "apps/api/src/controllers"; then
+  echo "API controller changes detected, running controller tests"
+  cd apps/api && pnpm run test:auth && pnpm run test:oauth || { echo "❌ API controller tests failed"; exit 1; }
+  cd ../..
+fi
+
 # Run the original lint-staged command
 pnpm lint-staged

@@ -2,6 +2,7 @@
   "name": "api",
   "version": "0.0.1",
   "description": "express api application",
+  "type": "module",
   "scripts": {
     "prebuild": "rimraf dist && npx prisma generate",
     "build": "tsc",
