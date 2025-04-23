@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
 // This ensures the page is always rendered at request time, not build time
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useAuth } from '../../../lib/auth-context';
-import Link from 'next/link';
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useAuth } from "../../../lib/auth-context";
+import Link from "next/link";
 
 // Component that uses searchParams wrapped in Suspense
 function OAuthCallbackContent() {
@@ -16,55 +16,81 @@ function OAuthCallbackContent() {
 
   useEffect(() => {
     // Only run once to prevent infinite loops
-    const hasRun = sessionStorage.getItem('oauth_callback_processed');
-    if (hasRun === 'true') return;
+    const hasRun = sessionStorage.getItem("oauth_callback_processed");
+    if (hasRun === "true") {
+      console.log("OAuth callback already processed, skipping");
+      return;
+    }
 
     const handleOAuthCallback = async () => {
       try {
-        // Mark as processed to prevent infinite loops
-        sessionStorage.setItem('oauth_callback_processed', 'true');
-        
+        console.log("Processing OAuth callback...");
+
         // Get tokens from URL parameters
-        const accessToken = searchParams.get('accessToken');
-        const refreshToken = searchParams.get('refreshToken');
-        const errorParam = searchParams.get('error');
+        const accessToken = searchParams.get("accessToken");
+        const refreshToken = searchParams.get("refreshToken");
+        const errorParam = searchParams.get("error");
+        const userId = searchParams.get("userId");
+
+        console.log("OAuth tokens received:", {
+          accessToken: accessToken
+            ? `${accessToken.substring(0, 10)}...`
+            : null,
+          refreshToken: refreshToken
+            ? `${refreshToken.substring(0, 10)}...`
+            : null,
+          userId,
+          error: errorParam,
+        });
 
         if (errorParam) {
+          console.error("OAuth error from params:", errorParam);
           setError(errorParam);
           return;
         }
 
         if (!accessToken || !refreshToken) {
-          setError('Authentication failed: Missing tokens');
+          console.error("Missing tokens in OAuth callback");
+          setError("Authentication failed: Missing tokens");
           return;
         }
 
         // Store tokens and update auth context
+        console.log("Storing tokens and updating auth context...");
         login({
           accessToken,
           refreshToken,
         });
 
+        // Mark as processed AFTER successful login
+        sessionStorage.setItem("oauth_callback_processed", "true");
+
+        console.log("Redirecting to dashboard...");
         // Use window.location for a full page navigation instead of router.push
-        // This helps avoid RSC (React Server Component) fetch errors
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 500); // Small delay to ensure tokens are properly stored
+        window.location.href = "/dashboard";
       } catch (err) {
-        console.error('OAuth callback error:', err);
-        setError('Authentication failed');
+        console.error("OAuth callback error:", err);
+        setError("Authentication failed");
         // Clear the processed flag if there's an error
-        sessionStorage.removeItem('oauth_callback_processed');
+        sessionStorage.removeItem("oauth_callback_processed");
       }
     };
 
     handleOAuthCallback();
-    
+
+    // Add a safety timeout to prevent getting stuck indefinitely
+    const safetyTimeout = setTimeout(() => {
+      console.log("Safety timeout triggered - forcing navigation to dashboard");
+      window.location.href = "/dashboard";
+    }, 5000); // 5 second safety timeout
+
     // Cleanup function to ensure we don't get stuck
     return () => {
-      // If component unmounts without successful navigation, clear the flag
-      if (!error) {
-        sessionStorage.removeItem('oauth_callback_processed');
+      clearTimeout(safetyTimeout);
+      console.log("OAuth callback component unmounted, cleanup performed");
+      // If there was an error or we're not redirecting, clear the processed flag
+      if (error) {
+        sessionStorage.removeItem("oauth_callback_processed");
       }
     };
   }, [searchParams, login, error]);
@@ -75,12 +101,12 @@ function OAuthCallbackContent() {
         <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-xl shadow-lg">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground">
-              {error ? 'Authentication Error' : 'Authentication Successful'}
+              {error ? "Authentication Error" : "Authentication Successful"}
             </h1>
             <p className="mt-2 text-muted-foreground">
               {error
                 ? error
-                : 'You have successfully authenticated with GitHub. Redirecting to dashboard...'}
+                : "You have successfully authenticated with GitHub. Redirecting to dashboard..."}
             </p>
           </div>
 
@@ -103,11 +129,15 @@ function OAuthCallbackContent() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-xl shadow-lg">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Authenticating...</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Authenticating...
+          </h1>
           <div className="flex justify-center my-6">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-          <p className="text-muted-foreground">Please wait while we complete your authentication.</p>
+          <p className="text-muted-foreground">
+            Please wait while we complete your authentication.
+          </p>
         </div>
       </div>
     </div>
@@ -120,11 +150,15 @@ function OAuthCallbackLoading() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-xl shadow-lg">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Processing Authentication</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Processing Authentication
+          </h1>
           <div className="flex justify-center my-6">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-          <p className="text-muted-foreground">Please wait while we verify your credentials...</p>
+          <p className="text-muted-foreground">
+            Please wait while we verify your credentials...
+          </p>
         </div>
       </div>
     </div>
