@@ -11,7 +11,9 @@
     "prepare": "husky",
     "cleanup-duplicates": "./scripts/cleanup-duplicates.sh",
     "vercel-build": "turbo run build --filter=web",
-    "railway-build": "npm run build --filter=@repo/database... --filter=api..."
+    "railway-build": "npm run build --filter=@repo/database... --filter=api...",
+    "test": "turbo run test",
+    "test:sync-prisma": "node --test scripts/__tests__/sync-prisma.test.js"
   },
   "devDependencies": {
     "husky": "^9.1.7",
