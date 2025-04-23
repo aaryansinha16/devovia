@@ -1,58 +1,152 @@
-# Turborepo Tailwind CSS starter
+Sure! Here's a clean and professional `README.md` template for your monorepo project using Railway, PNPM, and probably a structure like `apps/` and `packages/`. You can modify the project name and description as needed:
 
-This Turborepo starter is maintained by the Turborepo core team.
+---
 
-## Using this example
+```md
+# 🚀 Devovia Monorepo
 
-Run the following command:
+This is the monorepo for the **Devovia** platform, a developer community and portfolio showcase built with modern technologies including:
 
-```sh
-npx create-turbo@latest -e with-tailwind
+- ⚡️ **PNPM Workspaces** for efficient package management
+- 🧱 **Modular Architecture** using `apps/` and `packages/`
+- 🔄 **Automated Prisma Schema Sync** for consistent database schemas
+- ☁️ **Railway + Vercel** for seamless deployment and infrastructure
+- 🔐 **GitHub OAuth** integration for social authentication
+- 📦 **Shared database package** for full-stack type safety
+
+---
+
+## 📁 Project Structure
 ```
 
-## What's inside?
+.
+├── apps/ # Frontend and backend apps
+│ ├── api/ # Express/Nest.js/Next.js backend service
+│ └── web/ # Frontend app (if applicable)
+├── packages/ # Reusable modules
+│ ├── database/ # Prisma + DB logic
+│ ├── utils/ # Shared helper functions
+│ └── types/ # Shared TypeScript types
+├── .github/ # GitHub Actions workflows
+├── railway.json # Railway project settings
+├── package.json # Workspace root
+└── README.md
 
-This Turborepo includes the following packages/apps:
+````
 
-### Apps and Packages
+---
 
-- `docs`: a [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `web`: another [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `ui`: a stub React component library with [Tailwind CSS](https://tailwindcss.com/) shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## 🛠️ Getting Started
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### 1. Clone and install dependencies
 
-### Building packages/ui
+```bash
+git clone https://github.com/your-org/devovia.git
+cd devovia
+pnpm install
+````
 
-This example is set up to produce compiled styles for `ui` components into the `dist` directory. The component `.tsx` files are consumed by the Next.js apps directly using `transpilePackages` in `next.config.ts`. This was chosen for several reasons:
+### 2. Set up environment
 
-- Make sharing one `tailwind.config.ts` to apps and packages as easy as possible.
-- Make package compilation simple by only depending on the Next.js Compiler and `tailwindcss`.
-- Ensure Tailwind classes do not overwrite each other. The `ui` package uses a `ui-` prefix for it's classes.
-- Maintain clear package export boundaries.
+Copy `.env.example` files in relevant apps/packages and update values:
 
-Another option is to consume `packages/ui` directly from source without building. If using this option, you will need to update the `tailwind.config.ts` in your apps to be aware of your package locations, so it can find all usages of the `tailwindcss` class names for CSS compilation.
-
-For example, in [tailwind.config.ts](packages/tailwind-config/tailwind.config.ts):
-
-```js
-  content: [
-    // app content
-    `src/**/*.{js,ts,jsx,tsx}`,
-    // include packages if not transpiling
-    "../../packages/ui/*.{js,ts,jsx,tsx}",
-  ],
+```bash
+cp apps/api/.env.example apps/api/.env
 ```
 
-If you choose this strategy, you can remove the `tailwindcss` and `autoprefixer` dependencies from the `ui` package.
+### 3. Start development
 
-### Utilities
+```bash
+pnpm dev       # Usually aliases apps/api or apps/web
+pnpm dev:api   # Run backend only
+pnpm dev:web   # Run frontend only (if present)
+```
 
-This Turborepo has some additional tools already setup for you:
+---
 
-- [Tailwind CSS](https://tailwindcss.com/) for styles
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+## 🚀 Deployment
+
+We use a dual deployment strategy:
+
+### Backend (Railway)
+
+The API is deployed to [Railway](https://railway.app/) with a dedicated healthcheck server:
+
+```bash
+# Deploy API to Railway
+cd apps/api
+railway up
+```
+
+### Frontend (Vercel)
+
+The web frontend is deployed to [Vercel](https://vercel.com/):
+
+```bash
+# Deploy web to Vercel
+cd apps/web
+vercel deploy --prod
+```
+
+### Monorepo Strategy
+
+Our deployment is configured to work with the monorepo structure:
+
+1. API has its own copy of the Prisma schema for independent deployment
+2. Shared packages are properly referenced in each app
+3. Environment variables are configured in each deployment platform
+
+---
+
+## 🧪 Running Tests
+
+```bash
+pnpm test     # Runs all tests across the workspace
+```
+
+Each package or app can have its own tests.
+
+---
+
+## 🔄 Prisma Schema Synchronization
+
+This project uses an automated system to keep Prisma schemas in sync between the shared database package and the API package:
+
+```bash
+pnpm run sync-prisma  # Manually sync schemas if needed
+```
+
+### How It Works
+
+1. The shared database package (`packages/database/prisma/schema.prisma`) is the single source of truth
+2. Git hooks automatically sync the schema to the API package before commits and pushes
+3. Migrations are created in the shared package and copied to the API package
+
+This ensures consistent database schemas across all environments while allowing independent deployment of the API.
+
+---
+
+## 📚 Tech Stack
+
+- **Monorepo Management**: PNPM Workspaces with Turbo
+- **Backend**: Express.js with TypeScript
+- **Frontend**: Next.js with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT + Session-based with GitHub OAuth integration
+- **Authorization**: Role-based access control (USER, ADMIN, MODERATOR)
+- **Deployment**: Railway (API) and Vercel (Web)
+- **Schema Sync**: Custom Git hooks and automation scripts
+
+---
+
+## 🧾 License
+
+This project is licensed under the MIT License.
+
+---
+
+> Built with ❤️ by the Devovia
+
+```
+
+```
