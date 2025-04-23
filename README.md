@@ -135,14 +135,4 @@ This ensures consistent database schemas across all environments while allowing 
 
 ---
 
-## 🧾 License
-
-This project is licensed under the MIT License.
-
----
-
 > Built with ❤️ by the Devovia
-
-```
-
-```
