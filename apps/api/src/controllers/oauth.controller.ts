@@ -9,12 +9,16 @@ export const githubCallback = (req: Request, res: Response) => {
   passport.authenticate('github', { session: false }, (err, data) => {
     if (err) {
       console.error('GitHub OAuth error:', err);
-      return res.redirect(`${process.env.FRONTEND_URL}/auth/oauth-callback?error=oauth_failed`);
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/auth/oauth-callback?error=oauth_failed`,
+      );
     }
-    
+
     if (!data) {
       console.error('No data returned from GitHub OAuth');
-      return res.redirect(`${process.env.FRONTEND_URL}/auth/oauth-callback?error=oauth_failed`);
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/auth/oauth-callback?error=oauth_failed`,
+      );
     }
 
     const { user, tokens } = data;
@@ -23,13 +27,18 @@ export const githubCallback = (req: Request, res: Response) => {
     const encodedAccessToken = encodeURIComponent(tokens.accessToken);
     const encodedRefreshToken = encodeURIComponent(tokens.refreshToken);
 
-    // Redirect to frontend with tokens
-    return res.redirect(
+    // Construct the redirect URL
+    const redirectUrl =
       `${process.env.FRONTEND_URL}/auth/oauth-callback?` +
-        `accessToken=${encodedAccessToken}&` +
-        `refreshToken=${encodedRefreshToken}&` +
-        `userId=${user.id}`
-    );
+      `accessToken=${encodedAccessToken}&` +
+      `refreshToken=${encodedRefreshToken}&` +
+      `userId=${user.id}`;
+
+    // Log the redirect URL for debugging
+    console.log('OAuth redirect URL:', redirectUrl);
+
+    // Redirect to frontend with tokens
+    return res.redirect(redirectUrl);
   })(req, res);
 };
 
