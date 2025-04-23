@@ -8,9 +8,8 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "npm run prisma:deploy",
   "npm run build"
 ]
 
 [start]
-cmd = "node dist/index.js"
+cmd = "npx prisma migrate deploy && node dist/index.js"
