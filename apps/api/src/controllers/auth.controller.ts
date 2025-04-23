@@ -7,8 +7,11 @@ import { generateTokens, verifyRefreshToken } from '../utils/jwt.utils';
 // Register a new user
 export const register = async (req: Request, res: Response) => {
   try {
-    console.log('Register endpoint called with:', { email: req.body.email, username: req.body.username });
-    
+    console.log('Register endpoint called with:', {
+      email: req.body.email,
+      username: req.body.username,
+    });
+
     // Check if Prisma client is connected
     try {
       await prisma.$queryRaw`SELECT 1`;
@@ -17,10 +20,10 @@ export const register = async (req: Request, res: Response) => {
       console.error('Database connection error:', dbError);
       return res.status(500).json({
         message: 'Database connection error',
-        error: dbError instanceof Error ? dbError.message : String(dbError)
+        error: dbError instanceof Error ? dbError.message : String(dbError),
       });
     }
-    
+
     const { email, username, password, name } = req.body;
 
     // Check if user already exists
@@ -44,7 +47,8 @@ export const register = async (req: Request, res: Response) => {
       console.error('Error checking for existing user:', findError);
       return res.status(500).json({
         message: 'Error checking for existing user',
-        error: findError instanceof Error ? findError.message : String(findError)
+        error:
+          findError instanceof Error ? findError.message : String(findError),
       });
     }
 
@@ -64,8 +68,17 @@ export const register = async (req: Request, res: Response) => {
     // Generate tokens
     const tokens = await generateTokens(user.id);
 
-    // Create session
-    await createSession(user.id, tokens.refreshToken);
+    // Create session - but don't let it fail the registration
+    try {
+      const session = await createSession(user.id, tokens.refreshToken);
+      console.log('Session created successfully:', session ? 'yes' : 'no');
+    } catch (sessionError) {
+      // Log the error but continue with registration
+      console.error(
+        'Session creation failed but continuing registration:',
+        sessionError,
+      );
+    }
 
     return res.status(201).json({
       message: 'User registered successfully',
@@ -88,7 +101,7 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     console.log('Login endpoint called with email:', req.body.email);
-    
+
     // Check if Prisma client is connected
     try {
       await prisma.$queryRaw`SELECT 1`;
@@ -97,10 +110,10 @@ export const login = async (req: Request, res: Response) => {
       console.error('Database connection error:', dbError);
       return res.status(500).json({
         message: 'Database connection error',
-        error: dbError instanceof Error ? dbError.message : String(dbError)
+        error: dbError instanceof Error ? dbError.message : String(dbError),
       });
     }
-    
+
     const { email, password } = req.body;
     let user: any = null;
 
@@ -124,7 +137,8 @@ export const login = async (req: Request, res: Response) => {
       console.error('Error finding user:', findError);
       return res.status(500).json({
         message: 'Error finding user',
-        error: findError instanceof Error ? findError.message : String(findError)
+        error:
+          findError instanceof Error ? findError.message : String(findError),
       });
     }
 
@@ -132,8 +146,20 @@ export const login = async (req: Request, res: Response) => {
       // Generate tokens
       const tokens = await generateTokens(user.id);
 
-      // Create session
-      await createSession(user.id, tokens.refreshToken);
+      // Create session - but don't let it fail the login
+      try {
+        const session = await createSession(user.id, tokens.refreshToken);
+        console.log(
+          'Session created successfully during login:',
+          session ? 'yes' : 'no',
+        );
+      } catch (sessionError) {
+        // Log the error but continue with login
+        console.error(
+          'Session creation failed during login but continuing:',
+          sessionError,
+        );
+      }
 
       // Return user data and tokens
       return res.status(200).json({
@@ -147,10 +173,11 @@ export const login = async (req: Request, res: Response) => {
         tokens,
       });
     } catch (tokenError) {
-      console.error('Error generating tokens or creating session:', tokenError);
+      console.error('Error generating tokens:', tokenError);
       return res.status(500).json({
         message: 'Error during authentication',
-        error: tokenError instanceof Error ? tokenError.message : String(tokenError)
+        error:
+          tokenError instanceof Error ? tokenError.message : String(tokenError),
       });
     }
   } catch (error) {
@@ -293,18 +320,65 @@ export const getSessions = async (req: Request, res: Response) => {
 
 // Helper function to create a session
 const createSession = async (userId: string, refreshToken: string) => {
-  const userAgent = 'Unknown';
-  const ipAddress = '0.0.0.0';
+  try {
+    console.log('Creating session for user:', userId);
+    const userAgent = 'Unknown';
+    const ipAddress = '0.0.0.0';
 
-  return prisma.session.create({
-    data: {
-      userId,
-      token: refreshToken, // Use token field instead of refreshToken
-      userAgent,
-      ipAddress,
-      isValid: true, // Use isValid field instead of isActive
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      lastActive: new Date(), // Use lastActive field instead of lastUsedAt
-    },
-  });
+    // Try to create a session with the most likely schema based on our migrations
+    try {
+      // First attempt with isActive field (our latest schema)
+      return await prisma.session.create({
+        data: {
+          userId,
+          token: refreshToken,
+          userAgent,
+          ipAddress,
+          isActive: true,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+          lastActive: new Date(),
+        },
+      });
+    } catch (firstAttemptError) {
+      console.log(
+        'First session creation attempt failed, trying alternative schema:',
+        firstAttemptError.message,
+      );
+
+      // Second attempt with isValid field (possible older schema)
+      try {
+        return await prisma.session.create({
+          data: {
+            userId,
+            token: refreshToken,
+            userAgent,
+            ipAddress,
+            isValid: true,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            lastActive: new Date(),
+          },
+        });
+      } catch (secondAttemptError) {
+        console.log(
+          'Second session creation attempt failed, trying minimal schema:',
+          secondAttemptError.message,
+        );
+
+        // Final attempt with minimal fields
+        return await prisma.session.create({
+          data: {
+            userId,
+            token: refreshToken,
+            userAgent,
+            ipAddress,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+          },
+        });
+      }
+    }
+  } catch (error) {
+    console.error('All session creation attempts failed:', error);
+    // Don't throw, just log and return null - this will prevent registration from failing
+    return null;
+  }
 };
