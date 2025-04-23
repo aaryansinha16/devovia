@@ -1,8 +1,4 @@
-Sure! Here's a clean and professional `README.md` template for your monorepo project using Railway, PNPM, and probably a structure like `apps/` and `packages/`. You can modify the project name and description as needed:
 
----
-
-```md
 # 🚀 Devovia Monorepo
 
 This is the monorepo for the **Devovia** platform, a developer community and portfolio showcase built with modern technologies including:
