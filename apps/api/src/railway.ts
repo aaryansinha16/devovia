@@ -7,18 +7,19 @@
 console.log('Starting Railway deployment healthcheck server');
 console.log('Current directory:', process.cwd());
 
-// Import dependencies using ESM syntax
-import { readdirSync } from 'fs';
-import http from 'http';
+// Import dependencies using TypeScript's import syntax for type checking
+// while still using CommonJS under the hood
+import * as fs from 'fs';
+import * as http from 'http';
 
-console.log('Files in directory:', readdirSync('.'));
+console.log('Files in directory:', fs.readdirSync('.'));
 
 // Import with error handling
 let express: any;
 try {
-  // Dynamic import for express
-  const expressModule = await import('express');
-  express = expressModule.default;
+  // Import express using CommonJS require
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  express = require('express');
   console.log('Express imported successfully');
 } catch (error) {
   console.error('Failed to import express:', error);
@@ -84,9 +85,9 @@ app.get('/', (req: any, res: any) => {
 // Import and mount the main application routes
 try {
   console.log('Attempting to import and mount main application...');
-  // Use dynamic import for server module
-  const serverModule = await import('./server.js');
-  const { apiApp } = serverModule;
+  // Import server module using CommonJS require
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { apiApp } = require('./server');
 
   // Mount all routes from the main app
   app.use('/', apiApp);
@@ -101,27 +102,30 @@ const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 
   // Try to connect to the database and run migrations in the background
-  setTimeout(async () => {
+  setTimeout(() => {
     try {
       console.log('Attempting to connect to database...');
-      // Use dynamic import for server module
-      const serverModule = await import('./server.js');
-      const connected = await serverModule.connectToDatabase();
-      console.log('Database connection result:', connected);
+      // Import server module using CommonJS require
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { connectToDatabase } = require('./server');
+      connectToDatabase().then((connected) => {
+        console.log('Database connection result:', connected);
 
-      // Run Prisma migrations if connected
-      if (connected) {
-        console.log('Running Prisma migrations...');
-        try {
-          // Use dynamic import for child_process
-          const { execSync } = await import('child_process');
-          // Run migration in production mode to actually apply changes
-          execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-          console.log('Migrations completed successfully');
-        } catch (migrationError) {
-          console.error('Migration error:', migrationError);
+        // Run Prisma migrations if connected
+        if (connected) {
+          console.log('Running Prisma migrations...');
+          try {
+            // Import child_process using CommonJS require
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const { execSync } = require('child_process');
+            // Run migration in production mode to actually apply changes
+            execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+            console.log('Migrations completed successfully');
+          } catch (migrationError) {
+            console.error('Migration error:', migrationError);
+          }
         }
-      }
+      });
     } catch (error) {
       console.error('Error with database:', error);
     }
