@@ -3,5 +3,6 @@
   "buildCommand": "cd apps/web && pnpm run build",
   "devCommand": null,
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "framework": null
+  "framework": null,
+  "packageManager": "pnpm@8.15.6"
 }
