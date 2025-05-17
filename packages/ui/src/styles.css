@@ -1,3 +1,231 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* Simple white */
+    --background-color: #ffffff; /* Direct white color */
+    --foreground: 0 0% 0%; /* Simple black */
+    --foreground-color: #000000; /* Direct black color */
+
+    --card: 0 0% 100%; /* White */
+    --card-color: #ffffff; /* Direct white color */
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%; /* White */
+    --popover-color: #ffffff; /* Direct white color */
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 0 0% 100%; /* Simple white */
+    --primary-color: #3b82f6; /* Blue */
+    --primary-foreground-color: #ffffff; /* Direct white color */
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 0 0% 0%; /* Simple black */
+    --secondary-color: #f1f5f9; /* Light gray */
+    --secondary-foreground-color: #000000; /* Direct black color */
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 0 0% 0%; /* Simple black */
+    --muted-foreground-color: #000000; /* Direct black color */
+    --muted-color: #f1f5f9; /* Light gray */
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 0 0% 0%; /* Simple black */
+    --accent-color: #f1f5f9; /* Light gray */
+    --accent-foreground-color: #000000; /* Direct black color */
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%; /* Simple white */
+    --destructive-color: #ef4444; /* Red */
+    --destructive-foreground-color: #ffffff; /* Direct white color */;
+
+    --border: 0 0% 0%; /* Simple black */
+    --border-color: #000000; /* Direct black color */
+    --input: 0 0% 0%; /* Simple black */
+    --input-color: #000000; /* Direct black color */
+    --ring: 0 0% 0%; /* Simple black */
+    --ring-color: #000000; /* Direct black color */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 212 70% 11%; /* #0B192C converted to HSL */
+    --background-color: #0B192C; /* Direct dark blue color */
+    --foreground: 0 0% 100%; /* Simple white */
+    --foreground-color: #ffffff; /* Direct white color */
+
+    --card: 212 70% 11%; /* #0B192C */
+    --card-color: #0B192C; /* Direct dark blue color */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 212 70% 11%; /* #0B192C */
+    --popover-color: #0B192C; /* Direct dark blue color */
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 0 0% 0%; /* Simple black */
+    --primary-color: #60a5fa; /* Light blue */
+    --primary-foreground-color: #000000; /* Direct black color */
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 0 0% 100%; /* Simple white */
+    --secondary-color: #1e293b; /* Dark blue-gray */
+    --secondary-foreground-color: #ffffff; /* Direct white color */
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 0 0% 100%; /* Simple white */
+    --muted-foreground-color: #ffffff; /* Direct white color */
+    --muted-color: #1e293b; /* Dark blue-gray */
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 0 0% 100%; /* Simple white */
+    --accent-color: #1e293b; /* Dark blue-gray */
+    --accent-foreground-color: #ffffff; /* Direct white color */
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%; /* Simple white */
+    --destructive-color: #b91c1c; /* Dark red */
+    --destructive-foreground-color: #ffffff; /* Direct white color */;
+
+    --border: 0 0% 100%; /* Simple white */
+    --border-color: #ffffff; /* Direct white color */
+    --input: 0 0% 100%; /* Simple white */
+    --input-color: #ffffff; /* Direct white color */
+    --ring: 0 0% 100%; /* Simple white */
+    --ring-color: #ffffff; /* Direct white color */
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: var(--background-color);
+    color: var(--foreground-color);
+  }
+
+  /* Direct background colors */
+  .bg-background {
+    background-color: var(--background-color) !important;
+  }
+  .from-background {
+    --tw-gradient-from: var(--background-color) !important;
+  }
+  
+  /* Card and popover overrides */
+  .bg-card {
+    background-color: var(--card-color) !important;
+  }
+  .from-card {
+    --tw-gradient-from: var(--card-color) !important;
+  }
+  
+  .bg-popover {
+    background-color: var(--popover-color) !important;
+  }
+  .from-popover {
+    --tw-gradient-from: var(--popover-color) !important;
+  }
+  
+  /* Text color overrides */
+  .text-foreground {
+    color: var(--foreground-color) !important;
+  }
+  
+  .text-muted-foreground {
+    color: var(--muted-foreground-color) !important;
+  }
+  
+  .text-primary-foreground {
+    color: var(--primary-foreground-color) !important;
+  }
+  
+  .text-secondary-foreground {
+    color: var(--secondary-foreground-color) !important;
+  }
+  
+  .text-accent-foreground {
+    color: var(--accent-foreground-color) !important;
+  }
+  
+  .text-destructive-foreground {
+    color: var(--destructive-foreground-color) !important;
+  }
+  
+  .text-card-foreground {
+    color: var(--foreground-color) !important;
+  }
+  
+  .text-popover-foreground {
+    color: var(--foreground-color) !important;
+  }
+  
+  /* Border color overrides */
+  .border-border {
+    border-color: var(--border-color) !important;
+  }
+  
+  .border, .border-input {
+    border-color: var(--border-color) !important;
+  }
+  
+  /* Ring color overrides */
+  .ring-ring {
+    --tw-ring-color: var(--ring-color) !important;
+  }
+  
+  /* Background color overrides */
+  .bg-primary {
+    background-color: var(--primary-color) !important;
+  }
+  
+  .bg-secondary {
+    background-color: var(--secondary-color) !important;
+  }
+  
+  .bg-muted {
+    background-color: var(--muted-color) !important;
+  }
+  
+  .bg-accent {
+    background-color: var(--accent-color) !important;
+  }
+  
+  .bg-destructive {
+    background-color: var(--destructive-color) !important;
+  }
+  
+  /* Remove gradients from sections */
+  section {
+    background: var(--background-color) !important;
+    background-image: none !important;
+  }
+  
+  footer {
+    color: var(--foreground-color) !important;
+  }
+  
+  /* Button styles with box shadows */
+  button, .button, [type='button'], [type='reset'], [type='submit'] {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+  
+  button:hover, .button:hover, [type='button']:hover, [type='reset']:hover, [type='submit']:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .dark button, .dark .button, .dark [type='button'], .dark [type='reset'], .dark [type='submit'] {
+    box-shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px 0 rgba(255, 255, 255, 0.06) !important;
+  }
+  
+  .dark button:hover, .dark .button:hover, .dark [type='button']:hover, .dark [type='reset']:hover, .dark [type='submit']:hover {
+    box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06) !important;
+  }
+}

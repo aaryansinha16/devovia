@@ -1,0 +1,5 @@
+<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield with code brackets -->
+  <path d="M5,2 L27,2 L27,22 C27,26 16,30 16,30 C16,30 5,26 5,22 Z" fill="#0d7377"/>
+  <path d="M10,12 L16,6 L22,12 M22,22 L16,28 L10,22" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

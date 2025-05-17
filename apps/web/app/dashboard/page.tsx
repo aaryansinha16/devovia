@@ -38,22 +38,12 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
-              <div className="flex-shrink-0 flex items-center space-x-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-6 w-6 text-primary"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-                <h1 className="text-xl font-bold text-foreground">Devovia</h1>
+              <div className="flex-shrink-0 flex items-center">
+                <img 
+                  src="/logo.svg" 
+                  alt="Devovia Logo" 
+                  className="h-8 w-auto" 
+                />
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -111,11 +101,42 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-primary/5 p-4 rounded-md border border-primary/10">
+            <div className="bg-primary/5 p-4 rounded-md border border-primary/10 mb-6">
               <p className="text-primary">
                 You have successfully authenticated with the Devovia API. This dashboard demonstrates that both the authentication flow and role-based access control are working correctly.
               </p>
             </div>
+
+            {/* Role-based UI elements */}
+            {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
+              <div className="border border-border rounded-lg p-6 bg-card mt-6">
+                <h3 className="text-xl font-bold mb-4 text-card-foreground">
+                  {user.role === 'ADMIN' ? 'Admin' : 'Moderator'} Controls
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {user.role === 'ADMIN' && (
+                    <a
+                      href="/admin"
+                      className="p-4 border border-border rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
+                    >
+                      <h4 className="font-medium text-foreground">Admin Dashboard</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Manage users, roles, and system settings
+                      </p>
+                    </a>
+                  )}
+                  <a
+                    href="/moderator"
+                    className="p-4 border border-border rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
+                  >
+                    <h4 className="font-medium text-foreground">Moderator Dashboard</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Moderate content and manage user submissions
+                    </p>
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -13,21 +13,13 @@ export default function HomePage() {
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-8 w-8 text-primary"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
-            <h1 className="text-2xl font-bold text-foreground">Devovia</h1>
+            <Link href="/" className="flex items-center space-x-2">
+              <img 
+                src="/logo.svg" 
+                alt="Devovia Logo" 
+                className="h-10 w-auto" 
+              />
+            </Link>
           </div>
           <div className="flex items-center space-x-4">
             <nav className="hidden md:flex space-x-6">
