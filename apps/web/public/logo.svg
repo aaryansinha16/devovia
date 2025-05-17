@@ -1,0 +1,10 @@
+<svg width="200" height="50" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield with code brackets -->
+  <g transform="translate(0, 0)">
+    <path d="M25,5 L45,5 L45,35 C45,40 35,45 35,45 C35,45 25,40 25,35 Z" fill="#0d7377"/>
+    <path d="M30,20 L35,15 L40,20 M40,30 L35,35 L30,30" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- DEVOVIA text -->
+  <text x="55" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="20" fill="#323232">DEVOVIA</text>
+</svg>
