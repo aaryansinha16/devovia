@@ -10,6 +10,8 @@ import prisma from './lib/prisma';
 // Import routes
 import authRoutes from './routes/auth.routes';
 import oauthRoutes from './routes/oauth.routes';
+import adminRoutes from './routes/admin.routes';
+import moderatorRoutes from './routes/moderator.routes';
 
 // Import Passport configuration
 import passport from './config/passport.config';
@@ -61,6 +63,8 @@ export function createExpressApp() {
   // Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/auth', oauthRoutes);
+  app.use('/api/admin', adminRoutes);
+  app.use('/api/moderator', moderatorRoutes);
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {

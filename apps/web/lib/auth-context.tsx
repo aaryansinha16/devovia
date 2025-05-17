@@ -52,6 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     removeTokens();
     setUser(null);
     // setInternalTokens(null);
+    
+    // Clear the OAuth callback processed flag from session storage
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('oauth_callback_processed');
+    }
   };
 
   return (
