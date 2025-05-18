@@ -9,6 +9,7 @@ declare module 'express' {
   interface Request {
     user?: JwtPayload;
     userRole?: Role;
+    sessionToken?: string; // Add session token to track current session
   }
 }
 
@@ -69,9 +70,9 @@ export const requireVerified = async (
     });
 
     if (!user || !user.isVerified) {
-      return res.status(403).json({ 
-        message: 'Email verification required', 
-        code: 'EMAIL_NOT_VERIFIED'
+      return res.status(403).json({
+        message: 'Email verification required',
+        code: 'EMAIL_NOT_VERIFIED',
       });
     }
 
@@ -81,6 +82,9 @@ export const requireVerified = async (
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+// Export the middleware as requireAuth for clearer naming in routes
+export const requireAuth = authenticateJWT;
 
 // Middleware to check user role
 export const requireRole = (roles: Role[]) => {
@@ -96,9 +100,9 @@ export const requireRole = (roles: Role[]) => {
       });
 
       if (!user || !roles.includes(toRole(user.role as string))) {
-        return res.status(403).json({ 
-          message: 'Insufficient permissions', 
-          code: 'INSUFFICIENT_PERMISSIONS'
+        return res.status(403).json({
+          message: 'Insufficient permissions',
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
