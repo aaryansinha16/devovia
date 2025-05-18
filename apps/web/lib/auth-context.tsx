@@ -75,7 +75,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check if access token is expired
   const isAccessTokenExpired = (token: string): boolean => {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      // Ensure token has the expected JWT format (header.payload.signature)
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        console.error("Invalid token format");
+        return true; // Assume expired if token format is invalid
+      }
+
+      const payload = JSON.parse(atob(parts[1]));
       const expiresAt = payload.exp * 1000; // Convert to milliseconds
       return Date.now() >= expiresAt;
     } catch (error) {
