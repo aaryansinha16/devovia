@@ -82,7 +82,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return true; // Assume expired if token format is invalid
       }
 
-      const payload = JSON.parse(atob(parts[1]));
+      const payloadBase64 = parts[1] || "";
+      if (!payloadBase64) {
+        console.error("Missing payload in token");
+        return true; // Assume expired if payload is missing
+      }
+
+      const payload = JSON.parse(atob(payloadBase64));
       const expiresAt = payload.exp * 1000; // Convert to milliseconds
       return Date.now() >= expiresAt;
     } catch (error) {
