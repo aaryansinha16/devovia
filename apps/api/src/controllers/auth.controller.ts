@@ -70,8 +70,16 @@ export const register = async (req: Request, res: Response) => {
 
     // Create session - but don't let it fail the registration
     try {
-      const session = await createSession(user.id, tokens.refreshToken);
+      const session = await createSession(user.id, tokens.refreshToken, req);
       console.log('Session created successfully:', session ? 'yes' : 'no');
+
+      // Set refresh token in HttpOnly cookie
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        sameSite: 'lax',
+      });
     } catch (sessionError) {
       // Log the error but continue with registration
       console.error(
@@ -148,11 +156,19 @@ export const login = async (req: Request, res: Response) => {
 
       // Create session - but don't let it fail the login
       try {
-        const session = await createSession(user.id, tokens.refreshToken);
+        const session = await createSession(user.id, tokens.refreshToken, req);
         console.log(
           'Session created successfully during login:',
           session ? 'yes' : 'no',
         );
+
+        // Set refresh token in HttpOnly cookie
+        res.cookie('refreshToken', tokens.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          sameSite: 'lax',
+        });
       } catch (sessionError) {
         // Log the error but continue with login
         console.error(
@@ -197,15 +213,23 @@ export const refreshToken = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid refresh token' });
     }
 
-    // Check if session exists
+    // Check if session exists and is valid
     const session = await prisma.session.findUnique({
       where: {
-        token: refreshToken, // Use token field instead of refreshToken
+        token: refreshToken,
       },
     });
 
     if (!session) {
       return res.status(401).json({ message: 'Session not found' });
+    }
+
+    // Check if session is valid (not forcibly logged out)
+    if (!session.isValid) {
+      return res.status(401).json({
+        message: 'Session has been revoked',
+        code: 'SESSION_REVOKED',
+      });
     }
 
     // Generate new tokens
@@ -319,23 +343,71 @@ export const getSessions = async (req: Request, res: Response) => {
 };
 
 // Helper function to create a session
-const createSession = async (userId: string, refreshToken: string) => {
+const createSession = async (
+  userId: string,
+  refreshToken: string,
+  req?: Request,
+) => {
   try {
     console.log('Creating session for user:', userId);
-    const userAgent = 'Unknown';
-    const ipAddress = '0.0.0.0';
+    // Extract device information from request if available
+    const userAgent = req?.headers['user-agent'] || 'Unknown';
+
+    // Handle ipAddress which could be string or string[]
+    let ipAddress: string = '0.0.0.0';
+    if (req?.ip) {
+      ipAddress = req.ip;
+    } else if (req?.headers['x-forwarded-for']) {
+      const forwardedFor = req.headers['x-forwarded-for'];
+      ipAddress = Array.isArray(forwardedFor)
+        ? forwardedFor[0]
+        : forwardedFor.split(',')[0].trim();
+    }
+
+    // Extract device type and OS information from user agent
+    let device = 'Unknown Device';
+    if (userAgent) {
+      // Handle GitHub OAuth as a special case
+      if (userAgent === 'GitHub OAuth') {
+        device = 'GitHub OAuth';
+      } else if (userAgent.includes('Mobile')) {
+        device =
+          userAgent.includes('iPhone') || userAgent.includes('iPad')
+            ? 'iOS Mobile'
+            : 'Android Mobile';
+      } else if (userAgent.includes('Windows')) {
+        device = 'Windows Desktop';
+      } else if (userAgent.includes('Mac')) {
+        device = 'Mac Desktop';
+      } else if (userAgent.includes('Linux')) {
+        device = 'Linux Desktop';
+      }
+
+      // Add browser information if available
+      if (userAgent.includes('Chrome') && !userAgent.includes('Chromium')) {
+        device += ' - Chrome';
+      } else if (userAgent.includes('Firefox')) {
+        device += ' - Firefox';
+      } else if (
+        userAgent.includes('Safari') &&
+        !userAgent.includes('Chrome')
+      ) {
+        device += ' - Safari';
+      } else if (userAgent.includes('Edge')) {
+        device += ' - Edge';
+      }
+    }
 
     // Try to create a session with the most likely schema based on our migrations
     try {
-      // First attempt with isActive field (our latest schema)
       return await prisma.session.create({
         data: {
           userId,
           token: refreshToken,
-          userAgent,
-          ipAddress,
-          isActive: true,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+          ipAddress: ipAddress,
+          userAgent: userAgent,
+          device: device,
           lastActive: new Date(),
         },
       });

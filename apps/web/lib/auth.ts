@@ -1,5 +1,5 @@
-import { jwtDecode } from 'jwt-decode';
-import { API_URL } from './config';
+import { jwtDecode } from "jwt-decode";
+import { API_URL } from "./config";
 
 // Define the token types
 export interface AuthTokens {
@@ -14,7 +14,7 @@ export interface User {
   name?: string;
   username: string;
   avatar?: string;
-  role: 'USER' | 'ADMIN' | 'MODERATOR';
+  role: "USER" | "ADMIN" | "MODERATOR";
   isVerified: boolean;
 }
 
@@ -34,16 +34,16 @@ export async function registerUser(userData: {
   name?: string;
 }): Promise<{ user: User; tokens: AuthTokens }> {
   const response = await fetch(`${API_URL}/auth/register`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(userData),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Registration failed');
+    throw new Error(error.message || "Registration failed");
   }
 
   return response.json();
@@ -55,16 +55,16 @@ export async function loginUser(credentials: {
   password: string;
 }): Promise<{ user: User; tokens: AuthTokens }> {
   const response = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(credentials),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Login failed');
+    throw new Error(error.message || "Login failed");
   }
 
   return response.json();
@@ -74,74 +74,112 @@ export async function loginUser(credentials: {
 export function getUserFromToken(token: string): User | null {
   try {
     const decoded = jwtDecode<JwtPayload>(token);
-    
+
     // Check if token is expired
     if (decoded.exp * 1000 < Date.now()) {
       return null;
     }
-    
+
     return {
       id: decoded.sub,
-      email: '', // JWT doesn't contain email, will need to fetch from API
-      username: '', // JWT doesn't contain username, will need to fetch from API
-      role: (decoded.role as 'USER' | 'ADMIN' | 'MODERATOR') || 'USER',
+      email: "", // JWT doesn't contain email, will need to fetch from API
+      username: "", // JWT doesn't contain username, will need to fetch from API
+      role: (decoded.role as "USER" | "ADMIN" | "MODERATOR") || "USER",
       isVerified: decoded.isVerified || false,
     };
   } catch (error) {
-    console.error('Error decoding token:', error);
+    console.error("Error decoding token:", error);
     return null;
   }
 }
 
 // Store tokens in localStorage
 export function storeTokens(tokens: AuthTokens): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('accessToken', tokens.accessToken);
-    localStorage.setItem('refreshToken', tokens.refreshToken);
+  if (typeof window !== "undefined") {
+    localStorage.setItem("accessToken", tokens.accessToken);
+    localStorage.setItem("refreshToken", tokens.refreshToken);
   }
 }
 
 // Get tokens from localStorage
 export function getTokens(): AuthTokens | null {
-  if (typeof window !== 'undefined') {
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-    
+  if (typeof window !== "undefined") {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
     if (accessToken && refreshToken) {
       return { accessToken, refreshToken };
     }
   }
-  
+
   return null;
 }
 
 // Remove tokens from localStorage
 export function removeTokens(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+  }
+}
+
+// Function to refresh the access token using refresh token
+export async function refreshTokens(refreshToken: string): Promise<{
+  success: boolean;
+  tokens?: AuthTokens;
+  error?: string;
+}> {
+  try {
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refreshToken }),
+      credentials: "include", // Include cookies
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        error: errorData.message || "Failed to refresh token",
+      };
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      tokens: data.tokens,
+    };
+  } catch (error) {
+    console.error("Error refreshing tokens:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
 // Logout user
 export async function logoutUser(): Promise<void> {
   const tokens = getTokens();
-  
+
   if (tokens) {
     try {
       await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tokens.accessToken}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokens.accessToken}`,
         },
         body: JSON.stringify({ refreshToken: tokens.refreshToken }),
       });
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
     }
   }
-  
+
   removeTokens();
 }
 

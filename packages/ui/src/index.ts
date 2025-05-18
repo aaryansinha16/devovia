@@ -7,6 +7,7 @@ export * from "./label";
 export * from "./badge";
 export * from "./dialog";
 export * from "./card";
+export * from "./avatar";
 
 // Utilities
 export * from "./lib/utils";

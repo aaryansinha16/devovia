@@ -5,13 +5,16 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { json, urlencoded } from 'express';
 import session from 'express-session';
+import cookieParser from 'cookie-parser';
 import prisma from './lib/prisma';
+import { extractSessionToken } from './middleware/session.middleware';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
 import oauthRoutes from './routes/oauth.routes';
 import adminRoutes from './routes/admin.routes';
 import moderatorRoutes from './routes/moderator.routes';
+import sessionRoutes from './routes/session.routes';
 
 // Import Passport configuration
 import passport from './config/passport.config';
@@ -27,16 +30,19 @@ export function createExpressApp() {
   app.use(json());
   app.use(urlencoded({ extended: true }));
 
+  // Cookie parser middleware (required for reading cookies)
+  app.use(cookieParser());
+
   // CORS middleware
   app.use((req, res, next) => {
     // Get the frontend URL from environment variables
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    
+
     res.header('Access-Control-Allow-Origin', frontendUrl);
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
+
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
     }
@@ -53,18 +59,22 @@ export function createExpressApp() {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
       },
-    })
+    }),
   );
 
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Extract and validate session token
+  app.use(extractSessionToken);
+
   // Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/auth', oauthRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/moderator', moderatorRoutes);
+  app.use('/api/sessions', sessionRoutes);
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {
@@ -99,10 +109,13 @@ export async function connectToDatabase() {
     // Log connection parameters (without sensitive info)
     console.log('DATABASE_URL env var exists:', !!process.env.DATABASE_URL);
     if (process.env.DATABASE_URL) {
-      console.log('DATABASE_URL prefix:', process.env.DATABASE_URL.split('://')[0] + '://');
+      console.log(
+        'DATABASE_URL prefix:',
+        process.env.DATABASE_URL.split('://')[0] + '://',
+      );
     }
     console.log('NODE_ENV:', process.env.NODE_ENV);
-    
+
     // Return false but don't throw error - allow app to start without DB
     return false;
   }
