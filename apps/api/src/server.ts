@@ -35,10 +35,24 @@ export function createExpressApp() {
 
   // CORS middleware
   app.use((req, res, next) => {
-    // Get the frontend URL from environment variables
+    // Get the frontend URLs from environment variables
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const deployedUrl =
+      process.env.DEPLOYED_FRONTEND_URL || 'https://devovia.vercel.app';
 
-    res.header('Access-Control-Allow-Origin', frontendUrl);
+    // Get the origin from the request
+    const origin = req.headers.origin;
+
+    // Allow requests from both local and deployed frontends
+    if (
+      origin === frontendUrl ||
+      origin === deployedUrl ||
+      origin?.includes('vercel.app') ||
+      origin?.includes('localhost')
+    ) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
+
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
