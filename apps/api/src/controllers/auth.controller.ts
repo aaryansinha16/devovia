@@ -400,6 +400,7 @@ const createSession = async (
 
     // Try to create a session with the most likely schema based on our migrations
     try {
+      // First attempt with all fields including isActive
       return await prisma.session.create({
         data: {
           userId,
@@ -409,6 +410,8 @@ const createSession = async (
           userAgent: userAgent,
           device: device,
           lastActive: new Date(),
+          isActive: true, // Add isActive field to match schema
+          isValid: true, // Add isValid field to match schema
         },
       });
     } catch (firstAttemptError) {
@@ -417,7 +420,7 @@ const createSession = async (
         firstAttemptError.message,
       );
 
-      // Second attempt with isValid field (possible older schema)
+      // Second attempt without isActive field (for older schema)
       try {
         return await prisma.session.create({
           data: {
@@ -428,24 +431,44 @@ const createSession = async (
             isValid: true,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             lastActive: new Date(),
+            device: device,
           },
         });
       } catch (secondAttemptError) {
         console.log(
-          'Second session creation attempt failed, trying minimal schema:',
+          'Second session creation attempt failed, trying schema with isActive:',
           secondAttemptError.message,
         );
 
-        // Final attempt with minimal fields
-        return await prisma.session.create({
-          data: {
-            userId,
-            token: refreshToken,
-            userAgent,
-            ipAddress,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-          },
-        });
+        // Third attempt with isActive but minimal other fields
+        try {
+          return await prisma.session.create({
+            data: {
+              userId,
+              token: refreshToken,
+              userAgent,
+              ipAddress,
+              isActive: true,
+              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            },
+          });
+        } catch (thirdAttemptError) {
+          console.log(
+            'Third session creation attempt failed, trying minimal schema:',
+            thirdAttemptError.message,
+          );
+
+          // Final attempt with minimal fields
+          return await prisma.session.create({
+            data: {
+              userId,
+              token: refreshToken,
+              userAgent,
+              ipAddress,
+              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            },
+          });
+        }
       }
     }
   } catch (error) {
