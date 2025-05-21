@@ -14,6 +14,31 @@ const nextConfig = {
   // with client-side authentication features
   output: 'standalone',
   
+  // Image optimization configuration
+  images: {
+    domains: [
+      'avatars.githubusercontent.com',
+      'github.com',
+      'ui-avatars.com',
+      'localhost',
+      'res.cloudinary.com'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com'
+      }
+    ]
+  },
+  
   // Environment variable configuration
   env: {
     // Ensure these values are available at build time
