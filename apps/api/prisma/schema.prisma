@@ -26,6 +26,7 @@ model User {
   password      String?
   bio           String?
   avatar        String?
+  avatarPublicId String?
   githubUrl     String?
   twitterUrl    String?
   portfolioUrl  String?

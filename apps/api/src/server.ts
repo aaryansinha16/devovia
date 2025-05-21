@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { json, urlencoded } from 'express';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import prisma from './lib/prisma';
 import { extractSessionToken } from './middleware/session.middleware';
 
@@ -15,6 +16,7 @@ import oauthRoutes from './routes/oauth.routes';
 import adminRoutes from './routes/admin.routes';
 import moderatorRoutes from './routes/moderator.routes';
 import sessionRoutes from './routes/session.routes';
+import userRoutes from './routes/user.routes';
 
 // Import Passport configuration
 import passport from './config/passport.config';
@@ -83,11 +85,15 @@ export function createExpressApp() {
   // Extract and validate session token
   app.use(extractSessionToken);
 
+  // Serve static files from uploads directory
+  app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+
   // Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/auth', oauthRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/moderator', moderatorRoutes);
+  app.use('/api/users', userRoutes);
   app.use('/api/sessions', sessionRoutes);
 
   // Health check endpoint - must work regardless of database connection
