@@ -28,7 +28,7 @@ export function toRole(value: string): Role {
 let prisma: PrismaClient;
 
 // Configuration for Prisma client with required fields for Prisma 5.x
-const prismaOptions = {
+const prismaOptions: { log: Array<'query' | 'error' | 'warn' | 'info'> } = {
   log:
     process.env.NODE_ENV === 'development'
       ? ['query', 'error', 'warn']
