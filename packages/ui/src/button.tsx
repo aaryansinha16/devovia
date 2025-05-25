@@ -39,16 +39,24 @@ const buttonVariants = cva(
   }
 );
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+type ButtonBaseProps = VariantProps<typeof buttonVariants> & {
   asChild?: boolean;
-  href?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  children?: React.ReactNode;
+};
+
+interface ButtonAsButtonProps extends ButtonBaseProps, React.ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: undefined;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+interface ButtonAsAnchorProps extends ButtonBaseProps, React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  href: string;
+}
+
+export type ButtonProps = ButtonAsButtonProps | ButtonAsAnchorProps;
+
+const Button = React.forwardRef<HTMLElement, ButtonProps>(
   ({ className, variant, size, asChild = false, href, leftIcon, rightIcon, ...props }, ref) => {
     // If href is provided and asChild is false, use an anchor tag
     const Comp = asChild ? Slot : href ? "a" : "button";
