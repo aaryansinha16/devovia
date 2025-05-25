@@ -52,7 +52,6 @@ function useIntersectionObserver(
       observer.disconnect();
     };
     // We intentionally only want this effect to run when these specific dependencies change
-    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/rules-of-hooks
   }, [elementRef, threshold, root, rootMargin, freezeOnceVisible]);
 
   return isIntersecting;
