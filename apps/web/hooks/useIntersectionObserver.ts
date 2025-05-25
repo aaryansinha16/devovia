@@ -28,13 +28,14 @@ function useIntersectionObserver(
     if (!node) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting) {
           setIsIntersecting(true);
           if (freezeOnceVisible) {
             observer.unobserve(node);
           }
-        } else {
+        } else if (entry) {
           if (!freezeOnceVisible) {
              setIsIntersecting(false);
           }
