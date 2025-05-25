@@ -69,15 +69,16 @@ const Button = React.forwardRef<HTMLElement, ButtonProps>(
       </>
     );
     
+    const RenderComp = Comp as any; // Cast Comp to any to resolve ref typing issue
     return (
-      <Comp
+      <RenderComp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         href={href}
         {...props}
       >
         {(leftIcon || rightIcon) ? content : props.children}
-      </Comp>
+      </RenderComp>
     );
   }
 );
