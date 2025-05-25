@@ -7,6 +7,7 @@ import { AuthProvider } from "../lib/auth-context";
 import { ThemeProvider } from "../lib/theme-context";
 import Header from "../components/header";
 import SessionNotification from "../components/session-notification";
+import CursorBlobEffect from "../components/cursor-blob-effect";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,6 +39,7 @@ export default function RootLayout({
                 </div>
               </header>
               <main className="flex-1">{children}</main>
+              <CursorBlobEffect />
             </div>
           </AuthProvider>
         </ThemeProvider>

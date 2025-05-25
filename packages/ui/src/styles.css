@@ -199,11 +199,10 @@
   .bg-destructive {
     background-color: var(--destructive-color) !important;
   }
-  
-  /* Remove gradients from sections */
-  section {
-    background: var(--background-color) !important;
-    background-image: none !important;
+
+  :root {
+    cursor: none;
+    scroll-behavior: smooth;
   }
   
   footer {
