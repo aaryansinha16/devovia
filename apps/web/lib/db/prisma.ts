@@ -1,5 +1,5 @@
 // Import directly from the database package's source
-import { prisma } from '@repo/database';
+import { prisma } from "@repo/database";
 
 // Export the prisma instance for use in the web app
 export const db = prisma;
@@ -14,6 +14,8 @@ export function exclude<T, K extends keyof T>(model: T, keys: K[]): Omit<T, K> {
 }
 
 // Helper function to safely exclude password from user objects
-export function excludePassword<T>(user: T & { password: string }): Omit<T, 'password'> {
-  return exclude(user, ['password']);
+export function excludePassword<T>(
+  user: T & { password: string },
+): Omit<T, "password"> {
+  return exclude(user, ["password"]);
 }

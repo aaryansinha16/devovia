@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Feature } from './features-section';
-import AnimatedElement from '../animated-element';
+import React from "react";
+import { Feature } from "./features-section";
+import AnimatedElement from "../animated-element";
 
 interface FeatureCardProps {
   feature: Feature;
@@ -10,10 +9,13 @@ interface FeatureCardProps {
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ feature, index }) => {
   const IconComponent = feature.icon;
-  const featureId = `feature-card-${feature.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')}`;
+  const featureId = `feature-card-${feature.title
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")}`;
 
   return (
-    <AnimatedElement 
+    <AnimatedElement
       id={featureId}
       className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-xl shadow-xl dark:shadow-2xl hover:shadow-sky-500/20 dark:hover:shadow-sky-400/20 transition-all duration-300 ease-in-out transform hover:-translate-y-2 group feature-card-item"
       animationClassName="animate-[fadeInUp_0.6s_ease-out_forwards]"

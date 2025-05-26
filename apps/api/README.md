@@ -32,10 +32,10 @@ This API is configured to be deployed as a serverless function on Vercel. Follow
    ```bash
    # Install Vercel CLI if you haven't already
    npm install -g vercel
-   
+
    # Login to Vercel
    vercel login
-   
+
    # Deploy from the api directory
    cd apps/api
    vercel
@@ -93,4 +93,4 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 ## License
 
-  Nest is [MIT licensed](LICENSE).
+Nest is [MIT licensed](LICENSE).

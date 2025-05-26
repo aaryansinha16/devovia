@@ -7,7 +7,7 @@ async function updateUserRole() {
   try {
     // Replace with the email of the user you want to update
     const userEmail = 'aaryansinha16@gmail.com'; // ← Change this to your user's email
-    
+
     // Update the user's role to ADMIN
     const updatedUser = await prisma.user.update({
       where: { email: userEmail },
@@ -19,7 +19,7 @@ async function updateUserRole() {
         role: true,
       },
     });
-    
+
     console.log('User role updated successfully:', updatedUser);
   } catch (error) {
     console.error('Error updating user role:', error);

@@ -34,10 +34,10 @@ export const generateTokens = async (
 
   // Type assertion to handle the string type for expiresIn
   const accessToken = jwt.sign(
-    { 
+    {
       sub: userId,
       role: user?.role || Role.USER,
-      isVerified: user?.isVerified || false
+      isVerified: user?.isVerified || false,
     },
     config.jwt.secret,
     // Using any to bypass the type checking for expiresIn

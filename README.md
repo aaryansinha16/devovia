@@ -1,4 +1,3 @@
-
 # 🚀 Devovia Monorepo
 
 This is the monorepo for the **Devovia** platform, a developer community and portfolio showcase built with modern technologies including:
@@ -13,6 +12,7 @@ This is the monorepo for the **Devovia** platform, a developer community and por
 ---
 
 ## 📁 Project Structure
+
 ```
 
 .
@@ -28,7 +28,7 @@ This is the monorepo for the **Devovia** platform, a developer community and por
 ├── package.json # Workspace root
 └── README.md
 
-````
+```
 
 ---
 
@@ -40,7 +40,7 @@ This is the monorepo for the **Devovia** platform, a developer community and por
 git clone https://github.com/your-org/devovia.git
 cd devovia
 pnpm install
-````
+```
 
 ### 2. Set up environment
 

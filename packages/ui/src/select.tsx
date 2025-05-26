@@ -22,7 +22,7 @@ const SelectTrigger = React.forwardRef<
       "ui-focus:ui-outline-none ui-focus:ui-ring-2 ui-focus:ui-ring-ring ui-focus:ui-ring-offset-2",
       "ui-disabled:ui-cursor-not-allowed ui-disabled:ui-opacity-50",
       "ui-data-[placeholder]:ui-text-muted-foreground",
-      className
+      className,
     )}
     {...props}
   >
@@ -42,7 +42,7 @@ const SelectScrollUpButton = React.forwardRef<
     ref={ref}
     className={cn(
       "ui-flex ui-cursor-default ui-items-center ui-justify-center ui-py-1",
-      className
+      className,
     )}
     {...props}
   >
@@ -59,7 +59,7 @@ const SelectScrollDownButton = React.forwardRef<
     ref={ref}
     className={cn(
       "ui-flex ui-cursor-default ui-items-center ui-justify-center ui-py-1",
-      className
+      className,
     )}
     {...props}
   >
@@ -80,7 +80,7 @@ const SelectContent = React.forwardRef<
         "ui-relative ui-z-50 ui-max-h-96 ui-min-w-[8rem] ui-overflow-hidden ui-rounded-md ui-border ui-border-input ui-bg-popover ui-text-popover-foreground ui-shadow-md ui-data-[state=open]:ui-animate-in ui-data-[state=closed]:ui-animate-out ui-data-[state=closed]:ui-fade-out-0 ui-data-[state=open]:ui-fade-in-0 ui-data-[state=closed]:ui-zoom-out-95 ui-data-[state=open]:ui-zoom-in-95 ui-data-[side=bottom]:ui-slide-in-from-top-2 ui-data-[side=left]:ui-slide-in-from-right-2 ui-data-[side=right]:ui-slide-in-from-left-2 ui-data-[side=top]:ui-slide-in-from-bottom-2",
         position === "popper" &&
           "ui-data-[side=bottom]:ui-translate-y-1 ui-data-[side=left]:ui--translate-x-1 ui-data-[side=right]:ui-translate-x-1 ui-data-[side=top]:ui--translate-y-1",
-        className
+        className,
       )}
       position={position}
       {...props}
@@ -90,7 +90,7 @@ const SelectContent = React.forwardRef<
         className={cn(
           "ui-p-1",
           position === "popper" &&
-            "ui-h-[var(--radix-select-trigger-height)] ui-w-full ui-min-w-[var(--radix-select-trigger-width)]"
+            "ui-h-[var(--radix-select-trigger-height)] ui-w-full ui-min-w-[var(--radix-select-trigger-width)]",
         )}
       >
         {children}
@@ -107,7 +107,10 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("ui-py-1.5 ui-pl-8 ui-pr-2 ui-text-sm ui-font-semibold", className)}
+    className={cn(
+      "ui-py-1.5 ui-pl-8 ui-pr-2 ui-text-sm ui-font-semibold",
+      className,
+    )}
     {...props}
   />
 ));
@@ -123,7 +126,7 @@ const SelectItem = React.forwardRef<
       "ui-relative ui-flex ui-w-full ui-cursor-default ui-select-none ui-items-center ui-rounded-sm ui-py-1.5 ui-pl-8 ui-pr-2 ui-text-sm ui-outline-none",
       "ui-focus:ui-bg-accent ui-focus:ui-text-accent-foreground",
       "ui-data-[disabled]:ui-pointer-events-none ui-data-[disabled]:ui-opacity-50",
-      className
+      className,
     )}
     {...props}
   >

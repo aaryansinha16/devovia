@@ -5,3 +5,8 @@ export * from "../textarea";
 export * from "../label";
 export * from "../badge";
 export * from "../dialog";
+export * from "../text-hover-effect";
+export * from "../card-spotlight";
+export * from "../floating-dock";
+export * from "../container-scroll-animation";
+export * from "../flip-words";

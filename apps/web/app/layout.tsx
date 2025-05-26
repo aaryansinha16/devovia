@@ -39,7 +39,8 @@ export default function RootLayout({
                 </div>
               </header>
               <main className="flex-1">{children}</main>
-              <CursorBlobEffect />
+              {/* Temporarily commented out for testing card spotlight effect */}
+              {/* <CursorBlobEffect /> */}
             </div>
           </AuthProvider>
         </ThemeProvider>

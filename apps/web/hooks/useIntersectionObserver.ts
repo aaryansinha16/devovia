@@ -1,5 +1,4 @@
-
-import { useState, useEffect, RefObject } from 'react';
+import { useState, useEffect, RefObject } from "react";
 
 // Define the IntersectionObserverInit interface if it's not available
 interface IntersectionObserverInit {
@@ -17,14 +16,14 @@ function useIntersectionObserver(
   {
     threshold = 0.1,
     root = null,
-    rootMargin = '0%',
+    rootMargin = "0%",
     freezeOnceVisible = true,
-  }: IntersectionObserverOptions = {} // Provide default for the entire options object
+  }: IntersectionObserverOptions = {}, // Provide default for the entire options object
 ): boolean {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
-    const node = elementRef?.current; 
+    const node = elementRef?.current;
     if (!node) return;
 
     const observer = new IntersectionObserver(
@@ -37,11 +36,11 @@ function useIntersectionObserver(
           }
         } else if (entry) {
           if (!freezeOnceVisible) {
-             setIsIntersecting(false);
+            setIsIntersecting(false);
           }
         }
       },
-      { threshold, root, rootMargin }
+      { threshold, root, rootMargin },
     );
 
     observer.observe(node);
