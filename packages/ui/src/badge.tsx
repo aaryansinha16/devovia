@@ -15,18 +15,17 @@ const badgeVariants = cva(
         destructive:
           "ui-border-transparent ui-bg-destructive ui-text-destructive-foreground ui-hover:ui-bg-destructive/80",
         outline: "ui-text-foreground",
-        success: 
+        success:
           "ui-border-transparent ui-bg-green-500/20 ui-text-green-700 dark:ui-text-green-400",
         warning:
           "ui-border-transparent ui-bg-yellow-500/20 ui-text-yellow-700 dark:ui-text-yellow-400",
-        info:
-          "ui-border-transparent ui-bg-blue-500/20 ui-text-blue-700 dark:ui-text-blue-400",
+        info: "ui-border-transparent ui-bg-blue-500/20 ui-text-blue-700 dark:ui-text-blue-400",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 export interface BadgeProps

@@ -136,9 +136,7 @@ export async function updateUserProfile(
 /**
  * Update the user's avatar with a file upload
  */
-export async function updateUserAvatar(
-  avatarData: AvatarFile,
-): Promise<{
+export async function updateUserAvatar(avatarData: AvatarFile): Promise<{
   success: boolean;
   user: { id: string; username: string; avatar: string | null };
 }> {

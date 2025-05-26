@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useTheme } from '../../lib/theme-context';
+import React from "react";
+import { useTheme } from "../../lib/theme-context";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -10,9 +10,11 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="p-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-      aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      aria-label={
+        theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+      }
     >
-      {theme === 'dark' ? (
+      {theme === "dark" ? (
         <SunIcon className="h-5 w-5" />
       ) : (
         <MoonIcon className="h-5 w-5" />

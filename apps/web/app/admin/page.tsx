@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { AdminOnly } from '../../components/role-based';
-import { useAuth } from '../../lib/auth-context';
-import { getAllUsers, updateUserRole, updateUserVerification } from '../../lib/admin-api';
+import { useState, useEffect } from "react";
+import { AdminOnly } from "../../components/role-based";
+import { useAuth } from "../../lib/auth-context";
+import {
+  getAllUsers,
+  updateUserRole,
+  updateUserVerification,
+} from "../../lib/admin-api";
 
 // Define user type for admin dashboard
 interface User {
@@ -11,7 +15,7 @@ interface User {
   email: string;
   username: string;
   name?: string;
-  role: 'USER' | 'ADMIN' | 'MODERATOR';
+  role: "USER" | "ADMIN" | "MODERATOR";
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -19,19 +23,19 @@ interface User {
 
 export default function AdminDashboardPage() {
   const { user, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+
   // Fetch users when the component mounts or when the tab changes to 'users'
   useEffect(() => {
-    if (activeTab === 'users') {
+    if (activeTab === "users") {
       fetchUsers();
     }
   }, [activeTab]);
-  
+
   // Function to fetch all users
   const fetchUsers = async () => {
     try {
@@ -40,54 +44,66 @@ export default function AdminDashboardPage() {
       const response = await getAllUsers();
       setUsers(response.users);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch users');
-      console.error('Error fetching users:', err);
+      setError(err instanceof Error ? err.message : "Failed to fetch users");
+      console.error("Error fetching users:", err);
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Function to update a user's role
-  const handleRoleChange = async (userId: string, newRole: 'USER' | 'ADMIN' | 'MODERATOR') => {
+  const handleRoleChange = async (
+    userId: string,
+    newRole: "USER" | "ADMIN" | "MODERATOR",
+  ) => {
     try {
       setLoading(true);
       setError(null);
       setSuccessMessage(null);
-      
+
       await updateUserRole(userId, newRole);
-      
+
       // Update the local state
-      setUsers(users.map(u => 
-        u.id === userId ? { ...u, role: newRole } : u
-      ));
-      
+      setUsers(
+        users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
+      );
+
       setSuccessMessage(`User role updated to ${newRole} successfully`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user role');
-      console.error('Error updating user role:', err);
+      setError(
+        err instanceof Error ? err.message : "Failed to update user role",
+      );
+      console.error("Error updating user role:", err);
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Function to update a user's verification status
-  const handleVerificationChange = async (userId: string, isVerified: boolean) => {
+  const handleVerificationChange = async (
+    userId: string,
+    isVerified: boolean,
+  ) => {
     try {
       setLoading(true);
       setError(null);
       setSuccessMessage(null);
-      
+
       await updateUserVerification(userId, isVerified);
-      
+
       // Update the local state
-      setUsers(users.map(u => 
-        u.id === userId ? { ...u, isVerified } : u
-      ));
-      
-      setSuccessMessage(`User ${isVerified ? 'verified' : 'unverified'} successfully`);
+      setUsers(users.map((u) => (u.id === userId ? { ...u, isVerified } : u)));
+
+      setSuccessMessage(
+        `User ${isVerified ? "verified" : "unverified"} successfully`,
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update verification status');
-      console.error('Error updating verification status:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update verification status",
+      );
+      console.error("Error updating verification status:", err);
     } finally {
       setLoading(false);
     }
@@ -103,26 +119,32 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <AdminOnly fallback={
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="max-w-md w-full p-6 bg-card rounded-xl shadow-lg border border-border text-center">
-          <h2 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h2>
-          <p className="text-foreground mb-4">
-            You don't have permission to access the admin dashboard.
-          </p>
-          <p className="text-muted-foreground">
-            This area is restricted to administrators only.
-          </p>
+    <AdminOnly
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="max-w-md w-full p-6 bg-card rounded-xl shadow-lg border border-border text-center">
+            <h2 className="text-2xl font-bold text-red-500 mb-4">
+              Access Denied
+            </h2>
+            <p className="text-foreground mb-4">
+              You don't have permission to access the admin dashboard.
+            </p>
+            <p className="text-muted-foreground">
+              This area is restricted to administrators only.
+            </p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <div className="min-h-screen bg-background">
         <header className="bg-card shadow border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex">
                 <div className="flex-shrink-0 flex items-center">
-                  <h1 className="text-xl font-bold text-primary">Admin Dashboard</h1>
+                  <h1 className="text-xl font-bold text-primary">
+                    Admin Dashboard
+                  </h1>
                 </div>
               </div>
               <div className="flex items-center">
@@ -140,31 +162,31 @@ export default function AdminDashboardPage() {
               <div className="border-b border-border">
                 <nav className="flex -mb-px">
                   <button
-                    onClick={() => setActiveTab('users')}
+                    onClick={() => setActiveTab("users")}
                     className={`px-6 py-4 text-sm font-medium ${
-                      activeTab === 'users'
-                        ? 'border-b-2 border-primary text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
+                      activeTab === "users"
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Users
                   </button>
                   <button
-                    onClick={() => setActiveTab('roles')}
+                    onClick={() => setActiveTab("roles")}
                     className={`px-6 py-4 text-sm font-medium ${
-                      activeTab === 'roles'
-                        ? 'border-b-2 border-primary text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
+                      activeTab === "roles"
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Role Management
                   </button>
                   <button
-                    onClick={() => setActiveTab('settings')}
+                    onClick={() => setActiveTab("settings")}
                     className={`px-6 py-4 text-sm font-medium ${
-                      activeTab === 'settings'
-                        ? 'border-b-2 border-primary text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
+                      activeTab === "settings"
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Settings
@@ -173,24 +195,26 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="p-6">
-                {activeTab === 'users' && (
+                {activeTab === "users" && (
                   <div>
-                    <h2 className="text-lg font-medium text-foreground mb-4">User Management</h2>
-                    
+                    <h2 className="text-lg font-medium text-foreground mb-4">
+                      User Management
+                    </h2>
+
                     {/* Success message */}
                     {successMessage && (
                       <div className="mb-4 p-4 bg-green-500/10 border-l-4 border-green-500 rounded">
                         <p className="text-green-600">{successMessage}</p>
                       </div>
                     )}
-                    
+
                     {/* Error message */}
                     {error && (
                       <div className="mb-4 p-4 bg-red-500/10 border-l-4 border-red-500 rounded">
                         <p className="text-red-600">{error}</p>
                       </div>
                     )}
-                    
+
                     {loading ? (
                       <div className="flex justify-center py-8">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -198,7 +222,7 @@ export default function AdminDashboardPage() {
                     ) : users.length === 0 ? (
                       <div className="py-8 text-center">
                         <p className="text-muted-foreground">No users found</p>
-                        <button 
+                        <button
                           onClick={fetchUsers}
                           className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                         >
@@ -210,19 +234,34 @@ export default function AdminDashboardPage() {
                         <table className="min-w-full divide-y divide-border">
                           <thead className="bg-accent">
                             <tr>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                              >
                                 User
                               </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                              >
                                 Role
                               </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                              >
                                 Verification
                               </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                              >
                                 Created
                               </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                              >
                                 Actions
                               </th>
                             </tr>
@@ -245,7 +284,15 @@ export default function AdminDashboardPage() {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <select
                                     value={user.role}
-                                    onChange={(e) => handleRoleChange(user.id, e.target.value as 'USER' | 'ADMIN' | 'MODERATOR')}
+                                    onChange={(e) =>
+                                      handleRoleChange(
+                                        user.id,
+                                        e.target.value as
+                                          | "USER"
+                                          | "ADMIN"
+                                          | "MODERATOR",
+                                      )
+                                    }
                                     className="block w-full py-2 px-3 border border-input rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-background text-foreground"
                                     disabled={loading}
                                   >
@@ -255,20 +302,31 @@ export default function AdminDashboardPage() {
                                   </select>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isVerified ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                                    {user.isVerified ? 'Verified' : 'Not Verified'}
+                                  <span
+                                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isVerified ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"}`}
+                                  >
+                                    {user.isVerified
+                                      ? "Verified"
+                                      : "Not Verified"}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                                  {new Date(user.createdAt).toLocaleDateString()}
+                                  {new Date(
+                                    user.createdAt,
+                                  ).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                   <button
-                                    onClick={() => handleVerificationChange(user.id, !user.isVerified)}
-                                    className={`mr-2 px-3 py-1 rounded-md text-xs ${user.isVerified ? 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20' : 'bg-green-500/10 text-green-500 hover:bg-green-500/20'}`}
+                                    onClick={() =>
+                                      handleVerificationChange(
+                                        user.id,
+                                        !user.isVerified,
+                                      )
+                                    }
+                                    className={`mr-2 px-3 py-1 rounded-md text-xs ${user.isVerified ? "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20" : "bg-green-500/10 text-green-500 hover:bg-green-500/20"}`}
                                     disabled={loading}
                                   >
-                                    {user.isVerified ? 'Unverify' : 'Verify'}
+                                    {user.isVerified ? "Unverify" : "Verify"}
                                   </button>
                                 </td>
                               </tr>
@@ -280,11 +338,14 @@ export default function AdminDashboardPage() {
                   </div>
                 )}
 
-                {activeTab === 'roles' && (
+                {activeTab === "roles" && (
                   <div>
-                    <h2 className="text-lg font-medium text-foreground mb-4">Role Management</h2>
+                    <h2 className="text-lg font-medium text-foreground mb-4">
+                      Role Management
+                    </h2>
                     <p className="text-muted-foreground mb-4">
-                      This section will allow administrators to manage roles and permissions:
+                      This section will allow administrators to manage roles and
+                      permissions:
                     </p>
                     <ul className="list-disc pl-5 text-foreground space-y-2">
                       <li>Assign roles to users</li>
@@ -293,17 +354,21 @@ export default function AdminDashboardPage() {
                     </ul>
                     <div className="mt-6 p-4 bg-accent rounded-md">
                       <p className="text-muted-foreground italic">
-                        Role management functionality will be implemented in a future update.
+                        Role management functionality will be implemented in a
+                        future update.
                       </p>
                     </div>
                   </div>
                 )}
 
-                {activeTab === 'settings' && (
+                {activeTab === "settings" && (
                   <div>
-                    <h2 className="text-lg font-medium text-foreground mb-4">Admin Settings</h2>
+                    <h2 className="text-lg font-medium text-foreground mb-4">
+                      Admin Settings
+                    </h2>
                     <p className="text-muted-foreground mb-4">
-                      This section will allow administrators to configure system settings:
+                      This section will allow administrators to configure system
+                      settings:
                     </p>
                     <ul className="list-disc pl-5 text-foreground space-y-2">
                       <li>Configure authentication settings</li>
@@ -313,7 +378,8 @@ export default function AdminDashboardPage() {
                     </ul>
                     <div className="mt-6 p-4 bg-accent rounded-md">
                       <p className="text-muted-foreground italic">
-                        Settings functionality will be implemented in a future update.
+                        Settings functionality will be implemented in a future
+                        update.
                       </p>
                     </div>
                   </div>

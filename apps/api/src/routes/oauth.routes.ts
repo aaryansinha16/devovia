@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { githubLogin, githubCallback, oauthSuccess } from '../controllers/oauth.controller';
+import {
+  githubLogin,
+  githubCallback,
+  oauthSuccess,
+} from '../controllers/oauth.controller';
 
 const router = Router();
 

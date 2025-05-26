@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { authenticateJWT, requireAdmin } from '../middleware/auth.middleware';
-import { getAllUsers, updateUserRole, updateUserVerification } from '../controllers/admin.controller';
+import {
+  getAllUsers,
+  updateUserRole,
+  updateUserVerification,
+} from '../controllers/admin.controller';
 
 const router = Router();
 

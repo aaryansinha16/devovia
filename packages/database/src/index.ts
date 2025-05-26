@@ -4,10 +4,10 @@
  */
 
 // Import the PrismaClient directly
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 // Re-export all types from Prisma client
-export * from '@prisma/client';
+export * from "@prisma/client";
 
 // Add prisma to the NodeJS global type
 declare global {
@@ -27,7 +27,7 @@ function createPrismaClient() {
   } else {
     if (!prismaGlobal.prisma) {
       prismaGlobal.prisma = new PrismaClient({
-        log: ['query', 'error', 'warn'],
+        log: ["query", "error", "warn"],
       });
     }
     return prismaGlobal.prisma;

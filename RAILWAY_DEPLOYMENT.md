@@ -7,20 +7,23 @@ This project uses GitHub Actions to deploy the API to Railway. This approach pre
 ### 1. Generate a Railway Token
 
 1. Install the Railway CLI locally:
+
    ```bash
    npm install -g @railway/cli
    ```
 
 2. Login to Railway:
+
    ```bash
    railway login
    ```
 
 3. Generate a token:
+
    ```bash
    railway login --browserless
    ```
-   
+
    This will output a token that you'll need for GitHub Actions.
 
 ### 2. Add the Required Secrets to GitHub
@@ -30,24 +33,29 @@ This project uses GitHub Actions to deploy the API to Railway. This approach pre
 3. Add the following secrets:
 
    a. **RAILWAY_TOKEN**
-      - Name: `RAILWAY_TOKEN`
-      - Value: [The token you generated in step 1]
+
+   - Name: `RAILWAY_TOKEN`
+   - Value: [The token you generated in step 1]
 
    b. **RAILWAY_PROJECT_ID**
-      - Name: `RAILWAY_PROJECT_ID`
-      - Value: `091b1de7-3a3a-4cb4-83c4-f33fc23d9b35`
+
+   - Name: `RAILWAY_PROJECT_ID`
+   - Value: `091b1de7-3a3a-4cb4-83c4-f33fc23d9b35`
 
 ### 3. Link Your Existing Railway Project
 
 1. After merging to main, navigate to your API directory:
+
    ```bash
    cd apps/api
    ```
 
 2. Link your local repository to your existing Railway project:
+
    ```bash
    railway link
    ```
+
    (Select your existing project when prompted)
 
 3. Make sure your PostgreSQL database is properly set up in your Railway project

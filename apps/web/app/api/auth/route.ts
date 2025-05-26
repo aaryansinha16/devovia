@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // This is a server-only API route that will handle authentication requests
 // without trying to bundle bcrypt with client-side code
@@ -8,13 +8,13 @@ export async function POST(request: NextRequest) {
   const { action } = body;
 
   // Forward the request to your actual API
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
-  
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api";
+
   try {
     const response = await fetch(`${apiUrl}/auth/${action}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     });
@@ -24,11 +24,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error(`Error in auth/${action}:`, error);
     return NextResponse.json(
-      { error: 'Authentication service unavailable' },
-      { status: 500 }
+      { error: "Authentication service unavailable" },
+      { status: 500 },
     );
   }
 }
 
 // Make sure this route is always server-side rendered
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";

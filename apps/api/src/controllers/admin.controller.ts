@@ -39,9 +39,9 @@ export const updateUserRole = async (req: Request, res: Response) => {
 
     // Validate role
     if (!role || !Object.values(Role).includes(role as Role)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Invalid role provided',
-        validRoles: Object.values(Role)
+        validRoles: Object.values(Role),
       });
     }
 
@@ -67,9 +67,9 @@ export const updateUserRole = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: 'User role updated successfully',
-      user: updatedUser
+      user: updatedUser,
     });
   } catch (error) {
     console.error('Error updating user role:', error);
@@ -113,9 +113,9 @@ export const updateUserVerification = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: `User ${isVerified ? 'verified' : 'unverified'} successfully`,
-      user: updatedUser
+      user: updatedUser,
     });
   } catch (error) {
     console.error('Error updating user verification:', error);

@@ -19,6 +19,7 @@ This guide explains how to deploy the Devovia API to Railway while preserving th
 ### 2. Configure the Project
 
 1. In the project settings, set the following:
+
    - **Root Directory**: `apps/api`
    - **Environment**: `Node.js`
 
@@ -73,6 +74,7 @@ NEXT_PUBLIC_API_URL=https://your-api-url.railway.app/api
 ## Monitoring
 
 Railway provides basic monitoring for your API:
+
 - CPU and memory usage
 - Logs
 - Deployment history
