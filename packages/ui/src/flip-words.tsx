@@ -17,7 +17,7 @@ export const FlipWords = ({
   // Set initial word when component mounts
   useEffect(() => {
     if (words.length > 0 && !currentWord) {
-      setCurrentWord(words[0]);
+      setCurrentWord(words[0] || '');
     }
   }, [words, currentWord]);
   
