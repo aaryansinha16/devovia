@@ -12,17 +12,17 @@ export const FlipWords = ({
   duration?: number;
   className?: string;
 }) => {
-  const [currentWord, setCurrentWord] = useState<string>('');
-  
+  const [currentWord, setCurrentWord] = useState<string>("");
+
   // Set initial word when component mounts
   useEffect(() => {
     if (words.length > 0 && !currentWord) {
-      setCurrentWord(words[0] || '');
+      setCurrentWord(words[0] || "");
     }
   }, [words, currentWord]);
-  
+
   if (!words || words.length === 0) {
-    console.error('FlipWords component requires a non-empty words array');
+    console.error("FlipWords component requires a non-empty words array");
     return null;
   }
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
@@ -30,8 +30,11 @@ export const FlipWords = ({
   // thanks for the fix Julian - https://github.com/Julian-AT
   const startAnimation = useCallback(() => {
     const currentIndex = words.indexOf(currentWord);
-    const nextIndex = currentIndex >= 0 && currentIndex < words.length - 1 ? currentIndex + 1 : 0;
-    const nextWord = words[nextIndex] || words[0] || ''; // Ensure we always have a string
+    const nextIndex =
+      currentIndex >= 0 && currentIndex < words.length - 1
+        ? currentIndex + 1
+        : 0;
+    const nextWord = words[nextIndex] || words[0] || ""; // Ensure we always have a string
     setCurrentWord(nextWord);
     setIsAnimating(true);
   }, [currentWord, words]);
