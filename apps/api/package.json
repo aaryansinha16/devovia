@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "description": "express api application",
   "scripts": {
-    "prebuild": "rimraf dist && npx prisma generate --schema=../../packages/database/prisma/schema.prisma",
+    "prebuild": "rimraf dist && node -e \"const { schemaPath } = require('./prisma/prisma-schema-path.js'); process.env.PRISMA_SCHEMA_PATH = schemaPath; require('child_process').execSync('npx prisma generate --schema=' + schemaPath, {stdio: 'inherit'})\"",
     "build": "tsc",
-    "build:railway": "rimraf dist && npx prisma generate --schema=../../packages/database/prisma/schema.prisma && tsc -p tsconfig.json",
+    "build:railway": "rimraf dist && RAILWAY_ENVIRONMENT=true node -e \"const { schemaPath } = require('./prisma/prisma-schema-path.js'); process.env.PRISMA_SCHEMA_PATH = schemaPath; require('child_process').execSync('npx prisma generate --schema=' + schemaPath, {stdio: 'inherit'})\" && tsc -p tsconfig.json",
     "start:railway": "node dist/railway.js",
     "prisma:deploy": "prisma migrate deploy",
     "postinstall": "echo 'Skipping prisma generate in postinstall'",
