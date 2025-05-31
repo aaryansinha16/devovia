@@ -52,8 +52,13 @@ jobs:
 
       - name: Generate Prisma client
         run: |
+          # Generate Prisma client in the database package
           cd packages/database
           pnpm run db:generate
+          
+          # Also generate Prisma client in the API package
+          cd ../../apps/api
+          npx prisma generate
 
       - name: Build API
         run: |
