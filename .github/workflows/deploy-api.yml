@@ -56,9 +56,14 @@ jobs:
           cd packages/database
           pnpm run db:generate
           
-          # Also generate Prisma client in the API package using the schema path resolver
+          # Also generate Prisma client in the API package
           cd ../../apps/api
-          node -e "const { schemaPath } = require('./prisma/prisma-schema-path.js'); process.env.PRISMA_SCHEMA_PATH = schemaPath; require('child_process').execSync('npx prisma generate --schema=' + schemaPath, {stdio: 'inherit'})"
+          # First ensure the prisma directory exists
+          mkdir -p prisma
+          # Copy the schema from the database package
+          cp ../../packages/database/prisma/schema.prisma ./prisma/
+          # Generate the client using the local copy
+          npx prisma generate
 
       - name: Build API
         run: |

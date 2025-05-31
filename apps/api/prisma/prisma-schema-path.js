@@ -11,20 +11,29 @@ const fs = require('fs');
 // Check if we're in the Railway environment
 const isRailway = process.env.RAILWAY_ENVIRONMENT === 'true';
 
-// In Railway, the monorepo is cloned to the root directory
-// So we need to use a different path
+// Determine the schema path based on environment
 let schemaPath;
 
-if (isRailway) {
-  // In Railway, the schema is at the root level in packages/database
-  schemaPath = path.resolve(process.cwd(), '../../packages/database/prisma/schema.prisma');
-  
-  // If the file doesn't exist at that path, try the local schema
-  if (!fs.existsSync(schemaPath)) {
-    schemaPath = path.resolve(process.cwd(), './prisma/schema.prisma');
+// Try multiple possible paths to find the schema
+const possiblePaths = [
+  // Path from API package to database package in monorepo
+  path.resolve(process.cwd(), '../../packages/database/prisma/schema.prisma'),
+  // Path within the API package
+  path.resolve(process.cwd(), './prisma/schema.prisma'),
+  // GitHub Actions path (from root of repo)
+  path.resolve(process.cwd(), '../database/prisma/schema.prisma'),
+];
+
+// Find the first path that exists
+for (const possiblePath of possiblePaths) {
+  if (fs.existsSync(possiblePath)) {
+    schemaPath = possiblePath;
+    break;
   }
-} else {
-  // In local development, use the schema from the database package
+}
+
+// If no path was found, default to the standard monorepo path
+if (!schemaPath) {
   schemaPath = path.resolve(process.cwd(), '../../packages/database/prisma/schema.prisma');
 }
 
