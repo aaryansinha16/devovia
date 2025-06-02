@@ -1,0 +1,33 @@
+/* Custom CSS for the FloatingDock component */
+.floating-dock {
+  margin-left: auto;
+  margin-right: auto;
+  height: 4rem;
+  display: none;
+  align-items: flex-end !important; /* Force align-items to be flex-end */
+  gap: 1rem;
+  border-radius: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 0.75rem;
+}
+
+/* Light mode */
+:root {
+  --floating-dock-bg: #f9fafb; /* bg-gray-50 */
+}
+
+/* Dark mode */
+.dark {
+  --floating-dock-bg: #171717; /* dark:bg-neutral-900 */
+}
+
+.floating-dock {
+  background-color: var(--floating-dock-bg);
+}
+
+@media (min-width: 768px) {
+  .floating-dock {
+    display: flex;
+  }
+}

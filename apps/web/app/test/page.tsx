@@ -3,7 +3,9 @@
 import {
   CardSpotlight,
   ContainerScroll,
-  FloatingDock,
+  FloatingDockDemo
+  // FloatingDockDemo,
+  // FloatingDock,
 } from "@repo/ui/components";
 import {
   IconBrandGithub,
@@ -102,10 +104,11 @@ export default function TestPage() {
         </CardSpotlight>
       </div>
       <div className="flex items-center justify-center h-[35rem] w-full">
-        <FloatingDock
+        {/* <FloatingDock
           mobileClassName="translate-y-20" // only for demo, remove for production
           items={links}
-        />
+        /> */}
+        <FloatingDockDemo />
       </div>
 
       <div className="flex flex-col overflow-hidden">
