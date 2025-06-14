@@ -147,11 +147,6 @@ const HeroSection: React.FC = () => {
             Explore Features
           </Button>
         </AnimatedElement>
-
-        {/* <div className="h-[40rem] flex items-center justify-center">
-          <TextHoverEffect text="ACET" />
-        </div> */}
-        <FloatingDockDemo />
       </div>
     </section>
   );
