@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import blogRoutes from '../routes/blog.routes';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '../middleware/auth.middleware';
+import { requireAuth } from '../middleware/auth.middleware';
 
 // Mock dependencies
 jest.mock('@prisma/client', () => {
@@ -28,7 +28,7 @@ jest.mock('@prisma/client', () => {
 
 // Mock auth middleware
 jest.mock('../middleware/auth.middleware', () => ({
-  verifyToken: jest.fn((req, res, next) => {
+  requireAuth: jest.fn((req, res, next) => {
     req.user = { sub: 'test-user-id' };
     next();
   }),
