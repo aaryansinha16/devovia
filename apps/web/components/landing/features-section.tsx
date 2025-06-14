@@ -1,6 +1,7 @@
 import React from "react";
 import FeatureCard from "./feature-card";
 import AnimatedElement from "../animated-element";
+import { FloatingDockDemo } from "@repo/ui/components";
 
 export interface Feature {
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
@@ -167,6 +168,7 @@ const FeaturesSection: React.FC = () => {
           ))}
         </div>
       </div>
+      <FloatingDockDemo />
     </section>
   );
 };

@@ -1,21 +1,14 @@
-/**
- * Note: Use position fixed according to your needs
- * Desktop navbar is better positioned at the bottom
- * Mobile navbar is better positioned at bottom right.
- **/
-
-import { cn } from "./lib/utils";
-import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
+import { cn } from "../../lib/utils";
+import { useEffect, useRef, useState } from "react";
+import { motion, MotionValue, useMotionValue, useSpring, useTransform } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import {
-  AnimatePresence,
-  MotionValue,
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from "motion/react";
+  IconLayoutNavbarCollapse,
+  IconChevronRight,
+} from "@tabler/icons-react";
 
-import { useRef, useState } from "react";
+// Import custom CSS for the dock
+import "./floating-dock.css";
 
 export const FloatingDock = ({
   items,
@@ -97,14 +90,39 @@ const FloatingDockDesktop = ({
   className?: string;
 }) => {
   let mouseX = useMotionValue(Infinity);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect dark mode
+  useEffect(() => {
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Initial check
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+
+      // Set up observer to watch for class changes on html element
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            setIsDarkMode(document.documentElement.classList.contains('dark'));
+          }
+        });
+      });
+
+      observer.observe(document.documentElement, { attributes: true });
+      
+      return () => observer.disconnect();
+    }
+  }, []);
+  
   return (
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className={cn(
-        "mx-auto hidden h-16 items-end gap-4 rounded-xl bg-neutral-900 px-4 pb-3 dark:bg-neutral-900 md:flex",
-        className,
-      )}
+      className={cn("mx-auto hidden rounded-2xl px-4 pb-3 md:flex gap-4 h-16", className)}
+      style={{
+        alignItems: "flex-end",
+        backgroundColor: isDarkMode ? "#171717" : "#f9fafb", // Dark: neutral-900, Light: gray-50
+      }}
     >
       {items.map((item) => (
         <IconContainer mouseX={mouseX} key={item.title} {...item} />
@@ -125,23 +143,46 @@ function IconContainer({
   href: string;
 }) {
   let ref = useRef<HTMLDivElement>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Detect dark mode
+  useEffect(() => {
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Initial check
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+
+      // Set up observer to watch for class changes on html element
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            setIsDarkMode(document.documentElement.classList.contains('dark'));
+          }
+        });
+      });
+
+      observer.observe(document.documentElement, { attributes: true });
+      
+      return () => observer.disconnect();
+    }
+  }, []);
+ 
   let distance = useTransform(mouseX, (val) => {
     let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-
+ 
     return val - bounds.x - bounds.width / 2;
   });
-
+ 
   let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
   let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-
+ 
   let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
   let heightTransformIcon = useTransform(
     distance,
     [-150, 0, 150],
     [20, 40, 20],
   );
-
+ 
   let width = useSpring(widthTransform, {
     mass: 0.1,
     stiffness: 150,
@@ -152,7 +193,7 @@ function IconContainer({
     stiffness: 150,
     damping: 12,
   });
-
+ 
   let widthIcon = useSpring(widthTransformIcon, {
     mass: 0.1,
     stiffness: 150,
@@ -163,17 +204,26 @@ function IconContainer({
     stiffness: 150,
     damping: 12,
   });
-
+ 
   const [hovered, setHovered] = useState(false);
-
+ 
   return (
     <a href={href}>
       <motion.div
         ref={ref}
-        style={{ width, height }}
+        style={{ 
+          width, 
+          height,
+          backgroundColor: isDarkMode ? "#262626" : "#e5e7eb", // Dark: neutral-800, Light: gray-200
+          borderRadius: "9999px", // rounded-full
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          aspectRatio: "1 / 1"
+        }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800"
       >
         {/* <AnimatePresence>
           {hovered && (

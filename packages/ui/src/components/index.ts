@@ -7,6 +7,8 @@ export * from "../badge";
 export * from "../dialog";
 export * from "../text-hover-effect";
 export * from "../card-spotlight";
-export * from "../floating-dock";
 export * from "../container-scroll-animation";
 export * from "../flip-words";
+export * from "./ui/floating-dock";
+export * from "../floating-dock-demo";
+
