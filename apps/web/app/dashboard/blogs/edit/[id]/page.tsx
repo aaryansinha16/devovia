@@ -46,13 +46,15 @@ const MOCK_BLOGS = [
   },
 ];
 
-interface PageProps {
+// Props type for dynamic route
+type PageProps = {
   params: {
     id: string;
-  };
-}
+  }
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
 
-export default function EditBlogPage({ params }: PageProps) {
+export default function EditBlogPage({ params, searchParams }: PageProps) {
   const router = useRouter();
   const { id } = params;
   const { user } = useAuth();
