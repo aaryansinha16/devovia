@@ -3,7 +3,8 @@
 import {
   CardSpotlight,
   ContainerScroll,
-  FloatingDockDemo
+  FloatingDockDemo,
+  MacbookScroll
   // FloatingDockDemo,
   // FloatingDock,
 } from "@repo/ui/components";
@@ -110,6 +111,8 @@ export default function TestPage() {
         /> */}
         <FloatingDockDemo />
       </div>
+
+      <MacbookScroll />
 
       <div className="flex flex-col overflow-hidden">
         <ContainerScroll

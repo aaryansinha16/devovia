@@ -168,7 +168,6 @@ const FeaturesSection: React.FC = () => {
           ))}
         </div>
       </div>
-      <FloatingDockDemo />
     </section>
   );
 };

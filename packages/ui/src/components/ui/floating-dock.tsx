@@ -118,10 +118,15 @@ const FloatingDockDesktop = ({
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className={cn("mx-auto hidden rounded-2xl px-4 pb-3 md:flex gap-4 h-16", className)}
+      className={cn("mx-auto hidden rounded-2xl px-4 pb-3 backdrop-blur-sm md:flex gap-4 h-16", className)}
       style={{
         alignItems: "flex-end",
-        backgroundColor: isDarkMode ? "#171717" : "#f9fafb", // Dark: neutral-900, Light: gray-50
+        // backgroundColor: isDarkMode ? "#171717" : "#f9fafb", // Dark: neutral-900, Light: gray-50
+        background: isDarkMode ? "rgba(49, 46, 129, 0.2)" : "rgba(249, 250, 251, 0.2)",
+        borderRadius: "16px",
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+        // backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
       }}
     >
       {items.map((item) => (
@@ -214,7 +219,7 @@ function IconContainer({
         style={{ 
           width, 
           height,
-          backgroundColor: isDarkMode ? "#262626" : "#e5e7eb", // Dark: neutral-800, Light: gray-200
+          backgroundColor: isDarkMode ? "#000" : "#e5e7eb", // Dark: neutral-800, Light: gray-200
           borderRadius: "9999px", // rounded-full
           display: "flex",
           alignItems: "center",

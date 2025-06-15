@@ -11,4 +11,6 @@ export * from "../container-scroll-animation";
 export * from "../flip-words";
 export * from "./ui/floating-dock";
 export * from "../floating-dock-demo";
-
+export * from "./ui/macbook-scroll";
+export * from "./ui/dashboard-sidebar";
+export * from "./ui/rich-text-editor";
