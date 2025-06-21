@@ -59,7 +59,7 @@ export function BlogActionButtons({ postId, initialLikes }: BlogActionButtonsPro
       toast({
         title: "Action failed",
         description: "Could not process your like. Please try again.",
-        variant: "destructive",
+        type: "error",
       });
     } finally {
       setIsLoading(false);
