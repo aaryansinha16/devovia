@@ -1,4 +1,5 @@
 // Adapted from shadcn/ui toast primitive
+import * as React from "react";
 import { useEffect, useState } from "react";
 
 export type ToastProps = {
@@ -24,12 +25,13 @@ export type ToastOptions = {
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000000;
 
-type ToasterToast = ToastProps & {
+export type ToasterToast = ToastProps & {
   id: string;
   title?: string;
   description?: string;
   action?: React.ReactNode;
   type?: "default" | "success" | "error" | "warning" | "info";
+  open?: boolean;
 };
 
 // Create a unique id for each toast
@@ -142,7 +144,7 @@ export const reducer = (state: State, action: Action): State => {
   }
 };
 
-const listeners: Array<(state: State) => void> = [];
+const listeners: Array<(_state: State) => void> = [];
 
 let memoryState: State = { toasts: [] };
 

@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { cn } from "./lib/utils";
-import { ToastProps } from "./hooks/use-toast";
+import { ToasterToast, useToast, ToastProps } from "./hooks/use-toast";
 
 // A simple toast component
 const Toast: React.FC<ToastProps & { onDismiss: () => void }> = ({
-  id,
+  id: _id, // Prefix with underscore to indicate intentionally unused
   title,
   description,
   action,
@@ -76,16 +76,12 @@ const Toast: React.FC<ToastProps & { onDismiss: () => void }> = ({
 };
 
 export const Toaster: React.FC = () => {
-  const { toasts, dismiss } = React.useMemo(() => {
-    // Import dynamically to avoid SSR issues
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { useToast } = require("./hooks/use-toast");
-    return useToast();
-  }, []);
+  // Using direct import instead of dynamic import
+  const { toasts, dismiss } = useToast();
 
   return (
     <div className="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]">
-      {toasts.map((toast) => (
+      {toasts.map((toast: ToasterToast) => (
         <div
           key={toast.id}
           className="flex w-full items-start gap-4 transition-all mb-2 last:mb-0"
