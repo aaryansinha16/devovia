@@ -16,6 +16,7 @@ import {
   removeTokens,
   refreshTokens,
 } from "./auth";
+import AuthModal from '../components/auth-modal';
 
 // eslint-disable-next-line no-unused-vars
 type LoginFunction = (tokens: AuthTokens) => void;
@@ -23,18 +24,23 @@ type LoginFunction = (tokens: AuthTokens) => void;
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   login: LoginFunction;
   logout: () => void;
   refreshSession: () => Promise<boolean>;
   sessionError: string | null;
+  openAuthModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   // We don't expose tokens directly in the context value, but we need to track them internally
 
   // Initialize auth state from localStorage
@@ -149,18 +155,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Function to open the auth modal
+  const openAuthModal = useCallback(() => {
+    setIsAuthModalOpen(true);
+  }, []);
+
+  // Close the auth modal
+  const closeAuthModal = useCallback(() => {
+    setIsAuthModalOpen(false);
+  }, []);
+
+  // Check if user is authenticated
+  const isAuthenticated = Boolean(user && !isLoading);
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
+        isAuthenticated,
         login,
         logout,
         refreshSession,
         sessionError,
+        openAuthModal,
       }}
     >
       {children}
+      <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
     </AuthContext.Provider>
   );
 }

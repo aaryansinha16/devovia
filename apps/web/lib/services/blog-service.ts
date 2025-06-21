@@ -91,6 +91,32 @@ export async function getBlogBySlug(slug: string): Promise<{ post: BlogPost }> {
 }
 
 /**
+ * Get a single blog post by ID
+ */
+export async function getBlogById(id: string): Promise<{ post: BlogPost }> {
+  // First try to get auth headers for admin access
+  const headers = await getAuthHeaders();
+  
+  const response = await fetch(`${API_URL}/blogs/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+  });
+
+  if (response.status === 404) {
+    throw new Error('Blog post not found');
+  }
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch blog post');
+  }
+
+  return response.json();
+}
+
+/**
  * Get all blogs for the current authenticated user (including drafts)
  */
 export async function getUserBlogs(): Promise<{ posts: BlogPost[] }> {

@@ -20,6 +20,8 @@
     "./label": "./src/label.tsx",
     "./badge": "./src/badge.tsx",
     "./dialog": "./src/dialog.tsx",
+    "./toast": "./src/toast.tsx",
+    "./hooks/use-toast": "./src/hooks/use-toast.ts",
     ".": "./src/index.ts"
   },
   "license": "MIT",

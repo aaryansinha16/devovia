@@ -18,6 +18,8 @@ import moderatorRoutes from './routes/moderator.routes';
 import sessionRoutes from './routes/session.routes';
 import userRoutes from './routes/user.routes';
 import blogRoutes from './routes/blog.routes';
+import commentRoutes from './routes/comment.routes';
+import seedRoutes from './routes/seed.routes';
 
 // Import Passport configuration
 import passport from './config/passport.config';
@@ -97,6 +99,8 @@ export function createExpressApp() {
   app.use('/api/users', userRoutes);
   app.use('/api/sessions', sessionRoutes);
   app.use('/api/blogs', blogRoutes);
+  app.use('/api/comments', commentRoutes);
+  app.use('/api/seed', seedRoutes);
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {

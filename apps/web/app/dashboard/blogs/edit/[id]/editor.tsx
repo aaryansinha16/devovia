@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { RichTextEditor } from "@repo/ui/components";
 import { IconDeviceFloppy, IconArrowLeft, IconUpload, IconX, IconTrash } from "@tabler/icons-react";
 import { useAuth } from "../../../../../lib/auth-context";
-// Import actual service functions once they're implemented
-// import { getBlogPost, updateBlogPost, deleteBlogPost } from "../../../../../lib/services/blog-service";
+import { getBlogById, getUserBlogs, updateBlog, deleteBlog } from "../../../../../lib/services/blog-service";
 
 // Mock blog data for testing - in a real app, this would come from an API
 const MOCK_BLOGS = [
@@ -56,17 +55,24 @@ export function BlogEditor({ id }: { id: string }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
 
-  // Find blog post by ID
+  // Find blog post by ID or fallback to slug
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        // In a real app, you would fetch the blog post from your API
-        // For testing with mock data:
-        const post = MOCK_BLOGS.find((blog) => blog.id === id);
+        // First try to get from user blogs (if already cached)
+        let post = null;
         
-        // Uncomment for real API:
-        // const response = await getBlogById(id);
-        // const post = response.post;
+        try {
+          // Try to fetch the blog post from the API using its ID
+          console.log('Trying to fetch blog by ID:', id);
+          const response = await getBlogById(id);
+          post = response.post;
+        } catch (idError) {
+          console.log('Failed to fetch by ID, trying to fetch by slug');
+          // If ID fetch fails, try to fetch the user's blogs and find the one with matching ID
+          const userBlogsResponse = await getUserBlogs();
+          post = userBlogsResponse.posts.find(p => p.id === id);
+        }
 
         if (post) {
           setTitle(post.title);
@@ -75,15 +81,16 @@ export function BlogEditor({ id }: { id: string }) {
           setExcerpt(post.excerpt || "");
           setCoverImage(post.coverImage || "");
           setPublished(post.published);
-          setTags(post.tags || []);
+          setTags(Array.isArray(post.tags) ? post.tags : []);
           setLoading(false);
         } else {
           // Blog post not found, redirect
+          console.error("Blog post not found");
           router.push("/dashboard/blogs");
         }
       } catch (error) {
         console.error("Error fetching blog post:", error);
-        setErrorMessage("Failed to load blog post");
+        setErrorMessage("Failed to load blog post. Please try again.");
         setLoading(false);
       }
     };
@@ -127,20 +134,16 @@ export function BlogEditor({ id }: { id: string }) {
     }
 
     try {
-      // In a real app, you would send the updated blog post to your API
-      // Uncomment for real API:
-      // await updateBlog(id, {
-      //   title,
-      //   slug,
-      //   content,
-      //   excerpt,
-      //   coverImage,
-      //   published,
-      //   tags,
-      // });
-
-      // For now, we'll just simulate a delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Send the updated blog post to the API
+      await updateBlog(id, {
+        title,
+        slug,
+        content,
+        excerpt,
+        coverImage,
+        published,
+        tags,
+      });
 
       // Redirect to blogs list page
       router.push("/dashboard/blogs");
@@ -156,11 +159,8 @@ export function BlogEditor({ id }: { id: string }) {
   const handleDelete = async () => {
     if (confirm("Are you sure you want to delete this blog post? This action cannot be undone.")) {
       try {
-        // Uncomment for real API:
-        // await deleteBlog(id);
-        
-        // For now simulate a delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Delete the blog post via API
+        await deleteBlog(id);
         router.push("/dashboard/blogs");
       } catch (error) {
         console.error("Error deleting blog post:", error);
