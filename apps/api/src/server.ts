@@ -53,7 +53,8 @@ export function createExpressApp() {
       origin === frontendUrl ||
       origin === deployedUrl ||
       origin?.includes('vercel.app') ||
-      origin?.includes('localhost')
+      origin?.includes('localhost') ||
+      origin?.includes('devovia.com')
     ) {
       res.header('Access-Control-Allow-Origin', origin);
     }
