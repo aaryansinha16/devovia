@@ -1,17 +1,34 @@
+"use client";
+
+import React, { Suspense } from "react";
+import { useParams } from "next/navigation";
 import { BlogEditor } from "./editor";
 
-export const metadata = {
-  title: "Edit Blog Post | Devovia",
-  description: "Edit your blog post on Devovia",
-};
+// Loading component for Suspense
+function EditBlogLoading() {
+  return (
+    <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold">Loading blog editor...</h2>
+      </div>
+    </div>
+  );
+}
 
-// Use this approach to properly handle the params in Next.js App Router
-export default function Page({ params }: { params: { id: string } }) {
-  // Access params directly since this isn't an async function
-  const { id } = params;
-  
-  // We can add server-side data fetching here in the future
-  // const blogData = await fetchBlogData(id);
+// Content component with useParams
+function EditBlogContent() {
+  // Use the useParams hook to access route parameters
+  const params = useParams();
+  const id = params.id as string;
   
   return <BlogEditor id={id} />;
+}
+
+// Main component with Suspense boundary
+export default function EditBlogPage() {
+  return (
+    <Suspense fallback={<EditBlogLoading />}>
+      <EditBlogContent />
+    </Suspense>
+  );
 }

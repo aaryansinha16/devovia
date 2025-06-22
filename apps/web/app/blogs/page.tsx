@@ -1,49 +1,100 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Metadata } from 'next';
+import { useSearchParams } from 'next/navigation';
 import { getAllPublishedBlogs } from '../../lib/services/public-blog-service';
 import { Button } from '@repo/ui/components';
 import ServerPagination from '../../components/server-pagination';
 import { formatDate } from '../../lib/utils/date-utils';
 
-export const metadata: Metadata = {
-  title: 'Developer Blogs | Devovia',
-  description: 'Latest blogs, tutorials, and insights for developers',
-};
+type BlogsData = Awaited<ReturnType<typeof getAllPublishedBlogs>>;
 
-interface BlogsPageProps {
-  searchParams: { page?: string; tag?: string };
+// Create a loading component for Suspense
+function BlogsLoading() {
+  return (
+    <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold">Loading blogs...</h2>
+      </div>
+    </div>
+  );
 }
 
-export default async function BlogsPage({
-  searchParams,
-}: BlogsPageProps) {
-  // Fix: Must await searchParams properties in Next.js App Router
-  const pageParam = await Promise.resolve(searchParams.page || '1');
-  const page = parseInt(pageParam);
-  const limit = 10;
-  const tag = await Promise.resolve(searchParams.tag);
+// Separate the blogs content into its own component that uses useSearchParams
+function BlogsContent() {
+  const searchParams = useSearchParams();
+  const pageParam = searchParams.get('page') || '1';
+  const tagParam = searchParams.get('tag') || undefined;
   
-  try {
-    const blogsData = await getAllPublishedBlogs(page, limit, tag);
-    const { posts, total, hasMore } = blogsData;
-
+  const [page, setPage] = useState(parseInt(pageParam));
+  const [blogsData, setBlogsData] = useState<BlogsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const limit = 10;
+  
+  // Fetch blogs data with useEffect
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        setLoading(true);
+        const data = await getAllPublishedBlogs(page, limit, tagParam);
+        setBlogsData(data);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to load blogs'));
+        console.error('Failed to load blogs:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchBlogs();
+  }, [page, tagParam, limit]);
+  
+  // Loading state
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-5xl mx-auto">
+      <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Loading blogs...</h2>
+        </div>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error || !blogsData) {
+    return (
+      <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Failed to load blogs</h2>
+          <p className="mt-4">{error?.message || 'Could not retrieve blog posts.'}</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+            Try again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  const { posts, total, hasMore } = blogsData;
+  
+  return (
+    <div className="container mx-auto px-4 py-12">
+      <div className="max-w-5xl mx-auto">
           <h1 className="text-4xl font-bold text-center mb-2">Developer Blogs</h1>
           <p className="text-gray-600 dark:text-gray-400 text-center mb-12">
             Latest tutorials, insights, and developer stories
           </p>
           
           {/* Tag filter if tag is applied */}
-          {tag && (
+          {tagParam && (
             <div className="mb-8 flex items-center justify-center">
               <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-full flex items-center">
                 <span className="mr-2">Filtered by:</span>
                 <span className="bg-blue-100 dark:bg-blue-800 px-3 py-1 rounded-full text-blue-800 dark:text-blue-200 font-medium text-sm flex items-center">
-                  {tag}
+                  {tagParam}
                   <Link href="/blogs" className="ml-2 hover:text-blue-600">
                     <span className="sr-only">Remove filter</span>
                     ×
@@ -59,7 +110,7 @@ export default async function BlogsPage({
               <div className="text-center py-20">
                 <h3 className="text-xl font-medium mb-2">No posts found</h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  {tag ? `No posts found with tag "${tag}"` : 'No published posts yet.'}
+                  {tagParam ? `No posts found with tag "${tagParam}"` : 'No published posts yet.'}
                 </p>
                 <Link href="/blogs">
                   <Button>View all posts</Button>
@@ -157,23 +208,20 @@ export default async function BlogsPage({
                 currentPage={page}
                 totalPages={Math.ceil(total / limit)}
                 basePath="/blogs"
-                queryParams={{ tag: tag || undefined }}
+                queryParams={{ tag: tagParam }}
               />
             </div>
           )}
         </div>
       </div>
     );
-  } catch (error) {
-    console.error('Failed to load blogs:', error);
-    return (
-      <div className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold mb-4">Error Loading Blogs</h1>
-        <p className="mb-8">Sorry, we encountered an error while loading the blog posts.</p>
-        <Button onClick={() => window.location.reload()}>
-          Try Again
-        </Button>
-      </div>
-    );
-  }
+}
+
+// Main page component that wraps the content with Suspense
+export default function BlogsPage() {
+  return (
+    <Suspense fallback={<BlogsLoading />}>
+      <BlogsContent />
+    </Suspense>
+  );
 }
