@@ -23,5 +23,9 @@ if git diff --cached --name-only | grep -q "apps/api/src/controllers"; then
   cd ../..
 fi
 
+# Run build to ensure everything compiles correctly
+echo "Running build to check for compilation errors..."
+pnpm run build || { echo "❌ Build failed. Please fix the errors before committing."; exit 1; }
+
 # Run the original lint-staged command
 pnpm lint-staged
