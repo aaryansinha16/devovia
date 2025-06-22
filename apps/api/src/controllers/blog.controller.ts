@@ -101,6 +101,120 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
  * Get a specific blog post by its slug
  * Public endpoint that returns a post with its complete content
  */
+/**
+ * Utility endpoint for debugging - list all blog IDs in the database
+ */
+export const listAllBlogIds = async (req: Request, res: Response) => {
+  try {
+    const posts = await prisma.post.findMany({
+      select: {
+        id: true,
+        title: true
+      }
+    });
+    
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.error('Error listing blog IDs:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getBlogPostById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    console.log('Looking for blog post with ID:', id);
+    
+    // Try to find post with raw query for better debugging - use properly quoted table name for PostgreSQL
+    try {
+      const rawPost = await prisma.$queryRaw`SELECT id FROM "Post" WHERE id = ${id}`;
+      console.log('Raw query result:', JSON.stringify(rawPost, null, 2));
+    } catch (rawQueryError) {
+      console.error('Raw query error:', rawQueryError);
+    }
+    
+    // Try to find the post with a more direct query method
+    try {
+      const post = await prisma.post.findMany({
+        where: {
+          id: {
+            equals: id,
+            mode: 'insensitive', // Try case-insensitive match
+          },
+        },
+        take: 1,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+              bio: true,
+            },
+          },
+          tags: {
+            select: {
+              name: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+              likes: true,
+            },
+          },
+          comments: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 10,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  username: true,
+                  avatar: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      
+      if (!post || post.length === 0) {
+        console.log('No post found in findMany with ID:', id);
+        // Let's try to find the first few posts to debug
+        const samplePosts = await prisma.post.findMany({
+          take: 3,
+          select: { id: true, title: true }
+        });
+        console.log('Sample posts in database:', JSON.stringify(samplePosts, null, 2));
+        return res.status(404).json({ message: 'Blog post not found' });
+      }
+      
+      const foundPost = post[0];
+      console.log('Successfully found post with findMany:', foundPost.id);
+      
+      // Format tags to be just an array of strings
+      const formattedPost = {
+        ...foundPost,
+        tags: foundPost.tags.map((tag) => tag.name),
+      };
+      
+      return res.status(200).json({ post: formattedPost });
+      
+    } catch (findManyError) {
+      console.error('Error in findMany query:', findManyError);
+      return res.status(500).json({ message: 'Error finding blog post' });
+    }
+  } catch (error) {
+    console.error('Error fetching blog post by ID:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 export const getBlogPostBySlug = async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
