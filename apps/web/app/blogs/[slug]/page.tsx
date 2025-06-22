@@ -15,8 +15,8 @@ export async function generateMetadata({
   params: { slug: string }
 }): Promise<Metadata> {
   try {
-    // Properly await the slug parameter before using it
-    const slug = await Promise.resolve(params.slug);
+    // Access slug directly from params
+    const slug = params.slug;
     const post = await getBlogBySlug(slug);
     
     return {
@@ -40,8 +40,8 @@ export default async function BlogPostPage({
   params: { slug: string }
 }) {
   try {
-    // Properly await the slug parameter before using it
-    const slug = await Promise.resolve(params.slug);
+    // Access slug directly from params
+    const slug = params.slug;
     console.log(`Blog page: Fetching blog with slug '${slug}'`);
     
     // Fetch the post data
