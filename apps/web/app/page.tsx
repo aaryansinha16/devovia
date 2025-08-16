@@ -16,10 +16,10 @@ export default function HomePage() {
   useEffect(() => {
     // First, reset any lingering cursor styles from previous visits
     resetAllCursorStyles();
-    
+
     // Then, hide the default cursor for this page only
     hideDefaultCursor();
-    
+
     // Cleanup function to restore original cursor styles when leaving this page
     return () => {
       resetAllCursorStyles();
@@ -31,9 +31,7 @@ export default function HomePage() {
       {/* Header */}
       <Navbar />
 
-      <div
-        className="fixed bottom-4 left-0 right-0 z-50"
-      >
+      <div className="fixed bottom-4 left-0 right-0 z-50">
         <FloatingDockDemo />
       </div>
 

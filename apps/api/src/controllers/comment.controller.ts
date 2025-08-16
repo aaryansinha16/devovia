@@ -129,7 +129,9 @@ export const deleteComment = async (req: Request, res: Response) => {
     });
 
     if (comment.userId !== userId && user?.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Not authorized to delete this comment' });
+      return res
+        .status(403)
+        .json({ error: 'Not authorized to delete this comment' });
     }
 
     // Delete comment

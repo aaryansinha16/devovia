@@ -4,7 +4,7 @@ import {
   CardSpotlight,
   ContainerScroll,
   FloatingDockDemo,
-  MacbookScroll
+  MacbookScroll,
   // FloatingDockDemo,
   // FloatingDock,
 } from "@repo/ui/components";

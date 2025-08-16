@@ -7,7 +7,14 @@ import { useTheme } from "../lib/theme-context";
 import { useAuth } from "../lib/auth-context";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { VerticalNavbar } from "./vertical-navbar";
-import { IconBrandGithub, IconBrandX, IconExchange, IconHome, IconNewSection, IconTerminal2 } from "@tabler/icons-react";
+import {
+  IconBrandGithub,
+  IconBrandX,
+  IconExchange,
+  IconHome,
+  IconNewSection,
+  IconTerminal2,
+} from "@tabler/icons-react";
 
 export const SparklesIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   props,
@@ -49,34 +56,34 @@ const Navbar: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Animation configuration
-  const finalSizePx = 60;        // the size of the circle when collapsed
-  const finalTopPx = 20;        // how far down when "max" scrolled
-  const finalRightPx = 20;      // how far from right when "max" scrolled
-  const maxScrollPx = 400;      // after this scrollY, fraction caps at 1
+  const finalSizePx = 60; // the size of the circle when collapsed
+  const finalTopPx = 20; // how far down when "max" scrolled
+  const finalRightPx = 20; // how far from right when "max" scrolled
+  const maxScrollPx = 400; // after this scrollY, fraction caps at 1
 
   // Animation state
   const [navStyles, setNavStyles] = useState({
-    width: '90%',
-    height: '84px',
-    top: '20px',
-    left: '0',
-    right: '0',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    borderRadius: '20px'
+    width: "90%",
+    height: "84px",
+    top: "20px",
+    left: "0",
+    right: "0",
+    marginLeft: "auto",
+    marginRight: "auto",
+    borderRadius: "20px",
   });
 
   // Function to position dropdown menu relative to the circle button
   const positionDropdown = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const navbarWidth = 280; // Width of the vertical navbar
       const circleLeft = window.innerWidth - finalSizePx - finalRightPx;
-      const centeredLeft = circleLeft - (navbarWidth / 2) + (finalSizePx / 2);
-      
+      const centeredLeft = circleLeft - navbarWidth / 2 + finalSizePx / 2;
+
       return {
         top: `${finalTopPx + finalSizePx + 8}px`, // 8px gap below circle
         left: `${Math.max(20, centeredLeft - 110)}px`, // Ensure it doesn't go off-screen
-        width: `${navbarWidth}px`
+        width: `${navbarWidth}px`,
       };
     }
     return {};
@@ -95,7 +102,7 @@ const Navbar: React.FC = () => {
       // fraction from 0 → 1 (clamped)
       const t = Math.min(scrollY / maxScrollPx, 1);
 
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         if (t < 1) {
           // Not fully collapsed yet - animated transition
           setIsCollapsed(false);
@@ -106,7 +113,7 @@ const Navbar: React.FC = () => {
           const newH = 84 * (1 - t) + finalSizePx * t; // Height from 4rem (64px) to finalSizePx
 
           // Calculate border radius for circle morph effect (20px → 50%)
-          const radius = t < 1 ? `${20 * (1 - t) + 50 * t}px` : '50%';
+          const radius = t < 1 ? `${20 * (1 - t) + 50 * t}px` : "50%";
 
           // compute horizontal: from center → right=finalRightPx
           const centeredLeft = (fullW - newW) / 2;
@@ -119,10 +126,10 @@ const Navbar: React.FC = () => {
             height: `${newH}px`,
             top: `${finalTopPx * (t || 1)}px`,
             left: `${newLeft}px`,
-            right: 'auto',
-            marginLeft: '0',
-            marginRight: '0',
-            borderRadius: radius
+            right: "auto",
+            marginLeft: "0",
+            marginRight: "0",
+            borderRadius: radius,
           });
         } else {
           // Fully collapsed - circle state
@@ -133,10 +140,10 @@ const Navbar: React.FC = () => {
             height: `${finalSizePx}px`,
             top: `${finalTopPx}px`,
             left: `${window.innerWidth - finalSizePx - finalRightPx}px`,
-            right: 'auto',
-            marginLeft: '0',
-            marginRight: '0',
-            borderRadius: '50%'
+            right: "auto",
+            marginLeft: "0",
+            marginRight: "0",
+            borderRadius: "50%",
           });
 
           // Update dropdown position
@@ -178,8 +185,6 @@ const Navbar: React.FC = () => {
     }
   };
 
-
-
   return (
     <>
       {/* Main Navbar */}
@@ -189,7 +194,7 @@ const Navbar: React.FC = () => {
         className={`fixed z-50 transition-all duration-300 ease-in-out rounded-lg overflow-hidden ${headerClasses}`}
         style={{
           ...navStyles,
-          transform: 'translateZ(0)', // hardware acceleration
+          transform: "translateZ(0)", // hardware acceleration
         }}
         onClick={handleCircleClick}
       >
@@ -304,7 +309,11 @@ const Navbar: React.FC = () => {
         {isCollapsed && (
           <div className="w-full h-full flex justify-center items-center">
             <img
-              src={theme === "dark" ? "/favicon-devovia.png" : "/favicon-devovia.png"}
+              src={
+                theme === "dark"
+                  ? "/favicon-devovia.png"
+                  : "/favicon-devovia.png"
+              }
               alt="Devovia Logo"
               className="h-10 w-auto"
             />

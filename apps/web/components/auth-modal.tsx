@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@repo/ui/components';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@repo/ui/components";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,12 +19,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   }, []);
 
   const handleLogin = () => {
-    router.push('/login');
+    router.push("/login");
     onClose();
   };
 
   const handleSignup = () => {
-    router.push('/register');
+    router.push("/register");
     onClose();
   };
 
@@ -38,25 +38,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           Please log in or sign up to continue with this action.
         </p>
         <div className="flex flex-col space-y-3">
-          <Button 
-            onClick={handleLogin}
-            className="w-full"
-            variant="primary"
-          >
+          <Button onClick={handleLogin} className="w-full" variant="primary">
             Log In
           </Button>
-          <Button 
+          <Button
             onClick={handleSignup}
             className="w-full"
             variant="outlineAlt"
           >
             Sign Up
           </Button>
-          <Button 
-            onClick={onClose}
-            className="w-full"
-            variant="secondary"
-          >
+          <Button onClick={onClose} className="w-full" variant="secondary">
             Cancel
           </Button>
         </div>

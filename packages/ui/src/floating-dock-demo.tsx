@@ -76,4 +76,4 @@ export const FloatingDockDemo = () => {
       />
     </div>
   );
-}
+};

@@ -21,7 +21,9 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<
+    string | null
+  >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +35,9 @@ export default function RegisterPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfilePictureChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       setProfilePicture(file);
@@ -84,10 +88,13 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'rgb(15, 23, 42)' }}>
+    <div
+      className="min-h-screen flex"
+      style={{ backgroundColor: "rgb(15, 23, 42)" }}
+    >
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -99,7 +106,7 @@ export default function RegisterPage() {
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
         <motion.div
@@ -111,7 +118,7 @@ export default function RegisterPage() {
           transition={{
             duration: 25,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
       </div>
@@ -132,8 +139,18 @@ export default function RegisterPage() {
             className="flex items-center mb-8"
           >
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg mr-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-white">Devovia</h1>
@@ -148,12 +165,16 @@ export default function RegisterPage() {
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
               Build, Share, and
-              <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"> Innovate</span>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                {" "}
+                Innovate
+              </span>
               —Faster
             </h2>
             <p className="text-slate-300 text-lg leading-relaxed mb-8">
-              Streamline your development workflow with powerful tools for code snippets, 
-              project templates, CI/CD pipelines, and collaborative development.
+              Streamline your development workflow with powerful tools for code
+              snippets, project templates, CI/CD pipelines, and collaborative
+              development.
             </p>
           </motion.div>
 
@@ -165,10 +186,26 @@ export default function RegisterPage() {
             className="space-y-4 mb-8"
           >
             {[
-              { icon: "📝", title: "Code Snippets", desc: "Organize and share your code snippets" },
-              { icon: "🚀", title: "Project Templates", desc: "Quick-start templates for any framework" },
-              { icon: "⚡", title: "CI/CD Pipelines", desc: "Automated deployment workflows" },
-              { icon: "👥", title: "Team Collaboration", desc: "Work together on projects seamlessly" }
+              {
+                icon: "📝",
+                title: "Code Snippets",
+                desc: "Organize and share your code snippets",
+              },
+              {
+                icon: "🚀",
+                title: "Project Templates",
+                desc: "Quick-start templates for any framework",
+              },
+              {
+                icon: "⚡",
+                title: "CI/CD Pipelines",
+                desc: "Automated deployment workflows",
+              },
+              {
+                icon: "👥",
+                title: "Team Collaboration",
+                desc: "Work together on projects seamlessly",
+              },
             ].map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -242,8 +279,18 @@ export default function RegisterPage() {
                 className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
               >
                 <div className="flex items-center">
-                  <svg className="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-5 h-5 text-red-400 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <p className="text-red-400 text-sm">{error}</p>
                 </div>
@@ -268,8 +315,18 @@ export default function RegisterPage() {
                       />
                     ) : (
                       <div className="text-center">
-                        <svg className="w-8 h-8 text-slate-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        <svg
+                          className="w-8 h-8 text-slate-400 group-hover:text-blue-400 transition-colors"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
                         </svg>
                         <p className="text-xs text-slate-400 mt-1">Photo</p>
                       </div>
@@ -288,7 +345,10 @@ export default function RegisterPage() {
               {/* Form Fields */}
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Full Name
                   </label>
                   <FansyInput
@@ -304,7 +364,10 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="username"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Username
                   </label>
                   <FansyInput
@@ -320,7 +383,10 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Email Address
                   </label>
                   <FansyInput
@@ -336,7 +402,10 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Password
                   </label>
                   <FansyInput
@@ -352,7 +421,10 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Confirm Password
                   </label>
                   <FansyInput
@@ -363,7 +435,7 @@ export default function RegisterPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                      placeholder="Confirm your password"
+                    placeholder="Confirm your password"
                   />
                 </div>
               </div>
@@ -378,9 +450,25 @@ export default function RegisterPage() {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Creating account...
                   </div>
@@ -408,7 +496,11 @@ export default function RegisterPage() {
                 href={getGitHubLoginUrl()}
                 className="w-full flex items-center justify-center px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"
               >
-                <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-5 h-5 mr-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M10 0C4.477 0 0 4.477 0 10c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V19c0 .27.16.59.67.5C17.14 18.16 20 14.42 20 10A10 10 0 0010 0z"

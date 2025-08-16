@@ -37,10 +37,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'rgb(15, 23, 42)' }}>
+    <div
+      className="min-h-screen flex"
+      style={{ backgroundColor: "rgb(15, 23, 42)" }}
+    >
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -52,7 +55,7 @@ export default function LoginPage() {
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
         <motion.div
@@ -64,7 +67,7 @@ export default function LoginPage() {
           transition={{
             duration: 25,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
       </div>
@@ -85,8 +88,18 @@ export default function LoginPage() {
             className="flex items-center mb-8"
           >
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg mr-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-white">Devovia</h1>
@@ -101,11 +114,14 @@ export default function LoginPage() {
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
               Welcome Back to
-              <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"> Devovia</span>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                {" "}
+                Devovia
+              </span>
             </h2>
             <p className="text-slate-300 text-lg leading-relaxed mb-8">
-              Continue building amazing projects with our powerful development tools. 
-              Your workflow awaits.
+              Continue building amazing projects with our powerful development
+              tools. Your workflow awaits.
             </p>
           </motion.div>
 
@@ -124,7 +140,9 @@ export default function LoginPage() {
             <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
               <div className="text-2xl mb-2">🔒</div>
               <h3 className="text-white font-semibold mb-1">Secure</h3>
-              <p className="text-slate-400 text-sm">Enterprise-grade security</p>
+              <p className="text-slate-400 text-sm">
+                Enterprise-grade security
+              </p>
             </div>
           </motion.div>
 
@@ -136,7 +154,7 @@ export default function LoginPage() {
             className="bg-slate-800/20 backdrop-blur-sm rounded-xl p-6 border border-slate-700/30"
           >
             <p className="text-slate-300 italic mb-4">
-              "Devovia has transformed how our team collaborates on projects. 
+              "Devovia has transformed how our team collaborates on projects.
               The workflow automation alone saves us hours every week."
             </p>
             <div className="flex items-center">
@@ -144,8 +162,12 @@ export default function LoginPage() {
                 <span className="text-white font-semibold text-sm">JS</span>
               </div>
               <div>
-                <div className="text-white font-semibold text-sm">Jane Smith</div>
-                <div className="text-slate-400 text-xs">Lead Developer at TechCorp</div>
+                <div className="text-white font-semibold text-sm">
+                  Jane Smith
+                </div>
+                <div className="text-slate-400 text-xs">
+                  Lead Developer at TechCorp
+                </div>
               </div>
             </div>
           </motion.div>
@@ -162,9 +184,7 @@ export default function LoginPage() {
         >
           {/* Form Header */}
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-white mb-2">
-              Sign In
-            </h3>
+            <h3 className="text-2xl font-bold text-white mb-2">Sign In</h3>
             <p className="text-slate-400 text-sm">
               Welcome back! Please sign in to your account
             </p>
@@ -185,8 +205,18 @@ export default function LoginPage() {
                 className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
               >
                 <div className="flex items-center">
-                  <svg className="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-5 h-5 text-red-400 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <p className="text-red-400 text-sm">{error}</p>
                 </div>
@@ -197,7 +227,10 @@ export default function LoginPage() {
               {/* Form Fields */}
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Email Address
                   </label>
                   <FansyInput
@@ -213,7 +246,10 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Password
                   </label>
                   <FansyInput
@@ -238,13 +274,19 @@ export default function LoginPage() {
                     type="checkbox"
                     className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-slate-600 rounded bg-slate-700"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-300">
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-2 block text-sm text-slate-300"
+                  >
                     Remember me
                   </label>
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                  <a
+                    href="#"
+                    className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                  >
                     Forgot password?
                   </a>
                 </div>
@@ -260,9 +302,25 @@ export default function LoginPage() {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Signing in...
                   </div>

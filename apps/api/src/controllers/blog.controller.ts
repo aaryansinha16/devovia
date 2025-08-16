@@ -2,7 +2,10 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { cleanupTempFile } from '../middleware/multer.middleware';
 import { uploadToCloudinary } from '../utils/cloudinary.util';
-import { createBlogSchema, updateBlogSchema } from '../validators/blog.validator';
+import {
+  createBlogSchema,
+  updateBlogSchema,
+} from '../validators/blog.validator';
 
 const prisma = new PrismaClient();
 
@@ -109,10 +112,10 @@ export const listAllBlogIds = async (req: Request, res: Response) => {
     const posts = await prisma.post.findMany({
       select: {
         id: true,
-        title: true
-      }
+        title: true,
+      },
     });
-    
+
     return res.status(200).json({ posts });
   } catch (error) {
     console.error('Error listing blog IDs:', error);
@@ -124,15 +127,16 @@ export const getBlogPostById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     console.log('Looking for blog post with ID:', id);
-    
+
     // Try to find post with raw query for better debugging - use properly quoted table name for PostgreSQL
     try {
-      const rawPost = await prisma.$queryRaw`SELECT id FROM "Post" WHERE id = ${id}`;
+      const rawPost =
+        await prisma.$queryRaw`SELECT id FROM "Post" WHERE id = ${id}`;
       console.log('Raw query result:', JSON.stringify(rawPost, null, 2));
     } catch (rawQueryError) {
       console.error('Raw query error:', rawQueryError);
     }
-    
+
     // Try to find the post with a more direct query method
     try {
       const post = await prisma.post.findMany({
@@ -182,29 +186,31 @@ export const getBlogPostById = async (req: Request, res: Response) => {
           },
         },
       });
-      
+
       if (!post || post.length === 0) {
         console.log('No post found in findMany with ID:', id);
         // Let's try to find the first few posts to debug
         const samplePosts = await prisma.post.findMany({
           take: 3,
-          select: { id: true, title: true }
+          select: { id: true, title: true },
         });
-        console.log('Sample posts in database:', JSON.stringify(samplePosts, null, 2));
+        console.log(
+          'Sample posts in database:',
+          JSON.stringify(samplePosts, null, 2),
+        );
         return res.status(404).json({ message: 'Blog post not found' });
       }
-      
+
       const foundPost = post[0];
       console.log('Successfully found post with findMany:', foundPost.id);
-      
+
       // Format tags to be just an array of strings
       const formattedPost = {
         ...foundPost,
         tags: foundPost.tags.map((tag) => tag.name),
       };
-      
+
       return res.status(200).json({ post: formattedPost });
-      
     } catch (findManyError) {
       console.error('Error in findMany query:', findManyError);
       return res.status(500).json({ message: 'Error finding blog post' });
@@ -354,15 +360,16 @@ export const createBlogPost = async (req: Request, res: Response) => {
 
     // Validate request body against schema
     const validationResult = createBlogSchema.safeParse(req.body);
-    
+
     if (!validationResult.success) {
       return res.status(400).json({
         message: 'Validation failed',
-        errors: validationResult.error.errors
+        errors: validationResult.error.errors,
       });
     }
-    
-    const { title, slug, content, excerpt, coverImage, published, tags } = validationResult.data;
+
+    const { title, slug, content, excerpt, coverImage, published, tags } =
+      validationResult.data;
 
     // Check for slug uniqueness
     const existingPost = await prisma.post.findUnique({
@@ -401,7 +408,7 @@ export const createBlogPost = async (req: Request, res: Response) => {
           published: published || false,
           userId,
           tags: {
-            connect: tagObjects.map(tag => ({ name: tag.name })),
+            connect: tagObjects.map((tag) => ({ name: tag.name })),
           },
         },
         include: {
@@ -434,22 +441,23 @@ export const updateBlogPost = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.sub;
     const { id } = req.params;
-    
+
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    
+
     // Validate request body against schema
     const validationResult = updateBlogSchema.safeParse(req.body);
-    
+
     if (!validationResult.success) {
       return res.status(400).json({
         message: 'Validation failed',
-        errors: validationResult.error.errors
+        errors: validationResult.error.errors,
       });
     }
-    
-    const { title, slug, content, excerpt, coverImage, published, tags } = validationResult.data;
+
+    const { title, slug, content, excerpt, coverImage, published, tags } =
+      validationResult.data;
 
     // Check if the post exists and belongs to the user
     const existingPost = await prisma.post.findUnique({
@@ -468,7 +476,9 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     }
 
     if (existingPost.userId !== userId) {
-      return res.status(403).json({ message: 'Forbidden: You can only update your own posts' });
+      return res
+        .status(403)
+        .json({ message: 'Forbidden: You can only update your own posts' });
     }
 
     // Check slug uniqueness if slug is updated
@@ -491,7 +501,7 @@ export const updateBlogPost = async (req: Request, res: Response) => {
         where: { id },
         data: {
           tags: {
-            disconnect: existingPost.tags.map(tag => ({ name: tag.name })),
+            disconnect: existingPost.tags.map((tag) => ({ name: tag.name })),
           },
         },
       });
@@ -521,7 +531,7 @@ export const updateBlogPost = async (req: Request, res: Response) => {
           published,
           updatedAt: new Date(),
           tags: {
-            connect: tagObjects.map(tag => ({ name: tag.name })),
+            connect: tagObjects.map((tag) => ({ name: tag.name })),
           },
         },
         include: {
@@ -569,7 +579,9 @@ export const deleteBlogPost = async (req: Request, res: Response) => {
     }
 
     if (post.userId !== userId) {
-      return res.status(403).json({ message: 'Forbidden: You can only delete your own posts' });
+      return res
+        .status(403)
+        .json({ message: 'Forbidden: You can only delete your own posts' });
     }
 
     // Delete the post
@@ -607,7 +619,10 @@ export const uploadBlogImage = async (req: Request, res: Response) => {
       const filePath = req.file.path;
 
       // Upload to Cloudinary in blog-images folder
-      const uploadResult = await uploadToCloudinary(filePath, `devovia/blog-images/${userId}`);
+      const uploadResult = await uploadToCloudinary(
+        filePath,
+        `devovia/blog-images/${userId}`,
+      );
 
       // Clean up the temporary file
       cleanupTempFile(filePath);

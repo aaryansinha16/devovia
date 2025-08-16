@@ -10,9 +10,9 @@
 export function resetAllCursorStyles() {
   // Reset body cursor
   document.body.style.cursor = "";
-  
+
   // Reset all elements
-  const allElements = document.querySelectorAll('*');
+  const allElements = document.querySelectorAll("*");
   allElements.forEach((el) => {
     if (el instanceof HTMLElement) {
       el.style.cursor = "";
@@ -26,10 +26,10 @@ export function resetAllCursorStyles() {
 export function hideDefaultCursor() {
   // Hide cursor on body
   document.body.style.cursor = "none";
-  
+
   // Hide cursor on all interactive elements
   const interactiveElements = document.querySelectorAll(
-    'a, button, [role="button"], input[type="submit"], input[type="button"], label[for], select, textarea'
+    'a, button, [role="button"], input[type="submit"], input[type="button"], label[for], select, textarea',
   );
   interactiveElements.forEach((el) => {
     if (el instanceof HTMLElement) {
@@ -45,23 +45,23 @@ export function hideDefaultCursor() {
 export function registerGlobalCursorFix() {
   // Reset cursor visibility after any mouseout event on interactive elements
   const interactiveElements = document.querySelectorAll(
-    'a, button, [role="button"], input[type="submit"], input[type="button"], label[for], select, textarea'
+    'a, button, [role="button"], input[type="submit"], input[type="button"], label[for], select, textarea',
   );
-  
+
   // Add mouseout handler to all interactive elements
   interactiveElements.forEach((el) => {
-    el.addEventListener('mouseout', () => {
+    el.addEventListener("mouseout", () => {
       // Ensure cursor is visible when leaving elements
-      if (window.location.pathname !== '/') {
+      if (window.location.pathname !== "/") {
         document.body.style.cursor = "";
       }
     });
   });
-  
+
   // Also add a global mousemove handler as a fallback
-  document.addEventListener('mousemove', () => {
+  document.addEventListener("mousemove", () => {
     // If we're not on the homepage, ensure cursor is visible
-    if (window.location.pathname !== '/') {
+    if (window.location.pathname !== "/") {
       document.body.style.cursor = "";
     }
   });

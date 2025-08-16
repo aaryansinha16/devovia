@@ -3,9 +3,20 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RichTextEditor } from "@repo/ui/components";
-import { IconDeviceFloppy, IconArrowLeft, IconUpload, IconX, IconTrash } from "@tabler/icons-react";
+import {
+  IconDeviceFloppy,
+  IconArrowLeft,
+  IconUpload,
+  IconX,
+  IconTrash,
+} from "@tabler/icons-react";
 import { useAuth } from "../../../../../lib/auth-context";
-import { getBlogById, getUserBlogs, updateBlog, deleteBlog } from "../../../../../lib/services/blog-service";
+import {
+  getBlogById,
+  getUserBlogs,
+  updateBlog,
+  deleteBlog,
+} from "../../../../../lib/services/blog-service";
 
 // Mock blog data for testing - in a real app, this would come from an API
 const MOCK_BLOGS = [
@@ -13,8 +24,10 @@ const MOCK_BLOGS = [
     id: "1",
     title: "Getting Started with NextJS and TypeScript",
     slug: "getting-started-nextjs-typescript",
-    excerpt: "Learn how to set up a new project using NextJS and TypeScript with best practices.",
-    content: "<h2>Introduction</h2><p>NextJS and TypeScript make a powerful combination for building modern web applications. In this post, we'll explore how to get started with this tech stack.</p><h2>Setting Up Your Project</h2><p>First, create a new NextJS project with TypeScript support using the following command:</p><pre><code>npx create-next-app@latest my-app --typescript</code></pre>",
+    excerpt:
+      "Learn how to set up a new project using NextJS and TypeScript with best practices.",
+    content:
+      "<h2>Introduction</h2><p>NextJS and TypeScript make a powerful combination for building modern web applications. In this post, we'll explore how to get started with this tech stack.</p><h2>Setting Up Your Project</h2><p>First, create a new NextJS project with TypeScript support using the following command:</p><pre><code>npx create-next-app@latest my-app --typescript</code></pre>",
     coverImage: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97",
     published: true,
     createdAt: "2025-05-15T10:30:00Z",
@@ -25,8 +38,10 @@ const MOCK_BLOGS = [
     id: "2",
     title: "Building a Modern UI with Tailwind CSS",
     slug: "building-modern-ui-tailwind",
-    excerpt: "Discover how to create beautiful user interfaces quickly using Tailwind CSS.",
-    content: "<h2>Introduction to Tailwind CSS</h2><p>Tailwind CSS is a utility-first CSS framework that allows you to build modern websites without ever leaving your HTML. In this guide, we'll explore the key concepts and best practices.</p>",
+    excerpt:
+      "Discover how to create beautiful user interfaces quickly using Tailwind CSS.",
+    content:
+      "<h2>Introduction to Tailwind CSS</h2><p>Tailwind CSS is a utility-first CSS framework that allows you to build modern websites without ever leaving your HTML. In this guide, we'll explore the key concepts and best practices.</p>",
     coverImage: "https://images.unsplash.com/photo-1587620962725-abab7fe55159",
     published: true,
     createdAt: "2025-05-10T09:15:00Z",
@@ -61,17 +76,17 @@ export function BlogEditor({ id }: { id: string }) {
       try {
         // First try to get from user blogs (if already cached)
         let post = null;
-        
+
         try {
           // Try to fetch the blog post from the API using its ID
-          console.log('Trying to fetch blog by ID:', id);
+          console.log("Trying to fetch blog by ID:", id);
           const response = await getBlogById(id);
           post = response.post;
         } catch (idError) {
-          console.log('Failed to fetch by ID, trying to fetch by slug');
+          console.log("Failed to fetch by ID, trying to fetch by slug");
           // If ID fetch fails, try to fetch the user's blogs and find the one with matching ID
           const userBlogsResponse = await getUserBlogs();
-          post = userBlogsResponse.posts.find(p => p.id === id);
+          post = userBlogsResponse.posts.find((p) => p.id === id);
         }
 
         if (post) {
@@ -157,7 +172,11 @@ export function BlogEditor({ id }: { id: string }) {
 
   // Function to delete the blog post
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this blog post? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this blog post? This action cannot be undone.",
+      )
+    ) {
       try {
         // Delete the blog post via API
         await deleteBlog(id);
@@ -170,7 +189,9 @@ export function BlogEditor({ id }: { id: string }) {
   };
 
   // Function to handle cover image upload
-  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -182,11 +203,11 @@ export function BlogEditor({ id }: { id: string }) {
       // Uncomment for real API:
       // const response = await uploadBlogImage(file);
       // const imageUrl = response.imageUrl;
-      
+
       // For now, we'll just simulate a delay and use a local URL
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const imageUrl = URL.createObjectURL(file);
-      
+
       setCoverImage(imageUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -202,7 +223,9 @@ export function BlogEditor({ id }: { id: string }) {
   };
 
   // Function to handle image upload in the rich text editor
-  const handleRichTextImageUpload = async (file: File): Promise<{ imageUrl: string }> => {
+  const handleRichTextImageUpload = async (
+    file: File,
+  ): Promise<{ imageUrl: string }> => {
     try {
       // In a real app, you would upload the image to your backend/storage service
       // Uncomment for real API:
@@ -212,7 +235,7 @@ export function BlogEditor({ id }: { id: string }) {
       // });
       // const data = await response.json();
       // return { imageUrl: data.imageUrl };
-      
+
       // For now, we'll just simulate a delay and use a local URL
       await new Promise((resolve) => setTimeout(resolve, 800));
       const url = URL.createObjectURL(file);
@@ -220,7 +243,10 @@ export function BlogEditor({ id }: { id: string }) {
     } catch (error) {
       console.error("Error uploading image to editor:", error);
       // Return a placeholder image URL on error
-      return { imageUrl: 'https://via.placeholder.com/800x400?text=Error+Loading+Image' };
+      return {
+        imageUrl:
+          "https://via.placeholder.com/800x400?text=Error+Loading+Image",
+      };
     }
   };
 
@@ -339,8 +365,10 @@ export function BlogEditor({ id }: { id: string }) {
 
         {/* Cover Image */}
         <div className="space-y-3">
-          <label className="text-sm font-medium leading-none">Cover Image</label>
-          
+          <label className="text-sm font-medium leading-none">
+            Cover Image
+          </label>
+
           {coverImage ? (
             <div className="relative">
               <img
@@ -359,12 +387,11 @@ export function BlogEditor({ id }: { id: string }) {
           ) : (
             <div className="flex items-center justify-center border border-dashed border-input rounded-md h-48 bg-muted/50">
               <label className="cursor-pointer flex flex-col items-center justify-center gap-2 w-full h-full">
-                <IconUpload
-                  size={24}
-                  className="text-muted-foreground"
-                />
+                <IconUpload size={24} className="text-muted-foreground" />
                 {imageUploading ? (
-                  <span className="text-sm text-muted-foreground">Uploading...</span>
+                  <span className="text-sm text-muted-foreground">
+                    Uploading...
+                  </span>
                 ) : (
                   <span className="text-sm text-muted-foreground">
                     Click to upload cover image
@@ -449,7 +476,7 @@ export function BlogEditor({ id }: { id: string }) {
               <IconTrash size={16} />
               Delete
             </button>
-            
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -463,7 +490,7 @@ export function BlogEditor({ id }: { id: string }) {
               </label>
             </div>
           </div>
-          
+
           {/* Mobile save button (for responsive design) */}
           <button
             type="submit"

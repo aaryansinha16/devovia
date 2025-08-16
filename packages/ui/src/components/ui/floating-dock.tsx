@@ -2,7 +2,13 @@
 
 import { cn } from "../../lib/utils";
 import { useEffect, useRef, useState } from "react";
-import { motion, MotionValue, useMotionValue, useSpring, useTransform } from "motion/react";
+import {
+  motion,
+  MotionValue,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { AnimatePresence } from "motion/react";
 import {
   IconLayoutNavbarCollapse,
@@ -97,34 +103,39 @@ const FloatingDockDesktop = ({
   // Detect dark mode
   useEffect(() => {
     // Check if we're in a browser environment
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Initial check
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
 
       // Set up observer to watch for class changes on html element
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
-          if (mutation.attributeName === 'class') {
-            setIsDarkMode(document.documentElement.classList.contains('dark'));
+          if (mutation.attributeName === "class") {
+            setIsDarkMode(document.documentElement.classList.contains("dark"));
           }
         });
       });
 
       observer.observe(document.documentElement, { attributes: true });
-      
+
       return () => observer.disconnect();
     }
   }, []);
-  
+
   return (
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className={cn("mx-auto hidden rounded-2xl px-4 pb-3 backdrop-blur-sm md:flex gap-4 h-16", className)}
+      className={cn(
+        "mx-auto hidden rounded-2xl px-4 pb-3 backdrop-blur-sm md:flex gap-4 h-16",
+        className,
+      )}
       style={{
         alignItems: "flex-end",
         // backgroundColor: isDarkMode ? "#171717" : "#f9fafb", // Dark: neutral-900, Light: gray-50
-        background: isDarkMode ? "rgba(49, 46, 129, 0.2)" : "rgba(249, 250, 251, 0.2)",
+        background: isDarkMode
+          ? "rgba(49, 46, 129, 0.2)"
+          : "rgba(249, 250, 251, 0.2)",
         borderRadius: "16px",
         boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
         // backdropFilter: "blur(6px)",
@@ -155,41 +166,41 @@ function IconContainer({
   // Detect dark mode
   useEffect(() => {
     // Check if we're in a browser environment
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Initial check
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
 
       // Set up observer to watch for class changes on html element
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
-          if (mutation.attributeName === 'class') {
-            setIsDarkMode(document.documentElement.classList.contains('dark'));
+          if (mutation.attributeName === "class") {
+            setIsDarkMode(document.documentElement.classList.contains("dark"));
           }
         });
       });
 
       observer.observe(document.documentElement, { attributes: true });
-      
+
       return () => observer.disconnect();
     }
   }, []);
- 
+
   let distance = useTransform(mouseX, (val) => {
     let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
- 
+
     return val - bounds.x - bounds.width / 2;
   });
- 
+
   let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
   let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
- 
+
   let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
   let heightTransformIcon = useTransform(
     distance,
     [-150, 0, 150],
     [20, 40, 20],
   );
- 
+
   let width = useSpring(widthTransform, {
     mass: 0.1,
     stiffness: 150,
@@ -200,7 +211,7 @@ function IconContainer({
     stiffness: 150,
     damping: 12,
   });
- 
+
   let widthIcon = useSpring(widthTransformIcon, {
     mass: 0.1,
     stiffness: 150,
@@ -211,15 +222,15 @@ function IconContainer({
     stiffness: 150,
     damping: 12,
   });
- 
+
   const [hovered, setHovered] = useState(false);
- 
+
   return (
     <a href={href}>
       <motion.div
         ref={ref}
-        style={{ 
-          width, 
+        style={{
+          width,
           height,
           backgroundColor: isDarkMode ? "#000" : "#e5e7eb", // Dark: neutral-800, Light: gray-200
           borderRadius: "9999px", // rounded-full
@@ -227,7 +238,7 @@ function IconContainer({
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          aspectRatio: "1 / 1"
+          aspectRatio: "1 / 1",
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}

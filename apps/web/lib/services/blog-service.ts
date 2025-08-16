@@ -48,21 +48,21 @@ export interface BlogFormData {
  * Get all published blog posts with optional filtering
  */
 export async function getPublishedBlogs(
-  page = 1, 
+  page = 1,
   limit = 10,
-  tag?: string
+  tag?: string,
 ): Promise<BlogListResponse> {
   const url = buildUrl(`${API_URL}/blogs`, { page, limit, tag });
 
   const response = await fetch(url, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch published blogs');
+    throw new Error("Failed to fetch published blogs");
   }
 
   return response.json();
@@ -73,18 +73,18 @@ export async function getPublishedBlogs(
  */
 export async function getBlogBySlug(slug: string): Promise<{ post: BlogPost }> {
   const response = await fetch(`${API_URL}/blogs/slug/${slug}`, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
   if (response.status === 404) {
-    throw new Error('Blog post not found');
+    throw new Error("Blog post not found");
   }
 
   if (!response.ok) {
-    throw new Error('Failed to fetch blog post');
+    throw new Error("Failed to fetch blog post");
   }
 
   return response.json();
@@ -96,21 +96,21 @@ export async function getBlogBySlug(slug: string): Promise<{ post: BlogPost }> {
 export async function getBlogById(id: string): Promise<{ post: BlogPost }> {
   // First try to get auth headers for admin access
   const headers = await getAuthHeaders();
-  
+
   const response = await fetch(`${API_URL}/blogs/${id}`, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
   });
 
   if (response.status === 404) {
-    throw new Error('Blog post not found');
+    throw new Error("Blog post not found");
   }
 
   if (!response.ok) {
-    throw new Error('Failed to fetch blog post');
+    throw new Error("Failed to fetch blog post");
   }
 
   return response.json();
@@ -123,15 +123,15 @@ export async function getUserBlogs(): Promise<{ posts: BlogPost[] }> {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${API_URL}/blogs/user`, {
-    method: 'GET',
+    method: "GET",
     headers,
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      throw new Error('Unauthorized. Please login to view your blogs.');
+      throw new Error("Unauthorized. Please login to view your blogs.");
     }
-    throw new Error('Failed to fetch user blogs');
+    throw new Error("Failed to fetch user blogs");
   }
 
   return response.json();
@@ -140,11 +140,13 @@ export async function getUserBlogs(): Promise<{ posts: BlogPost[] }> {
 /**
  * Create a new blog post
  */
-export async function createBlog(blogData: BlogFormData): Promise<{ post: BlogPost }> {
+export async function createBlog(
+  blogData: BlogFormData,
+): Promise<{ post: BlogPost }> {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${API_URL}/blogs`, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: JSON.stringify(blogData),
   });
@@ -152,9 +154,9 @@ export async function createBlog(blogData: BlogFormData): Promise<{ post: BlogPo
   if (!response.ok) {
     if (response.status === 400) {
       const error = await response.json();
-      throw new Error(error.message || 'Invalid blog data');
+      throw new Error(error.message || "Invalid blog data");
     }
-    throw new Error('Failed to create blog post');
+    throw new Error("Failed to create blog post");
   }
 
   return response.json();
@@ -164,26 +166,26 @@ export async function createBlog(blogData: BlogFormData): Promise<{ post: BlogPo
  * Update an existing blog post
  */
 export async function updateBlog(
-  id: string, 
-  blogData: Partial<BlogFormData>
+  id: string,
+  blogData: Partial<BlogFormData>,
 ): Promise<{ post: BlogPost }> {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${API_URL}/blogs/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     headers,
     body: JSON.stringify(blogData),
   });
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error('Blog post not found');
+      throw new Error("Blog post not found");
     }
     if (response.status === 400) {
       const error = await response.json();
-      throw new Error(error.message || 'Invalid blog data');
+      throw new Error(error.message || "Invalid blog data");
     }
-    throw new Error('Failed to update blog post');
+    throw new Error("Failed to update blog post");
   }
 
   return response.json();
@@ -196,15 +198,15 @@ export async function deleteBlog(id: string): Promise<{ message: string }> {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${API_URL}/blogs/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers,
   });
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error('Blog post not found');
+      throw new Error("Blog post not found");
     }
-    throw new Error('Failed to delete blog post');
+    throw new Error("Failed to delete blog post");
   }
 
   return response.json();
@@ -213,7 +215,7 @@ export async function deleteBlog(id: string): Promise<{ message: string }> {
 /**
  * Upload an image for a blog post
  */
-export async function uploadBlogImage(imageFile: File): Promise<{ 
+export async function uploadBlogImage(imageFile: File): Promise<{
   imageUrl: string;
   success: boolean;
   width?: number;
@@ -221,21 +223,21 @@ export async function uploadBlogImage(imageFile: File): Promise<{
   format?: string;
 }> {
   const headers = await getAuthHeaders();
-  
+
   // Remove Content-Type as it will be set automatically with the correct boundary
-  const { 'Content-Type': _, ...authHeaders } = headers;
-  
+  const { "Content-Type": _, ...authHeaders } = headers;
+
   const formData = new FormData();
-  formData.append('image', imageFile);
+  formData.append("image", imageFile);
 
   const response = await fetch(`${API_URL}/blogs/upload-image`, {
-    method: 'POST',
+    method: "POST",
     headers: authHeaders,
     body: formData,
   });
 
   if (!response.ok) {
-    throw new Error('Failed to upload image');
+    throw new Error("Failed to upload image");
   }
 
   return response.json();

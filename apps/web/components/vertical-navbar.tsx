@@ -32,25 +32,26 @@ export const VerticalNavbar: React.FC<VerticalNavbarProps> = ({
 
   // Load saved position from localStorage on mount
   useEffect(() => {
-    const savedPosition = localStorage.getItem('verticalNavPosition');
+    const savedPosition = localStorage.getItem("verticalNavPosition");
     if (savedPosition) {
       try {
         const parsed = JSON.parse(savedPosition);
         setDragPosition(parsed);
       } catch (e) {
-        console.warn('Failed to parse saved navbar position');
+        console.warn("Failed to parse saved navbar position");
       }
     }
   }, []);
 
   // Calculate drag constraints to keep navbar on screen
   const getDragConstraints = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return {
         top: 0,
-        left: -(parseFloat(position.left || '0')),
-        right: window.innerWidth - (parseFloat(position.left || '0') + 280),
-        bottom: window.innerHeight - (parseFloat(position.top || '0') + navbarHeight)
+        left: -parseFloat(position.left || "0"),
+        right: window.innerWidth - (parseFloat(position.left || "0") + 280),
+        bottom:
+          window.innerHeight - (parseFloat(position.top || "0") + navbarHeight),
       };
     }
     return { top: 0, left: 0, right: 0, bottom: 0 };
@@ -59,11 +60,11 @@ export const VerticalNavbar: React.FC<VerticalNavbarProps> = ({
   // Handle drag end to save position
   const handleDragEnd = (event: any, info: any) => {
     const newPosition = {
-      x: info.point.x - (parseFloat(position.left || '0') + 140), // Center offset
-      y: info.point.y - parseFloat(position.top || '0')
+      x: info.point.x - (parseFloat(position.left || "0") + 140), // Center offset
+      y: info.point.y - parseFloat(position.top || "0"),
     };
     setDragPosition(newPosition);
-    localStorage.setItem('verticalNavPosition', JSON.stringify(newPosition));
+    localStorage.setItem("verticalNavPosition", JSON.stringify(newPosition));
   };
 
   const menuVariants = {
@@ -124,10 +125,10 @@ export const VerticalNavbar: React.FC<VerticalNavbarProps> = ({
       dragMomentum={false}
       dragConstraints={getDragConstraints()}
       dragElastic={0.1}
-      whileDrag={{ 
-        scale: 1.02, 
+      whileDrag={{
+        scale: 1.02,
         rotate: 0.5,
-        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
       }}
       onDragEnd={handleDragEnd}
     >
@@ -275,23 +276,23 @@ export const VerticalNavbar: React.FC<VerticalNavbarProps> = ({
         </div>
 
         {/* Footer - Drag Handle */}
-        <motion.div 
+        <motion.div
           className="px-4 py-3 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-200/50 dark:border-slate-700/50 cursor-move select-none"
           whileHover={{ backgroundColor: "rgba(148, 163, 184, 0.1)" }}
           // whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center justify-center space-x-1">
-            <motion.div 
+            <motion.div
               className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity, delay: 0 }}
             ></motion.div>
-            <motion.div 
+            <motion.div
               className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
             ></motion.div>
-            <motion.div 
+            <motion.div
               className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}

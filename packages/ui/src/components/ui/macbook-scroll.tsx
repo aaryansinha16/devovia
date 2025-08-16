@@ -24,7 +24,6 @@ import { IconCommand } from "@tabler/icons-react";
 import { IconCaretLeftFilled } from "@tabler/icons-react";
 import { IconCaretDownFilled } from "@tabler/icons-react";
 
-
 export const MacbookScroll = ({
   src,
   showGradient,

@@ -43,7 +43,7 @@ const Toast: React.FC<ToastProps & { onDismiss: () => void }> = ({
     <div
       className={cn(
         "pointer-events-auto flex items-start gap-4 overflow-hidden rounded-md p-4 shadow-lg transition-all",
-        getToastClassName()
+        getToastClassName(),
       )}
     >
       <div className="flex-1 flex flex-col gap-1">

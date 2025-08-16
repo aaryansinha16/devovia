@@ -30,7 +30,7 @@ export const TracingBeam = ({
     if (contentRef.current) {
       setSvgHeight(contentRef.current.offsetHeight);
     }
-    
+
     // Set up a resize observer to update height when content changes
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -39,12 +39,12 @@ export const TracingBeam = ({
         }
       }
     });
-    
+
     // Start observing the content container
     if (contentRef.current) {
       resizeObserver.observe(contentRef.current);
     }
-    
+
     // Clean up the observer when component unmounts
     return () => {
       if (contentRef.current) {
@@ -72,7 +72,7 @@ export const TracingBeam = ({
     <motion.div
       ref={ref}
       className={cn("relative mx-auto h-full w-full max-w-4xl", className)}
-      style={{ position: 'relative' }} // Explicitly set position to ensure scroll calculations work properly
+      style={{ position: "relative" }} // Explicitly set position to ensure scroll calculations work properly
     >
       <div className="absolute top-3 -left-4 md:-left-20">
         <motion.div
