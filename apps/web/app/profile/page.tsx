@@ -34,7 +34,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadProfile = async () => {
       if (!authUser && !authLoading) {
-        router.push("/auth/login");
+        router.push("/login");
         return;
       }
 

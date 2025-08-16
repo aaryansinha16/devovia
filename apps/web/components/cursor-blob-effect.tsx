@@ -35,13 +35,7 @@ const CursorBlobEffect: React.FC = () => {
       handleMouseEnterDocument,
     );
 
-    document.body.style.cursor = "none";
-    const interactiveElements = document.querySelectorAll(
-      'a, button, [role="button"], input[type="submit"], input[type="button"], label[for], select, textarea',
-    );
-    interactiveElements.forEach(
-      (el) => ((el as HTMLElement).style.cursor = "none"),
-    );
+    // Removed cursor style manipulation - this is now handled by the parent component
 
     return () => {
       document.removeEventListener("mousemove", updateMousePosition);
@@ -53,10 +47,7 @@ const CursorBlobEffect: React.FC = () => {
         "mouseenter",
         handleMouseEnterDocument,
       );
-      document.body.style.cursor = "";
-      interactiveElements.forEach(
-        (el) => ((el as HTMLElement).style.cursor = ""),
-      );
+      // Removed cursor style cleanup - this is now handled by the parent component
     };
   }, [isMounted]);
 

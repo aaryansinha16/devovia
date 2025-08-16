@@ -12,6 +12,7 @@ import {
   IconSettings,
   IconLogout,
 } from "@tabler/icons-react";
+import { resetAllCursorStyles, registerGlobalCursorFix } from "../../lib/cursor-manager";
 
 export default function DashboardLayout({
   children,
@@ -25,9 +26,22 @@ export default function DashboardLayout({
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/auth/login");
+      router.push("/login");
     }
   }, [user, isLoading, router]);
+
+  // Ensure cursor is always visible in dashboard
+  useEffect(() => {
+    // Reset any lingering cursor styles
+    resetAllCursorStyles();
+    
+    // Register global fix for cursor disappearing on button hover
+    registerGlobalCursorFix();
+    
+    return () => {
+      resetAllCursorStyles();
+    };
+  }, []);
 
   // Show loading state while checking authentication
   if (isLoading) {

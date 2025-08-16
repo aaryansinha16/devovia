@@ -9,30 +9,20 @@ import CTASection from "../components/landing/cta-section";
 import Footer from "../components/footer";
 import { FloatingDockDemo } from "@repo/ui/components";
 import CursorBlobEffect from "../components/cursor-blob-effect";
+import { resetAllCursorStyles, hideDefaultCursor } from "../lib/cursor-manager";
 
 export default function HomePage() {
   // Add the cursor:none style only on the landing page
   useEffect(() => {
-    // Save the original cursor styles
-    const originalBodyCursor = document.body.style.cursor;
+    // First, reset any lingering cursor styles from previous visits
+    resetAllCursorStyles();
     
-    // Apply cursor:none to body
-    document.body.style.cursor = "none";
+    // Then, hide the default cursor for this page only
+    hideDefaultCursor();
     
-    // Apply cursor:none to all interactive elements
-    const interactiveElements = document.querySelectorAll(
-      'a, button, [role="button"], input[type="submit"], input[type="button"], label[for], select, textarea'
-    );
-    interactiveElements.forEach((el) => {
-      (el as HTMLElement).style.cursor = "none";
-    });
-
-    // Cleanup function to restore original cursor styles
+    // Cleanup function to restore original cursor styles when leaving this page
     return () => {
-      document.body.style.cursor = originalBodyCursor;
-      interactiveElements.forEach((el) => {
-        (el as HTMLElement).style.cursor = "";
-      });
+      resetAllCursorStyles();
     };
   }, []);
 

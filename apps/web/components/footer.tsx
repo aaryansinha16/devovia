@@ -28,7 +28,8 @@ const Footer: React.FC = () => {
   return (
     <footer
       id="site-footer"
-      className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 main-footer"
+      style={{ zIndex: 1000 }}
+      className="bg-slate-50 dark:bg-slate-900 relative border-t border-slate-200 dark:border-slate-700 main-footer"
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 footer-container">
         <div className="flex flex-col md:flex-row justify-between items-center footer-content">

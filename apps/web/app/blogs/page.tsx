@@ -8,6 +8,7 @@ import { getAllPublishedBlogs } from '../../lib/services/public-blog-service';
 import { Button } from '@repo/ui/components';
 import ServerPagination from '../../components/server-pagination';
 import { formatDate } from '../../lib/utils/date-utils';
+import Footer from '../../components/footer';
 
 type BlogsData = Awaited<ReturnType<typeof getAllPublishedBlogs>>;
 
@@ -179,11 +180,11 @@ function BlogsContent() {
                     <div className="flex flex-wrap gap-2 mt-4">
                       {post.tags.map((tag, index) => (
                         <Link 
-                          key={typeof tag === 'string' ? tag : tag.id || `tag-${index}`} 
-                          href={`/blogs?tag=${encodeURIComponent(typeof tag === 'string' ? tag : tag.name)}`}
+                          key={String(tag)}
+                          href={`/blogs?tag=${encodeURIComponent(String(tag))}`}
                           className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         >
-                          {typeof tag === 'string' ? tag : tag.name}
+                          {String(tag)}
                         </Link>
                       ))}
                     </div>
@@ -222,6 +223,7 @@ export default function BlogsPage() {
   return (
     <Suspense fallback={<BlogsLoading />}>
       <BlogsContent />
+      <Footer />
     </Suspense>
   );
 }

@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Configure React to be less strict about hydration mismatches
+  reactStrictMode: true,
+  onDemandEntries: {
+    // Make hot reloading resilient to browser extensions changing the DOM
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 5,
+  },
   transpilePackages: ["@repo/ui"],
   // Configuration for handling client-side features
   experimental: {

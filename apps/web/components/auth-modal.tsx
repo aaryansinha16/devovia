@@ -19,12 +19,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   }, []);
 
   const handleLogin = () => {
-    router.push('/auth/login');
+    router.push('/login');
     onClose();
   };
 
   const handleSignup = () => {
-    router.push('/auth/register');
+    router.push('/register');
     onClose();
   };
 

@@ -4,7 +4,12 @@ import type { Config } from "tailwindcss";
 import sharedConfig from "@repo/tailwind-config";
 
 const config: Config = {
-  content: ["./app/**/*.tsx", "./components/**/*.tsx", "./lib/**/*.tsx"],
+  content: [
+    "./app/**/*.tsx", 
+    "./components/**/*.tsx", 
+    "./lib/**/*.tsx",
+    "../../packages/ui/src/**/*.tsx" // Include UI package components
+  ],
   presets: [sharedConfig],
   darkMode: "class",
   theme: {
