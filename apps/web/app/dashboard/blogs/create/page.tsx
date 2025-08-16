@@ -3,24 +3,36 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RichTextEditor } from "@repo/ui/components";
-import { IconDeviceFloppy, IconArrowLeft, IconUpload, IconX, IconLoader } from "@tabler/icons-react";
+import {
+  IconDeviceFloppy,
+  IconArrowLeft,
+  IconUpload,
+  IconX,
+  IconLoader,
+} from "@tabler/icons-react";
 import { useAuth } from "../../../../lib/auth-context";
-import { createBlog, uploadBlogImage, BlogFormData } from "../../../../lib/services/blog-service";
+import {
+  createBlog,
+  uploadBlogImage,
+  BlogFormData,
+} from "../../../../lib/services/blog-service";
 
 export default function CreateBlogPage() {
   const router = useRouter();
   const { user } = useAuth();
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [excerpt, setExcerpt] = useState("");
-  const [content, setContent] = useState("<p>Start writing your blog post here...</p>");
+  const [content, setContent] = useState(
+    "<p>Start writing your blog post here...</p>",
+  );
   const [coverImage, setCoverImage] = useState("");
   const [published, setPublished] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  
+
   // Auto-generate slug from title
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
@@ -45,7 +57,7 @@ export default function CreateBlogPage() {
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   // Handle image upload for rich text editor
@@ -54,36 +66,38 @@ export default function CreateBlogPage() {
       const result = await uploadBlogImage(file);
       return { imageUrl: result.imageUrl };
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error("Error uploading image:", error);
       throw error;
     }
   };
 
   // Handle cover image upload
-  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     try {
       const result = await uploadBlogImage(file);
       setCoverImage(result.imageUrl);
     } catch (error) {
-      console.error('Error uploading cover image:', error);
-      alert('Failed to upload cover image. Please try again.');
+      console.error("Error uploading cover image:", error);
+      alert("Failed to upload cover image. Please try again.");
     }
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title || !slug || !content) {
       alert("Please fill in all required fields");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Create blog post data object
       const blogData: BlogFormData = {
@@ -95,13 +109,12 @@ export default function CreateBlogPage() {
         published,
         tags,
       };
-      
+
       // Create the blog post
       const { post } = await createBlog(blogData);
-      
+
       // Redirect to the blogs list
       router.push("/dashboard/blogs");
-      
     } catch (error: any) {
       console.error("Error creating blog post:", error);
       alert(error.message || "Failed to create blog post. Please try again.");
@@ -123,7 +136,7 @@ export default function CreateBlogPage() {
           </button>
           <h1 className="text-3xl font-bold tracking-tight">Create New Blog</h1>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <input
@@ -137,7 +150,7 @@ export default function CreateBlogPage() {
               {published ? "Published" : "Save as Draft"}
             </label>
           </div>
-          
+
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !title || !content}
@@ -152,7 +165,7 @@ export default function CreateBlogPage() {
           </button>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}
         <div className="space-y-2">
@@ -169,7 +182,7 @@ export default function CreateBlogPage() {
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
           />
         </div>
-        
+
         {/* Slug */}
         <div className="space-y-2">
           <label htmlFor="slug" className="block text-sm font-medium">
@@ -188,14 +201,16 @@ export default function CreateBlogPage() {
             This will be used in the URL: /blogs/{slug}
           </p>
         </div>
-        
+
         {/* Cover Image */}
         <div className="relative mb-6">
           <div className="mb-2 flex justify-between items-center">
-            <label htmlFor="coverImage" className="text-sm font-medium">Cover Image</label>
+            <label htmlFor="coverImage" className="text-sm font-medium">
+              Cover Image
+            </label>
             <button
               type="button"
-              onClick={() => setCoverImage('')}
+              onClick={() => setCoverImage("")}
               className="text-xs text-muted-foreground hover:text-destructive"
               disabled={!coverImage}
               aria-label="Remove cover image"
@@ -235,13 +250,14 @@ export default function CreateBlogPage() {
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = 'https://placehold.co/1200x630?text=Invalid+Image+URL';
+                  target.src =
+                    "https://placehold.co/1200x630?text=Invalid+Image+URL";
                 }}
               />
             </div>
           )}
         </div>
-        
+
         {/* Excerpt */}
         <div className="space-y-2">
           <label htmlFor="excerpt" className="block text-sm font-medium">
@@ -255,7 +271,7 @@ export default function CreateBlogPage() {
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[80px] max-h-40"
           />
         </div>
-        
+
         {/* Tags */}
         <div className="space-y-2">
           <label htmlFor="tags" className="block text-sm font-medium">
@@ -263,8 +279,8 @@ export default function CreateBlogPage() {
           </label>
           <div className="flex flex-wrap gap-2 mb-2">
             {tags.map((tag) => (
-              <span 
-                key={tag} 
+              <span
+                key={tag}
                 className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm flex items-center gap-1"
               >
                 {tag}
@@ -288,14 +304,14 @@ export default function CreateBlogPage() {
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
           />
         </div>
-        
+
         {/* Content Editor */}
         <div className="mb-6">
           <h3 className="text-sm font-medium mb-2">Content</h3>
-          <RichTextEditor 
-            content={content} 
-            onChange={setContent} 
-            onImageUpload={handleImageUpload} 
+          <RichTextEditor
+            content={content}
+            onChange={setContent}
+            onImageUpload={handleImageUpload}
           />
         </div>
       </form>

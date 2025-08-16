@@ -3,11 +3,12 @@
  */
 
 // API base URL based on environment
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 // Default request headers
 export const DEFAULT_HEADERS = {
-  'Content-Type': 'application/json',
+  "Content-Type": "application/json",
 };
 
 /**
@@ -23,7 +24,7 @@ export function buildUrl(base: string, params?: Record<string, any>): string {
   const queryParams = Object.entries(params)
     .filter(([_, value]) => value !== undefined && value !== null)
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-    .join('&');
+    .join("&");
 
-  return `${base}${base.includes('?') ? '&' : '?'}${queryParams}`;
+  return `${base}${base.includes("?") ? "&" : "?"}${queryParams}`;
 }

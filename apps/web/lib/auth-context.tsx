@@ -16,7 +16,7 @@ import {
   removeTokens,
   refreshTokens,
 } from "./auth";
-import AuthModal from '../components/auth-modal';
+import AuthModal from "../components/auth-modal";
 
 // eslint-disable-next-line no-unused-vars
 type LoginFunction = (tokens: AuthTokens) => void;
@@ -33,8 +33,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

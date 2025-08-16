@@ -6,11 +6,15 @@ import { Button, Textarea } from "@repo/ui/components";
 import ClientPagination from "../../../components/client-pagination";
 import { formatDate } from "../../../lib/utils/date-utils";
 import { useAuth } from "../../../lib/auth-context";
-import { getBlogComments, addBlogComment, deleteBlogComment, CommentResponse } from "../../../lib/services/public-blog-service";
+import {
+  getBlogComments,
+  addBlogComment,
+  deleteBlogComment,
+  CommentResponse,
+} from "../../../lib/services/public-blog-service";
 
 // We can use the types from our service
-type Comment = CommentResponse['comments'][0];
-
+type Comment = CommentResponse["comments"][0];
 
 interface BlogCommentsProps {
   postId: string;
@@ -51,7 +55,7 @@ export function BlogComments({ postId }: BlogCommentsProps) {
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       openAuthModal();
       return;
@@ -62,7 +66,7 @@ export function BlogComments({ postId }: BlogCommentsProps) {
     try {
       setIsSubmitting(true);
       const newComment = await addBlogComment(postId, commentText);
-      
+
       // Reset the form and refresh comments list
       setCommentText("");
       setComments((prevComments) => [newComment, ...prevComments]);
@@ -77,8 +81,8 @@ export function BlogComments({ postId }: BlogCommentsProps) {
   const handleDeleteComment = async (commentId: string) => {
     try {
       await deleteBlogComment(commentId);
-      setComments((prevComments) => 
-        prevComments.filter((comment) => comment.id !== commentId)
+      setComments((prevComments) =>
+        prevComments.filter((comment) => comment.id !== commentId),
       );
       setTotalComments((prev) => prev - 1);
     } catch (error) {
@@ -109,14 +113,16 @@ export function BlogComments({ postId }: BlogCommentsProps) {
       {/* Comment form */}
       <form onSubmit={handleSubmitComment} className="mb-8">
         <Textarea
-          placeholder={isAuthenticated ? "Add a comment..." : "Sign in to comment"}
+          placeholder={
+            isAuthenticated ? "Add a comment..." : "Sign in to comment"
+          }
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           disabled={!isAuthenticated || isSubmitting}
           className="mb-3 h-24"
         />
         <div className="flex justify-end">
-          <Button 
+          <Button
             type="submit"
             disabled={!isAuthenticated || isSubmitting || !commentText.trim()}
             className="flex items-center gap-2"
@@ -129,21 +135,23 @@ export function BlogComments({ postId }: BlogCommentsProps) {
       {/* Comments list */}
       {totalComments === 0 ? (
         <div className="text-center py-8 border rounded-lg bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-          <p className="text-gray-600 dark:text-gray-400">No comments yet. Be the first to comment!</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            No comments yet. Be the first to comment!
+          </p>
         </div>
       ) : (
         <>
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             {totalComments} comment{totalComments !== 1 ? "s" : ""}
           </div>
-          
+
           <div className="space-y-8">
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-4">
                 {/* User avatar */}
                 {comment.user.avatar ? (
                   <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                    <Image 
+                    <Image
                       src={comment.user.avatar}
                       alt={comment.user.name || comment.user.username}
                       fill
@@ -153,11 +161,13 @@ export function BlogComments({ postId }: BlogCommentsProps) {
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                      {(comment.user.name || comment.user.username || "U").charAt(0).toUpperCase()}
+                      {(comment.user.name || comment.user.username || "U")
+                        .charAt(0)
+                        .toUpperCase()}
                     </span>
                   </div>
                 )}
-                
+
                 {/* Comment content */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -168,11 +178,11 @@ export function BlogComments({ postId }: BlogCommentsProps) {
                       {formatDate(comment.createdAt)}
                     </span>
                   </div>
-                  
+
                   <div className="text-gray-800 dark:text-gray-200">
                     {comment.content}
                   </div>
-                  
+
                   {/* Delete button for comment author */}
                   {user?.id === comment.user.id && (
                     <button
@@ -186,7 +196,7 @@ export function BlogComments({ postId }: BlogCommentsProps) {
               </div>
             ))}
           </div>
-          
+
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-8 flex justify-center">

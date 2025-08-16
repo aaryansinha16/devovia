@@ -12,10 +12,17 @@ import {
   uploadBlogImage,
 } from '../controllers/blog.controller';
 import { getBlogComments, addComment } from '../controllers/comment.controller';
-import { likeBlogPost, unlikeBlogPost, checkUserLike } from '../controllers/like.controller';
+import {
+  likeBlogPost,
+  unlikeBlogPost,
+  checkUserLike,
+} from '../controllers/like.controller';
 import { imageUpload } from '../middleware/multer.middleware';
 import { validate } from '../middleware/validator.middleware';
-import { createBlogSchema, updateBlogSchema } from '../validators/blog.validator';
+import {
+  createBlogSchema,
+  updateBlogSchema,
+} from '../validators/blog.validator';
 
 const router = express.Router();
 
@@ -35,7 +42,12 @@ router.put('/:id', requireAuth, validate(updateBlogSchema), updateBlogPost);
 router.delete('/:id', requireAuth, deleteBlogPost);
 
 // Blog image upload route
-router.post('/upload-image', requireAuth, imageUpload.single('image'), uploadBlogImage);
+router.post(
+  '/upload-image',
+  requireAuth,
+  imageUpload.single('image'),
+  uploadBlogImage,
+);
 
 // Comment routes
 router.get('/:postId/comments', getBlogComments);

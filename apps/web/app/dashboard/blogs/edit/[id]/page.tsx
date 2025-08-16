@@ -20,7 +20,7 @@ function EditBlogContent() {
   // Use the useParams hook to access route parameters
   const params = useParams();
   const id = params.id as string;
-  
+
   return <BlogEditor id={id} />;
 }
 

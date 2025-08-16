@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@repo/ui";
 import AnimatedElement from "../animated-element";
-import { FlipWords, TextHoverEffect, FloatingDockDemo } from "@repo/ui/components";
+import {
+  FlipWords,
+  TextHoverEffect,
+  FloatingDockDemo,
+} from "@repo/ui/components";
 
 export const ArrowRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   props,

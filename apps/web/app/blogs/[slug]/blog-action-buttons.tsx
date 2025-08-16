@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { IconHeart, IconHeartFilled, IconShare } from "@tabler/icons-react";
 import { Button } from "@repo/ui/components";
-import { likeBlog, unlikeBlog, checkUserLike } from "../../../lib/services/public-blog-service";
+import {
+  likeBlog,
+  unlikeBlog,
+  checkUserLike,
+} from "../../../lib/services/public-blog-service";
 import { useAuth } from "../../../lib/auth-context";
 import { useToast } from "@repo/ui/hooks/use-toast";
 
@@ -12,26 +16,30 @@ interface BlogActionButtonsProps {
   initialLikes: number;
 }
 
-export function BlogActionButtons({ postId, initialLikes }: BlogActionButtonsProps) {
+export function BlogActionButtons({
+  postId,
+  initialLikes,
+}: BlogActionButtonsProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikes);
   const [isLoading, setIsLoading] = useState(false);
   const { isAuthenticated, openAuthModal } = useAuth();
   const { toast } = useToast();
-  
+
   // Check if user has already liked the post when component mounts
   useEffect(() => {
     if (isAuthenticated) {
       const checkLikeStatus = async () => {
         try {
-          const { isLiked: userHasLiked, likeCount: currentLikeCount } = await checkUserLike(postId);
+          const { isLiked: userHasLiked, likeCount: currentLikeCount } =
+            await checkUserLike(postId);
           setIsLiked(userHasLiked);
           setLikeCount(currentLikeCount);
         } catch (error) {
           console.error("Error checking like status:", error);
         }
       };
-      
+
       checkLikeStatus();
     }
   }, [postId, isAuthenticated]);
@@ -44,7 +52,7 @@ export function BlogActionButtons({ postId, initialLikes }: BlogActionButtonsPro
 
     try {
       setIsLoading(true);
-      
+
       if (isLiked) {
         const { likeCount: updatedCount } = await unlikeBlog(postId);
         setLikeCount(updatedCount);
@@ -96,9 +104,9 @@ export function BlogActionButtons({ postId, initialLikes }: BlogActionButtonsPro
 
   return (
     <div className="flex items-center gap-4">
-      <Button 
-        variant="ghost" 
-        size="sm" 
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={handleLikeToggle}
         disabled={isLoading}
         className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
@@ -111,8 +119,8 @@ export function BlogActionButtons({ postId, initialLikes }: BlogActionButtonsPro
         <span>{likeCount}</span>
       </Button>
 
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         size="sm"
         onClick={handleShare}
         className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"

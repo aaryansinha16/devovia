@@ -45,9 +45,9 @@ export const likeBlogPost = async (req: Request, res: Response) => {
       where: { postId },
     });
 
-    return res.status(201).json({ 
+    return res.status(201).json({
       like,
-      likeCount
+      likeCount,
     });
   } catch (error) {
     console.error('Error liking blog post:', error);
@@ -94,9 +94,9 @@ export const unlikeBlogPost = async (req: Request, res: Response) => {
       where: { postId },
     });
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: 'Post unliked successfully',
-      likeCount 
+      likeCount,
     });
   } catch (error) {
     console.error('Error unliking blog post:', error);
@@ -127,7 +127,7 @@ export const checkUserLike = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       isLiked: !!like,
-      likeCount
+      likeCount,
     });
   } catch (error) {
     console.error('Error checking like status:', error);

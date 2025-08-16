@@ -4,7 +4,7 @@ import { fontFamily } from "tailwindcss/defaultTheme";
 // We want each package to be responsible for its own content.
 const config: Omit<Config, "content"> = {
   // Use JIT mode to ensure arbitrary values work properly
-  mode: 'jit',
+  mode: "jit",
   darkMode: ["class"],
   theme: {
     container: {

@@ -24,15 +24,19 @@ export const SidebarLink: React.FC<SidebarLinkProps> = ({
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group",
-        isActive 
-          ? "bg-primary/10 text-primary" 
-          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:text-foreground hover:bg-accent",
       )}
     >
-      <div className={cn(
-        "w-5 h-5",
-        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-      )}>
+      <div
+        className={cn(
+          "w-5 h-5",
+          isActive
+            ? "text-primary"
+            : "text-muted-foreground group-hover:text-foreground",
+        )}
+      >
         {icon}
       </div>
       <span className="text-sm font-medium">{label}</span>
@@ -61,12 +65,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       className={cn(
         "h-screen sticky top-0 bg-card border-r border-border transition-all duration-300 ease-in-out",
         isCollapsed ? "w-[70px]" : "w-[240px]",
-        className
+        className,
       )}
     >
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-border flex items-center justify-between">
-          <div className={cn("transition-opacity", isCollapsed ? "opacity-0" : "opacity-100")}>
+          <div
+            className={cn(
+              "transition-opacity",
+              isCollapsed ? "opacity-0" : "opacity-100",
+            )}
+          >
             <h2 className="text-lg font-bold text-foreground">Dashboard</h2>
           </div>
           <button
@@ -74,12 +83,32 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
           >
             {isCollapsed ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m9 18 6-6-6-6"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m9 18 6-6-6-6" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 18-6-6 6-6"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m15 18-6-6 6-6" />
               </svg>
             )}
           </button>
