@@ -29,7 +29,7 @@ export const FloatingDock = ({
   );
 };
 
-const FloatingDockMobile = ({
+export const FloatingDockMobile = ({
   items,
   className,
 }: {

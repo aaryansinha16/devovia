@@ -113,7 +113,7 @@ function OAuthCallbackContent() {
           {error && (
             <div className="flex justify-center">
               <Link
-                href="/auth/login"
+                href="/login"
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
               >
                 Back to Login

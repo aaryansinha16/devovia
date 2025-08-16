@@ -14,3 +14,7 @@ export * from "../floating-dock-demo";
 export * from "./ui/macbook-scroll";
 export * from "./ui/dashboard-sidebar";
 export * from "./ui/rich-text-editor";
+export * from "./ui/tracing-beam";
+export * from "../tracing-beam-demo";
+export * from "./ui/fansy-input";
+export * from "./ui/fansy-label";

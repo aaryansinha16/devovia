@@ -7,6 +7,7 @@ import { AuthProvider } from "../lib/auth-context";
 import { ThemeProvider } from "../lib/theme-context";
 import Header from "../components/header";
 import SessionNotification from "../components/session-notification";
+import CursorManager from "../components/cursor-manager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <AuthProvider>
+            <CursorManager />
             <div className="relative min-h-screen flex flex-col">
               <SessionNotification />
               <header>
