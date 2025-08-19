@@ -90,7 +90,11 @@ const nextConfig = {
       'github.com',
       'ui-avatars.com',
       'localhost',
-      'res.cloudinary.com'
+      'res.cloudinary.com',
+      'www.google.com',
+      'images.unsplash.com',
+      'unsplash.com',
+      'placehold.co'
     ],
     remotePatterns: [
       {
@@ -104,6 +108,22 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.google.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'unsplash.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co'
       }
     ]
   },

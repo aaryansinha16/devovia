@@ -18,3 +18,6 @@ export * from "./ui/tracing-beam";
 export * from "../tracing-beam-demo";
 export * from "./ui/fansy-input";
 export * from "./ui/fansy-label";
+export * from "./ui/glowing-effect";
+export * from "../glowing-effect-demo";
+
