@@ -9,7 +9,7 @@ import { getBlogBySlug } from "../../../lib/services/public-blog-service";
 import { formatDate } from "../../../lib/utils/date-utils";
 import { BlogComments } from "./blog-comments";
 import { BlogActionButtons } from "./blog-action-buttons";
-import { TracingBeam, TracingBeamDemo } from "@repo/ui/components";
+import { GlowingEffectDemo, TracingBeam, TracingBeamDemo } from "@repo/ui/components";
 import Footer from "../../../components/footer";
 import Navbar from "../../../components/navbar";
 
@@ -111,7 +111,7 @@ function BlogPostContent() {
 
   // If we have a valid post, render it
   return (
-    <div className="max-w-3xl mx-auto antialiased pt-4 relative pb-[100px]">
+    <div className="max-w-4xl mx-auto antialiased pt-8 md:pt-12 px-4 sm:px-6 lg:px-8 relative pb-[100px]">
       {/* Post Header */}
       <header className="mb-8">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
@@ -216,11 +216,14 @@ export default function BlogPostPage() {
   return (
     <div className="relative w-full">
       <Navbar />
-      <TracingBeam className="px-6">
-        <Suspense fallback={<BlogPostLoading />}>
-          <BlogPostContent />
-        </Suspense>
-      </TracingBeam>
+      <div className="pt-20 md:pt-24">
+        <TracingBeam className="px-6">
+          <Suspense fallback={<BlogPostLoading />}>
+            <BlogPostContent />
+            {/* <GlowingEffectDemo /> */}
+          </Suspense>
+        </TracingBeam>
+      </div>
       <Footer />
     </div>
     // <TracingBeamDemo />

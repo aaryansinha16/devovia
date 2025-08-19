@@ -25,10 +25,10 @@ const ToolbarButton = ({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "p-2 rounded-md transition-colors text-foreground",
-        active && "bg-primary text-primary-foreground",
-        !active && "hover:bg-accent hover:text-accent-foreground",
-        disabled && "opacity-50 cursor-not-allowed",
+        "p-2.5 rounded-lg transition-all duration-200 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100",
+        "hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm",
+        active && "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm",
+        disabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:text-current",
       )}
     >
       {children}
@@ -88,6 +88,65 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       editor.commands.setContent(content);
     }
   }, [editor, content]);
+
+  // Inject CSS to completely remove all focus outlines in the editor
+  useEffect(() => {
+    const styleId = 'rich-text-editor-no-focus';
+    
+    // Remove existing style if it exists
+    const existingStyle = document.getElementById(styleId);
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+
+    // Create new style element
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      .ProseMirror *:focus,
+      .ProseMirror *:focus-visible,
+      .ProseMirror p:focus,
+      .ProseMirror p:focus-visible,
+      .ProseMirror h1:focus,
+      .ProseMirror h1:focus-visible,
+      .ProseMirror h2:focus,
+      .ProseMirror h2:focus-visible,
+      .ProseMirror h3:focus,
+      .ProseMirror h3:focus-visible,
+      .ProseMirror h4:focus,
+      .ProseMirror h4:focus-visible,
+      .ProseMirror h5:focus,
+      .ProseMirror h5:focus-visible,
+      .ProseMirror h6:focus,
+      .ProseMirror h6:focus-visible,
+      .ProseMirror li:focus,
+      .ProseMirror li:focus-visible,
+      .ProseMirror ul:focus,
+      .ProseMirror ul:focus-visible,
+      .ProseMirror ol:focus,
+      .ProseMirror ol:focus-visible,
+      .ProseMirror blockquote:focus,
+      .ProseMirror blockquote:focus-visible,
+      .ProseMirror code:focus,
+      .ProseMirror code:focus-visible,
+      .ProseMirror pre:focus,
+      .ProseMirror pre:focus-visible {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+    `;
+    
+    document.head.appendChild(style);
+
+    // Cleanup function
+    return () => {
+      const styleToRemove = document.getElementById(styleId);
+      if (styleToRemove) {
+        styleToRemove.remove();
+      }
+    };
+  }, []);
 
   // Image upload handler
   const addImage = useCallback(() => {
@@ -162,8 +221,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   }
 
   return (
-    <div className={cn("border border-border rounded-md", className)}>
-      <div className="flex flex-wrap gap-1 p-2 border-b border-border bg-card">
+    <div className={cn(
+      "bg-white dark:bg-gray-900 rounded-xl shadow-lg dark:shadow-gray-900/20 overflow-hidden",
+      "ring-1 ring-gray-200 dark:ring-gray-700 transition-all duration-200",
+      "focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-xl",
+      className
+    )}>
+      <div className="flex flex-wrap items-center gap-1 p-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700/50">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
@@ -325,7 +389,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </svg>
         </ToolbarButton>
 
-        <div className="h-6 w-px bg-border mx-1"></div>
+        <div className="h-5 w-px bg-gray-300 dark:bg-gray-600 mx-2"></div>
 
         <ToolbarButton onClick={setLink} active={editor.isActive("link")}>
           <svg
@@ -366,14 +430,48 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       <EditorContent
         editor={editor}
         className={cn(
-          "prose dark:prose-invert max-w-none p-4 focus:outline-none",
-          "prose-headings:mb-3 prose-headings:mt-4 prose-headings:text-foreground",
-          "prose-p:text-foreground prose-li:text-foreground",
-          "prose-code:bg-accent prose-code:p-1 prose-code:rounded prose-code:text-foreground",
-          "prose-blockquote:border-l-primary",
+          "prose dark:prose-invert max-w-none px-6 py-5 focus:outline-none",
+          "prose-headings:mb-3 prose-headings:mt-4 prose-headings:text-gray-900 dark:prose-headings:text-gray-100",
+          "prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed",
+          "prose-li:text-gray-700 dark:prose-li:text-gray-300",
+          "prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-2 prose-code:py-1 prose-code:rounded-md prose-code:text-gray-900 dark:prose-code:text-gray-100",
+          "prose-blockquote:border-l-blue-500 prose-blockquote:bg-gray-50 dark:prose-blockquote:bg-gray-800/50 prose-blockquote:pl-4 prose-blockquote:py-2 prose-blockquote:rounded-r-lg",
+          "prose-strong:text-gray-900 dark:prose-strong:text-gray-100",
+          "prose-em:text-gray-700 dark:prose-em:text-gray-300",
+          "prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline",
+          "prose-ul:list-disc prose-ol:list-decimal",
+          "prose-img:rounded-lg prose-img:shadow-md",
+          "[&>.ProseMirror]:focus:outline-none [&>.ProseMirror]:min-h-full",
+          "[&_.ProseMirror]:focus:outline-none [&_.ProseMirror]:min-h-full",
+          "[&_.ProseMirror_*]:focus:outline-none [&_.ProseMirror_*]:focus-visible:outline-none",
+          "[&_.ProseMirror_p]:focus:outline-none [&_.ProseMirror_p]:focus-visible:outline-none",
+          "[&_.ProseMirror_h1]:focus:outline-none [&_.ProseMirror_h1]:focus-visible:outline-none",
+          "[&_.ProseMirror_h2]:focus:outline-none [&_.ProseMirror_h2]:focus-visible:outline-none",
+          "[&_.ProseMirror_h3]:focus:outline-none [&_.ProseMirror_h3]:focus-visible:outline-none",
+          "[&_.ProseMirror_h4]:focus:outline-none [&_.ProseMirror_h4]:focus-visible:outline-none",
+          "[&_.ProseMirror_h5]:focus:outline-none [&_.ProseMirror_h5]:focus-visible:outline-none",
+          "[&_.ProseMirror_h6]:focus:outline-none [&_.ProseMirror_h6]:focus-visible:outline-none",
+          "[&_.ProseMirror_li]:focus:outline-none [&_.ProseMirror_li]:focus-visible:outline-none",
+          "[&_.ProseMirror_ul]:focus:outline-none [&_.ProseMirror_ul]:focus-visible:outline-none",
+          "[&_.ProseMirror_ol]:focus:outline-none [&_.ProseMirror_ol]:focus-visible:outline-none",
+          "[&_.ProseMirror_blockquote]:focus:outline-none [&_.ProseMirror_blockquote]:focus-visible:outline-none",
+          "[&_.ProseMirror_code]:focus:outline-none [&_.ProseMirror_code]:focus-visible:outline-none",
+          "[&_.ProseMirror_pre]:focus:outline-none [&_.ProseMirror_pre]:focus-visible:outline-none",
+          "text-base leading-relaxed",
           editorClassName,
         )}
-        style={{ minHeight }}
+        style={{ 
+          minHeight,
+        } as React.CSSProperties}
+        // Add global style to completely remove focus outlines
+        onFocus={(e) => {
+          // Remove focus outline from any focused element within the editor
+          const target = e.target as HTMLElement;
+          if (target) {
+            target.style.outline = 'none';
+            target.style.border = 'none';
+          }
+        }}
       />
     </div>
   );

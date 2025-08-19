@@ -39,6 +39,7 @@ export const NAV_LINKS: NavLink[] = [
   { href: "#features", label: "Features" },
   { href: "#why-devovia", label: "Why Devovia?" },
   { href: "#early-access", label: "Early Access" },
+  { href: "/blogs", label: "Blogs" },
 ];
 
 export interface NavLink {
