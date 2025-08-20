@@ -56,6 +56,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onImageUpload,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -80,6 +81,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Set mounted state
   useEffect(() => {
     setIsMounted(true);
+    // Add a small delay to ensure hydration is complete
+    const timer = setTimeout(() => {
+      setIsHydrated(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Update content when it changes externally
@@ -212,8 +219,21 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }, [editor]);
 
-  if (!isMounted) {
-    return null;
+  if (!isMounted || !isHydrated) {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg dark:shadow-gray-900/20 overflow-hidden ring-1 ring-gray-200 dark:ring-gray-700">
+        <div className="flex flex-wrap items-center gap-1 p-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700/50">
+          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </div>
+        <div className="p-6">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3 w-3/4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/2"></div>
+        </div>
+      </div>
+    );
   }
 
   if (!editor) {
