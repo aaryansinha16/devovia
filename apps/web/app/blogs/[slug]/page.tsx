@@ -9,7 +9,13 @@ import { getBlogBySlug } from "../../../lib/services/public-blog-service";
 import { formatDate } from "../../../lib/utils/date-utils";
 import { BlogComments } from "./blog-comments";
 import { BlogActionButtons } from "./blog-action-buttons";
-import { GlowingEffectDemo, TracingBeam, TracingBeamDemo } from "@repo/ui/components";
+import { TracingBeam, TracingBeamDemo } from "@repo/ui/components";
+import dynamic from "next/dynamic";
+
+const GlowingEffectDemo = dynamic(() => 
+  import("@repo/ui/components").then(mod => ({ default: mod.GlowingEffectDemo })), 
+  { ssr: false }
+);
 import Footer from "../../../components/footer";
 import Navbar from "../../../components/navbar";
 
@@ -220,7 +226,7 @@ export default function BlogPostPage() {
         <TracingBeam className="px-6">
           <Suspense fallback={<BlogPostLoading />}>
             <BlogPostContent />
-            {/* <GlowingEffectDemo /> */}
+            <GlowingEffectDemo />
           </Suspense>
         </TracingBeam>
       </div>

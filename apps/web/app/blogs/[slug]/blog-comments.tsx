@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Button, Textarea } from "@repo/ui/components";
+import { Button, Textarea, GlowingEffect } from "@repo/ui/components";
 import ClientPagination from "../../../components/client-pagination";
 import { formatDate } from "../../../lib/utils/date-utils";
 import { useAuth } from "../../../lib/auth-context";
@@ -111,7 +111,15 @@ export function BlogComments({ postId }: BlogCommentsProps) {
   return (
     <div>
       {/* Comment form */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 mb-8 shadow-lg dark:shadow-gray-900/20">
+      <div className="relative rounded-xl p-2 mb-8" style={{border:"2px solid rgb(40, 40, 45)"}}>
+        <GlowingEffect
+          spread={30}
+          glow={true}
+          disabled={false}
+          proximity={150}
+          inactiveZone={0.7}
+        />
+        <div className="relative bg-white dark:bg-gray-900 rounded-lg p-6 shadow-lg dark:shadow-gray-900/20">
         <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
           {isAuthenticated ? "Leave a comment" : "Sign in to leave a comment"}
         </h4>
@@ -174,10 +182,19 @@ export function BlogComments({ postId }: BlogCommentsProps) {
             </div>
           </div>
         </form>
+        </div>
       </div>
 
       {/* Comments list */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg dark:shadow-gray-900/20">
+      <div className="relative rounded-xl p-2" style={{border:"2px solid rgb(40, 40, 45)"}}>
+        <GlowingEffect
+          spread={30}
+          glow={true}
+          disabled={false}
+          proximity={150}
+          inactiveZone={0.7}
+        />
+        <div className="relative bg-white dark:bg-gray-900 rounded-lg p-6 shadow-lg dark:shadow-gray-900/20">
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Comments
@@ -267,6 +284,7 @@ export function BlogComments({ postId }: BlogCommentsProps) {
             />
           </div>
         )}
+        </div>
       </div>
     </div>
   );
