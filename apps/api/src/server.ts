@@ -19,7 +19,11 @@ import sessionRoutes from './routes/session.routes';
 import userRoutes from './routes/user.routes';
 import blogRoutes from './routes/blog.routes';
 import commentRoutes from './routes/comment.routes';
+import collaborativeSessionRoutes from './routes/collaborative-sessions';
 import seedRoutes from './routes/seed.routes';
+
+// Import WebSocket collaboration server
+import CollaborationServer from './websocket/collaboration-server';
 
 // Import Passport configuration
 import passport from './config/passport.config';
@@ -99,6 +103,7 @@ export function createExpressApp() {
   app.use('/api/moderator', moderatorRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/sessions', sessionRoutes);
+  app.use('/api/collaborative-sessions', collaborativeSessionRoutes);
   app.use('/api/blogs', blogRoutes);
   app.use('/api/comments', commentRoutes);
   app.use('/api/seed', seedRoutes);
@@ -152,4 +157,26 @@ export async function connectToDatabase() {
 export async function disconnectFromDatabase() {
   await prisma.$disconnect();
   console.log('Database connection closed');
+}
+
+// Collaboration server instance
+let collaborationServer: CollaborationServer | null = null;
+
+// Start collaboration server
+export async function startCollaborationServer() {
+  if (!collaborationServer) {
+    collaborationServer = new CollaborationServer();
+    await collaborationServer.start();
+    console.log('✅ Collaboration server started successfully');
+  }
+  return collaborationServer;
+}
+
+// Stop collaboration server
+export async function stopCollaborationServer() {
+  if (collaborationServer) {
+    await collaborationServer.stop();
+    collaborationServer = null;
+    console.log('🛑 Collaboration server stopped');
+  }
 }

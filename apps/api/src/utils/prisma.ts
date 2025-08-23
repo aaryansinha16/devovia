@@ -7,12 +7,6 @@
 
 import { PrismaClient } from '@prisma/client';
 
-// Add prisma to the NodeJS global type
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
-}
-
 // Use type assertion for global object
 // eslint-disable-next-line no-unused-vars
 const globalWithPrisma = global as unknown as { prisma?: PrismaClient };

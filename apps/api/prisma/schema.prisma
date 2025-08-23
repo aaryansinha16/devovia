@@ -41,12 +41,14 @@ model User {
   updatedAt     DateTime  @updatedAt
   
   // Relations
-  sessions      Session[]
-  projects      Project[]
-  snippets      Snippet[]
-  posts         Post[]
-  comments      Comment[]
-  likes         Like[]
+  sessions            Session[]           // Auth sessions
+  collaborativeSessions CollaborativeSession[] @relation("SessionOwner")
+  sessionPermissions  SessionPermission[]
+  projects            Project[]
+  snippets            Snippet[]
+  posts               Post[]
+  comments            Comment[]
+  likes               Like[]
 }
 
 // User sessions for authentication and token management
@@ -185,4 +187,104 @@ model Tag {
   snippets      Snippet[] @relation("SnippetTags")
   posts         Post[]    @relation("PostTags")
   templates     Template[] @relation("TemplateTags")
+}
+
+// ============================================================================
+// COLLABORATIVE SESSIONS MODELS
+// ============================================================================
+
+// Enums for collaborative sessions
+enum SessionRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum SessionVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+enum SessionLanguage {
+  TYPESCRIPT
+  JAVASCRIPT
+  PYTHON
+  SQL
+  JSON
+  MARKDOWN
+  HTML
+  CSS
+  YAML
+}
+
+// Main collaborative session model
+model CollaborativeSession {
+  id          String            @id @default(cuid())
+  title       String
+  description String?
+  ownerId     String
+  owner       User              @relation("SessionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  visibility  SessionVisibility @default(PRIVATE)
+  language    SessionLanguage   @default(TYPESCRIPT)
+  
+  // Content (Phase A - single writer)
+  content     String?           @db.Text
+  
+  // Locking mechanism (Phase A)
+  lockedBy    String?
+  lockedUntil DateTime?
+  
+  // Session metadata
+  isActive    Boolean           @default(true)
+  inviteCode  String?           @unique // For shareable links
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  // Relations
+  permissions SessionPermission[]
+  snapshots   SessionSnapshot[]
+  
+  @@map("collaborative_sessions")
+}
+
+// Session permissions for participants
+model SessionPermission {
+  id        String      @id @default(cuid())
+  sessionId String
+  userId    String
+  role      SessionRole @default(VIEWER)
+  
+  // Timestamps
+  joinedAt  DateTime    @default(now())
+  lastActive DateTime?  @default(now())
+  
+  // Relations
+  session   CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([sessionId, userId])
+  @@map("session_permissions")
+}
+
+// Session snapshots for versioning and persistence
+model SessionSnapshot {
+  id        String   @id @default(cuid())
+  sessionId String
+  
+  // Content (Phase A - text content, Phase B - Yjs state)
+  content   String?  @db.Text // Phase A fallback
+  yjsState  Bytes?              // Phase B - serialized Yjs document
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  createdBy String?
+  note      String?  // Optional snapshot description
+  size      Int?     // Content size in bytes
+  
+  // Relations
+  session   CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@map("session_snapshots")
 }
