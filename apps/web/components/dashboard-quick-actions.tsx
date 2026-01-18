@@ -50,26 +50,26 @@ const quickActions: QuickAction[] = [
 
 export function DashboardQuickActions() {
   return (
-    <div className="bg-card border border-slate-700 rounded-xl p-6">
-      <h3 className="text-xl font-semibold text-foreground mb-6">
+    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+      <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent mb-6">
         Quick Actions
       </h3>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {quickActions.map((action) => (
           <Link
             key={action.title}
             href={action.href}
-            className="w-full flex items-center space-x-3 p-4 bg-background hover:bg-accent rounded-lg transition-colors text-left group"
+            className="group w-full flex items-center gap-4 p-4 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-gradient-to-r hover:from-sky-50 hover:to-indigo-50 dark:hover:from-sky-900/20 dark:hover:to-indigo-900/20 rounded-xl transition-all duration-300 hover:shadow-md"
           >
             <div
-              className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
+              className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
             >
               {action.icon}
             </div>
-            <div>
-              <h4 className="font-medium text-foreground">{action.title}</h4>
-              <p className="text-muted-foreground text-sm">
+            <div className="flex-1">
+              <h4 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{action.title}</h4>
+              <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">
                 {action.description}
               </p>
             </div>
@@ -77,12 +77,16 @@ export function DashboardQuickActions() {
         ))}
       </div>
 
-      <div className="mt-8 p-4 bg-gradient-to-r from-primary to-purple-600 rounded-lg">
-        <h4 className="font-semibold text-white mb-2">💡 Pro Tip</h4>
-        <p className="text-primary-foreground/90 text-sm">
-          Use keyboard shortcuts to speed up your workflow. Press Cmd+K to open
-          the command palette.
-        </p>
+      <div className="mt-6 p-6 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-2xl shadow-lg shadow-sky-500/30">
+        <div className="flex items-start gap-3">
+          <div className="text-2xl">💡</div>
+          <div>
+            <h4 className="font-bold text-white mb-2">Pro Tip</h4>
+            <p className="text-white/90 text-sm leading-relaxed">
+              Use keyboard shortcuts to speed up your workflow. Press <kbd className="px-2 py-1 bg-white/20 rounded text-xs font-mono">Cmd+K</kbd> to open the command palette.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

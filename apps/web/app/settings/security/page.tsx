@@ -80,84 +80,84 @@ export default function SecuritySettingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Security Settings</h1>
-
-      <div className="bg-card rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Active Sessions</h2>
-        <p className="text-muted-foreground mb-6">
+    <div className="space-y-8">
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent mb-3">Active Sessions</h2>
+        <p className="text-slate-600 dark:text-slate-300 mb-6">
           These are your active sessions across different devices. You can log
           out of any session if you don't recognize it.
         </p>
 
         {loading && (
           <div className="flex justify-center my-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sky-500"></div>
           </div>
         )}
 
         {error && (
-          <div className="bg-destructive/10 text-destructive p-4 rounded-md mb-4">
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl mb-4">
             {error}
           </div>
         )}
 
         {!loading && sessions.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-slate-600 dark:text-slate-400">
             No active sessions found.
           </div>
         )}
 
         {sessions.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
+            <table className="min-w-full">
               <thead>
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Device
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     IP Address
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Last Active
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Created At
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody>
                 {sessions.map((session) => (
                   <tr
                     key={session.id}
                     className={
-                      session.id === currentSessionId ? "bg-primary/5" : ""
+                      session.id === currentSessionId 
+                        ? "bg-sky-50/50 dark:bg-sky-900/10 border-b border-slate-200 dark:border-slate-700" 
+                        : "border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
                     }
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="text-sm font-medium text-foreground">
+                        <div className="text-sm font-medium text-slate-800 dark:text-slate-100">
                           {session.device || "Unknown Device"}
                           {session.id === currentSessionId && (
-                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                            <span className="ml-2 inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-sky-500 to-indigo-600 text-white">
                               Current
                             </span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
                       {session.ipAddress === "0.0.0.0" ? (
                         <span title="IP address not available for this session type">
-                          <span className="text-muted-foreground/60">
+                          <span className="text-slate-500 dark:text-slate-500">
                             Not available
                           </span>
                           {session.userAgent === "GitHub OAuth" && (
-                            <span className="ml-1 text-xs text-muted-foreground/50">
+                            <span className="ml-1 text-xs text-slate-400 dark:text-slate-500">
                               (OAuth login)
                             </span>
                           )}
@@ -166,23 +166,22 @@ export default function SecuritySettingsPage() {
                         session.ipAddress || "Unknown"
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
                       <span title={formatSessionDate(session.lastActive)}>
                         {formatSessionAge(session.lastActive)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
                       {formatSessionDate(session.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                      <Button
-                        variant="destructive"
-                        size="sm"
+                      <button
                         onClick={() => handleRevokeSession(session.id)}
                         disabled={loading}
+                        className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg font-medium transition-all disabled:opacity-50"
                       >
                         {session.id === currentSessionId ? "Log out" : "Revoke"}
-                      </Button>
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -193,36 +192,40 @@ export default function SecuritySettingsPage() {
 
         {sessions.length > 1 && (
           <div className="mt-6 flex justify-end">
-            <Button
-              variant="outline"
+            <button
               onClick={handleRevokeAllSessions}
               disabled={loading}
+              className="px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl font-medium transition-all disabled:opacity-50"
             >
               Log out from all other devices
-            </Button>
+            </button>
           </div>
         )}
       </div>
 
-      <div className="bg-card rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-semibold mb-4">Account Security</h2>
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent mb-6">Account Security</h2>
 
         <div className="space-y-4">
-          <div className="p-4 border border-border rounded-md">
-            <h3 className="font-medium mb-2">Password</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+          <div className="p-6 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl">
+            <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">Password</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
               Change your password regularly to keep your account secure.
             </p>
-            <Button variant="outline">Change Password</Button>
+            <button className="px-6 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl font-medium transition-all">
+              Change Password
+            </button>
           </div>
 
-          <div className="p-4 border border-border rounded-md">
-            <h3 className="font-medium mb-2">Two-factor Authentication</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+          <div className="p-6 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl">
+            <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">Two-factor Authentication</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
               Add an extra layer of security to your account by enabling
               two-factor authentication.
             </p>
-            <Button variant="outline">Setup 2FA</Button>
+            <button className="px-6 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30">
+              Setup 2FA
+            </button>
           </div>
         </div>
       </div>

@@ -467,20 +467,22 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       {/* Progress Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Create New Blog Post</h1>
-          <div className="text-sm text-muted-foreground">
-            Step {currentStep + 1} of {steps.length}
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">Create New Blog Post</h1>
+          <div className="px-4 py-2 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 rounded-xl">
+            <span className="text-sm font-medium text-sky-700 dark:text-sky-300">
+              Step {currentStep + 1} of {steps.length}
+            </span>
           </div>
         </div>
         
         {/* Progress Bar */}
-        <div className="w-full bg-muted rounded-full h-2 mb-6">
+        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 mb-8">
           <motion.div
-            className="bg-primary h-2 rounded-full"
+            className="bg-gradient-to-r from-sky-500 to-indigo-600 h-3 rounded-full shadow-lg shadow-sky-500/30"
             initial={{ width: 0 }}
             animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             transition={{ duration: 0.3 }}
@@ -492,21 +494,25 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
           {steps.map((step, index) => (
             <div key={step.id} className="flex flex-col items-center">
               <motion.div
-                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
+                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-lg ${
                   index <= currentStep
-                    ? "bg-primary border-primary text-primary-foreground"
-                    : "border-border text-muted-foreground"
+                    ? "bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-sky-500/30"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
                 }`}
                 whileHover={{ scale: 1.05 }}
               >
                 {index < currentStep ? (
-                  <IconCheck className="w-5 h-5" />
+                  <IconCheck className="w-6 h-6" />
                 ) : (
                   step.icon
                 )}
               </motion.div>
-              <div className="mt-2 text-center">
-                <div className="text-xs font-medium">{step.title}</div>
+              <div className="mt-3 text-center">
+                <div className={`text-xs font-medium ${
+                  index <= currentStep
+                    ? "text-slate-800 dark:text-slate-100"
+                    : "text-slate-500 dark:text-slate-400"
+                }`}>{step.title}</div>
               </div>
             </div>
           ))}
@@ -514,10 +520,10 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
       </div>
 
       {/* Current Step Content */}
-      <div className="mb-8">
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg mb-8">
         <div className="text-center mb-8">
-          <h2 className="text-xl font-semibold mb-2">{steps[currentStep]?.title}</h2>
-          <p className="text-muted-foreground">{steps[currentStep]?.description}</p>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">{steps[currentStep]?.title}</h2>
+          <p className="text-slate-600 dark:text-slate-300">{steps[currentStep]?.description}</p>
         </div>
         
         <AnimatePresence mode="wait">
@@ -528,13 +534,13 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
         <button
           onClick={handlePrevious}
           disabled={currentStep === 0}
-          className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
-          <IconArrowLeft className="w-4 h-4" />
+          <IconArrowLeft className="w-5 h-5" />
           Previous
         </button>
         
@@ -542,12 +548,12 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
           <button
             onClick={handleSubmit}
             disabled={!canProceed() || isSubmitting}
-            className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
           >
             {isSubmitting ? (
-              <IconLoader className="w-4 h-4 animate-spin" />
+              <IconLoader className="w-5 h-5 animate-spin" />
             ) : (
-              <IconDeviceFloppy className="w-4 h-4" />
+              <IconDeviceFloppy className="w-5 h-5" />
             )}
             {isSubmitting ? "Creating..." : "Create Blog Post"}
           </button>
@@ -555,10 +561,10 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
           <button
             onClick={handleNext}
             disabled={!canProceed()}
-            className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
           >
             Next
-            <IconArrowRight className="w-4 h-4" />
+            <IconArrowRight className="w-5 h-5" />
           </button>
         )}
       </div>
