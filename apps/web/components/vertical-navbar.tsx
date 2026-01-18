@@ -32,6 +32,8 @@ export const VerticalNavbar: React.FC<VerticalNavbarProps> = ({
 
   // Load saved position from localStorage on mount
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    
     const savedPosition = localStorage.getItem("verticalNavPosition");
     if (savedPosition) {
       try {

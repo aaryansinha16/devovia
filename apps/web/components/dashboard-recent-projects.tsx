@@ -55,32 +55,32 @@ const statusConfig = {
 
 export function DashboardRecentProjects() {
   return (
-    <div className="bg-card border border-slate-700 rounded-xl p-6">
+    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-foreground">
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
           Recent Projects
         </h3>
         <Link
           href="/dashboard/projects"
-          className="text-primary hover:text-primary/80 text-sm font-medium flex items-center space-x-1"
+          className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 text-sm font-medium transition-colors group"
         >
           <span>View All</span>
-          <IconExternalLink className="w-4 h-4" />
+          <IconExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </Link>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {recentProjects.map((project) => (
           <div
             key={project.id}
-            className="flex items-center justify-between p-4 bg-background rounded-lg hover:bg-accent transition-colors cursor-pointer group"
+            className="group flex items-center justify-between p-5 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl hover:bg-gradient-to-r hover:from-sky-50 hover:to-indigo-50 dark:hover:from-sky-900/20 dark:hover:to-indigo-900/20 transition-all duration-300 cursor-pointer hover:shadow-md"
           >
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4 flex-1">
               <div
-                className={`w-10 h-10 ${project.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
+                className={`w-12 h-12 ${project.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
               >
                 <svg
-                  className="w-5 h-5 text-white"
+                  className="w-6 h-6 text-white"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -90,35 +90,38 @@ export function DashboardRecentProjects() {
                   />
                 </svg>
               </div>
-              <div>
-                <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
+              <div className="flex-1">
+                <h4 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors text-base">
                   {project.name}
                 </h4>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">
                   {project.tech.join(" • ")}
                 </p>
               </div>
             </div>
-            <div className="text-right">
-              <span
-                className={`inline-block px-2 py-1 text-xs rounded-full ${statusConfig[project.status].className}`}
-              >
-                {statusConfig[project.status].label}
-              </span>
-              <p className="text-muted-foreground text-sm mt-1">
-                Updated {project.lastUpdated}
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <span
+                  className={`inline-block px-3 py-1.5 text-xs font-medium rounded-lg ${statusConfig[project.status].className}`}
+                >
+                  {statusConfig[project.status].label}
+                </span>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mt-1.5">
+                  Updated {project.lastUpdated}
+                </p>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
       {recentProjects.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-slate-400">No recent projects found.</p>
+        <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl">
+          <div className="text-5xl mb-4">📁</div>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">No recent projects found.</p>
           <Link
             href="/dashboard/projects/create"
-            className="text-blue-400 hover:text-blue-300 text-sm font-medium mt-2 inline-block"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-sky-500/30"
           >
             Create your first project
           </Link>

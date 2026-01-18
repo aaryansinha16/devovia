@@ -39,21 +39,30 @@ export default function CreateBlogPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full hover:bg-accent transition-colors"
-          aria-label="Go back"
-        >
-          <IconArrowLeft size={20} />
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
       </div>
-      
-      <BlogCreationStepper
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
+
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={() => router.back()}
+            className="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            aria-label="Go back"
+          >
+            <IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
+          </button>
+        </div>
+        
+        <BlogCreationStepper
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
+      </div>
     </div>
   );
 }

@@ -16,6 +16,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    
     // Check for saved theme preference or use system preference
     const savedTheme = localStorage.getItem("theme") as Theme | null;
     const systemPrefersDark = window.matchMedia(
@@ -33,6 +35,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Update document with theme class when theme changes
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    
     const root = window.document.documentElement;
 
     // Remove the previous theme class
