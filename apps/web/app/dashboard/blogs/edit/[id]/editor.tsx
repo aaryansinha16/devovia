@@ -261,251 +261,267 @@ export function BlogEditor({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="container py-8">
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-muted-foreground">Loading blog post...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
+        </div>
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 flex justify-center items-center min-h-[60vh]">
+          <div className="text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-12 shadow-lg">
+            <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-600 dark:text-slate-300">Loading blog post...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/dashboard/blogs")}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4"
-          >
-            <IconArrowLeft size={16} className="mr-2" />
-            Back to Blogs
-          </button>
-          <h1 className="text-2xl font-bold">Edit Blog Post</h1>
-        </div>
-        <button
-          onClick={handleSubmit}
-          disabled={saving}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {saving ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-          ) : (
-            <IconDeviceFloppy size={16} />
-          )}
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Error message */}
-      {errorMessage && (
-        <div className="bg-destructive/15 border border-destructive text-destructive px-4 py-3 rounded-md mb-6">
-          {errorMessage}
-        </div>
-      )}
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Title */}
-        <div className="space-y-2">
-          <label htmlFor="title" className="text-sm font-medium leading-none">
-            Title <span className="text-destructive">*</span>
-          </label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => !slug && generateSlug()}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            placeholder="Enter blog post title"
-            required
-          />
-        </div>
-
-        {/* Slug */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label htmlFor="slug" className="text-sm font-medium leading-none">
-              Slug <span className="text-destructive">*</span>
-            </label>
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
+          <div className="flex items-center gap-4">
             <button
-              type="button"
-              onClick={generateSlug}
-              className="text-xs text-primary hover:text-primary/80"
+              onClick={() => router.push("/dashboard/blogs")}
+              className="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
-              Generate from title
+              <IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
             </button>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">Edit Blog Post</h1>
           </div>
-          <input
-            type="text"
-            id="slug"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            placeholder="enter-blog-post-slug"
-            required
-          />
-        </div>
-
-        {/* Excerpt */}
-        <div className="space-y-2">
-          <label htmlFor="excerpt" className="text-sm font-medium leading-none">
-            Excerpt
-          </label>
-          <textarea
-            id="excerpt"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[80px]"
-            placeholder="Brief summary of your blog post"
-          />
-        </div>
-
-        {/* Cover Image */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium leading-none">
-            Cover Image
-          </label>
-
-          {coverImage ? (
-            <div className="relative">
-              <img
-                src={coverImage}
-                alt="Blog cover"
-                className="w-full h-48 object-cover rounded-md"
-              />
-              <button
-                type="button"
-                onClick={removeCoverImage}
-                className="absolute top-2 right-2 bg-background/80 text-foreground rounded-full p-1 hover:bg-destructive hover:text-destructive-foreground transition-colors"
-              >
-                <IconX size={16} />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center border border-dashed border-input rounded-md h-48 bg-muted/50">
-              <label className="cursor-pointer flex flex-col items-center justify-center gap-2 w-full h-full">
-                <IconUpload size={24} className="text-muted-foreground" />
-                {imageUploading ? (
-                  <span className="text-sm text-muted-foreground">
-                    Uploading...
-                  </span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">
-                    Click to upload cover image
-                  </span>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleCoverImageUpload}
-                  disabled={imageUploading}
-                />
-              </label>
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium leading-none">
-            Content <span className="text-destructive">*</span>
-          </label>
-          <RichTextEditor
-            content={content}
-            onChange={setContent}
-            onImageUpload={handleRichTextImageUpload}
-            placeholder="Write your blog post content here..."
-            minHeight="400px"
-          />
-        </div>
-
-        {/* Tags */}
-        <div className="space-y-3">
-          <label htmlFor="tags" className="text-sm font-medium leading-none">
-            Tags
-          </label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {tags.map((tag) => (
-              <div
-                key={tag}
-                className="flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => removeTag(tag)}
-                  className="ml-2 text-primary hover:text-destructive"
-                >
-                  <IconX size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              id="tags"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagKeyPress}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Add a tag and press Enter"
-            />
-            <button
-              type="button"
-              onClick={addTag}
-              className="h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium"
-            >
-              Add
-            </button>
-          </div>
-        </div>
-
-        {/* Publication setting and delete */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-6 border-t gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 border border-destructive bg-background hover:bg-destructive/10 text-destructive h-10 py-2 px-4 gap-2"
-            >
-              <IconTrash size={16} />
-              Delete
-            </button>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="published"
-                checked={published}
-                onChange={(e) => setPublished(e.target.checked)}
-                className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary"
-              />
-              <label htmlFor="published" className="text-sm font-medium">
-                {published ? "Published" : "Save as Draft"}
-              </label>
-            </div>
-          </div>
-
-          {/* Mobile save button (for responsive design) */}
           <button
-            type="submit"
+            onClick={handleSubmit}
             disabled={saving}
-            className="inline-flex sm:hidden items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <IconDeviceFloppy size={16} />
+              <IconDeviceFloppy size={20} />
             )}
             {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
-      </form>
+
+        {/* Error message */}
+        {errorMessage && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500 text-red-600 dark:text-red-400 px-6 py-4 rounded-2xl mb-6">
+            {errorMessage}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg space-y-8">
+          {/* Title */}
+          <div className="space-y-3">
+            <label htmlFor="title" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => !slug && generateSlug()}
+              className="flex h-12 w-full rounded-xl border-0 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+              placeholder="Enter blog post title"
+              required
+            />
+          </div>
+
+          {/* Slug */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label htmlFor="slug" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Slug <span className="text-red-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={generateSlug}
+                className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium"
+              >
+                Generate from title
+              </button>
+            </div>
+            <input
+              type="text"
+              id="slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              className="flex h-12 w-full rounded-xl border-0 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+              placeholder="enter-blog-post-slug"
+              required
+            />
+          </div>
+
+          {/* Excerpt */}
+          <div className="space-y-3">
+            <label htmlFor="excerpt" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Excerpt
+            </label>
+            <textarea
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              className="flex w-full rounded-xl border-0 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all min-h-[100px] resize-none"
+              placeholder="Brief summary of your blog post"
+            />
+          </div>
+
+          {/* Cover Image */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Cover Image
+            </label>
+
+            {coverImage ? (
+              <div className="relative">
+                <img
+                  src={coverImage}
+                  alt="Blog cover"
+                  className="w-full h-64 object-cover rounded-2xl"
+                />
+                <button
+                  type="button"
+                  onClick={removeCoverImage}
+                  className="absolute top-3 right-3 bg-red-500 text-white rounded-xl p-2 hover:bg-red-600 transition-all shadow-lg"
+                >
+                  <IconX size={18} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl h-64 bg-slate-50/50 dark:bg-slate-900/50 hover:border-sky-400 dark:hover:border-sky-500 transition-all">
+                <label className="cursor-pointer flex flex-col items-center justify-center gap-3 w-full h-full">
+                  <IconUpload size={32} className="text-slate-400 dark:text-slate-500" />
+                  {imageUploading ? (
+                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                      Uploading...
+                    </span>
+                  ) : (
+                    <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                      Click to upload cover image
+                    </span>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCoverImageUpload}
+                    disabled={imageUploading}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Content <span className="text-red-500">*</span>
+            </label>
+            <div className="rounded-2xl overflow-hidden border-0">
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
+                onImageUpload={handleRichTextImageUpload}
+                placeholder="Write your blog post content here..."
+                minHeight="400px"
+              />
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-3">
+            <label htmlFor="tags" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Tags
+            </label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {tags.map((tag) => (
+                <div
+                  key={tag}
+                  className="flex items-center gap-2 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-700 dark:text-sky-300 px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="text-sky-600 dark:text-sky-400 hover:text-red-500 dark:hover:text-red-400"
+                  >
+                    <IconX size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                id="tags"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagKeyPress}
+                className="flex h-12 flex-1 rounded-xl border-0 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                placeholder="Add a tag and press Enter"
+              />
+              <button
+                type="button"
+                onClick={addTag}
+                className="h-12 px-6 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl text-sm font-medium transition-all shadow-lg shadow-sky-500/30"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          {/* Publication setting and delete */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-8 border-t border-slate-200 dark:border-slate-700 gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl font-medium transition-all"
+              >
+                <IconTrash size={18} />
+                Delete
+              </button>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="published"
+                  checked={published}
+                  onChange={(e) => setPublished(e.target.checked)}
+                  className="w-5 h-5 text-sky-600 bg-slate-100 border-slate-300 rounded focus:ring-sky-500"
+                />
+                <label htmlFor="published" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {published ? "Published" : "Save as Draft"}
+                </label>
+              </div>
+            </div>
+
+            {/* Mobile save button (for responsive design) */}
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex sm:hidden items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <IconDeviceFloppy size={20} />
+              )}
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
