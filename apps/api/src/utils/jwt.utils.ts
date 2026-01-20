@@ -7,7 +7,7 @@
 // Import required modules
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
-import prisma, { Role, toRole } from '../lib/prisma';
+import prisma, { Role } from '../lib/prisma';
 
 // Define the JWT payload interface
 export interface JwtPayload {
@@ -32,6 +32,8 @@ export const generateTokens = async (
     select: { role: true, isVerified: true },
   });
 
+  console.log('🔐 Generating tokens with secret:', config.jwt.secret);
+
   // Type assertion to handle the string type for expiresIn
   const accessToken = jwt.sign(
     {
@@ -43,6 +45,11 @@ export const generateTokens = async (
     // Using any to bypass the type checking for expiresIn
     // This is safe because we know the config values are correct
     { expiresIn: config.jwt.expiresIn } as any,
+  );
+
+  console.log(
+    '✅ Access token generated (first 20 chars):',
+    accessToken.substring(0, 20) + '...',
   );
 
   const refreshToken = jwt.sign(

@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
 
 /**
  * Get all content that needs moderation

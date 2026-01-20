@@ -19,7 +19,16 @@ import sessionRoutes from './routes/session.routes';
 import userRoutes from './routes/user.routes';
 import blogRoutes from './routes/blog.routes';
 import commentRoutes from './routes/comment.routes';
+import collaborativeSessionRoutes from './routes/collaborative-sessions';
 import seedRoutes from './routes/seed.routes';
+import sessionExecutionRoutes from './routes/session-execution.routes';
+import aiRoutes from './routes/ai.routes';
+import sessionHistoryRoutes from './routes/session-history.routes';
+import gitRoutes from './routes/git.routes';
+import githubIntegrationRoutes from './routes/github-integration.routes';
+
+// Import WebSocket collaboration server
+import CollaborationServer from './websocket/collaboration-server';
 
 // Import Passport configuration
 import passport from './config/passport.config';
@@ -99,9 +108,15 @@ export function createExpressApp() {
   app.use('/api/moderator', moderatorRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/sessions', sessionRoutes);
+  app.use('/api/collaborative-sessions', collaborativeSessionRoutes);
+  app.use('/api', sessionExecutionRoutes);
   app.use('/api/blogs', blogRoutes);
   app.use('/api/comments', commentRoutes);
   app.use('/api/seed', seedRoutes);
+  app.use('/api/ai', aiRoutes);
+  app.use('/api/sessions', sessionHistoryRoutes);
+  app.use('/api/git', gitRoutes);
+  app.use('/api/github', githubIntegrationRoutes);
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {
@@ -152,4 +167,26 @@ export async function connectToDatabase() {
 export async function disconnectFromDatabase() {
   await prisma.$disconnect();
   console.log('Database connection closed');
+}
+
+// Collaboration server instance
+let collaborationServer: CollaborationServer | null = null;
+
+// Start collaboration server
+export async function startCollaborationServer() {
+  if (!collaborationServer) {
+    collaborationServer = new CollaborationServer();
+    await collaborationServer.start();
+    console.log('✅ Collaboration server started successfully');
+  }
+  return collaborationServer;
+}
+
+// Stop collaboration server
+export async function stopCollaborationServer() {
+  if (collaborationServer) {
+    await collaborationServer.stop();
+    collaborationServer = null;
+    console.log('🛑 Collaboration server stopped');
+  }
 }

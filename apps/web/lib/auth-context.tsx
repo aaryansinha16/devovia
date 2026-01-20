@@ -30,6 +30,7 @@ interface AuthContextType {
   refreshSession: () => Promise<boolean>;
   sessionError: string | null;
   openAuthModal: () => void;
+  token: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  // We don't expose tokens directly in the context value, but we need to track them internally
+  const [token, setToken] = useState<string | null>(null);
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -59,9 +60,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setIsLoading(false);
             }
           } else {
-            // Token is valid, set the user
-            const user = getUserFromToken(storedTokens.accessToken);
-            setUser(user);
+            // Token is valid, fetch full user profile
+            try {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/users/profile`, {
+                headers: {
+                  'Authorization': `Bearer ${storedTokens.accessToken}`
+                }
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                setUser(data.user);
+              } else {
+                // Fallback to token data if profile fetch fails
+                const user = getUserFromToken(storedTokens.accessToken);
+                setUser(user);
+              }
+            } catch (error) {
+              console.error("Error fetching user profile:", error);
+              // Fallback to token data
+              const user = getUserFromToken(storedTokens.accessToken);
+              setUser(user);
+            }
+            
+            setToken(storedTokens.accessToken);
             setIsLoading(false);
           }
         } else {
@@ -118,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         storeTokens(result.tokens);
         const user = getUserFromToken(result.tokens.accessToken);
         setUser(user);
+        setToken(result.tokens.accessToken);
         return true;
       } else {
         // If error contains SESSION_REVOKED code, set a specific message
@@ -140,12 +163,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     storeTokens(tokens);
     const user = getUserFromToken(tokens.accessToken);
     setUser(user);
+    setToken(tokens.accessToken);
   };
 
   // Logout function
   const logout = useCallback(() => {
     removeTokens();
     setUser(null);
+    setToken(null);
 
     // Clear the OAuth callback processed flag from session storage
     if (typeof window !== "undefined") {
@@ -177,6 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshSession,
         sessionError,
         openAuthModal,
+        token,
       }}
     >
       {children}
