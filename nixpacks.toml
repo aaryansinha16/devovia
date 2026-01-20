@@ -1,6 +1,6 @@
 [phases.setup]
-aptPkgs = ["nodejs", "git"]
-nixPkgs = ["pnpm"]
+aptPkgs = ["git"]
+nixPkgs = ["pnpm", "nodejs_22"]
 
 [phases.install]
 cmds = [
@@ -13,4 +13,4 @@ cmds = [
 ]
 
 [start]
-cmd = "cd apps/api && npx prisma migrate deploy && node dist/index.js"
+cmd = "cd apps/api && pnpm exec prisma migrate deploy && node dist/index.js"
