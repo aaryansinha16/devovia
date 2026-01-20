@@ -27,7 +27,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.507.0",
     "monaco-editor": "^0.52.2",
-    "next": "^15.5.9",
+    "next": "15.3.8",
     "next-auth": "^5.0.0-beta.15",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
