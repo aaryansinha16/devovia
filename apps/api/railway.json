@@ -1,11 +1,12 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "watchPatterns": ["apps/api/**", "packages/database/**"]
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "npm run start:railway",
+    "startCommand": "cd apps/api && npx prisma migrate deploy && node dist/index.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/api/hc",
