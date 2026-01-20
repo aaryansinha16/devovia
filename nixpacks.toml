@@ -9,7 +9,9 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "cd apps/api && pnpm run build"
+  "cd packages/database && pnpm exec prisma generate",
+  "cd apps/api && pnpm exec tsc",
+  "ls -la apps/api/dist/"
 ]
 
 [start]
