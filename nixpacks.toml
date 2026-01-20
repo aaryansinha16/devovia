@@ -1,17 +1,16 @@
 [phases.setup]
-aptPkgs = [\"nodejs\", \"git\"]
+aptPkgs = ["nodejs", "git"]
+nixPkgs = ["pnpm"]
 
 [phases.install]
 cmds = [
-  \"# Display environment for debugging\",
-  \"echo 'Current directory:' && pwd && ls -la\",
-  
-  \"# Install dependencies\",
-  \"npm install --legacy-peer-deps\",
-  
-  \"# Build database package first, then API\",
-  \"npm run railway-build\"
+  "pnpm install --frozen-lockfile"
+]
+
+[phases.build]
+cmds = [
+  "cd apps/api && pnpm run build"
 ]
 
 [start]
-cmd = \"cd apps/api && npm run start\"
+cmd = "cd apps/api && npx prisma migrate deploy && node dist/index.js"
