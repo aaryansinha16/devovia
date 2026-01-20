@@ -5,6 +5,7 @@ import { Send, MessageSquare } from 'lucide-react';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { useAuth } from '../../../../../lib/auth-context';
+import { WS_URL } from '../../../../../lib/api-config';
 
 interface ChatMessage {
   id: string;
@@ -50,7 +51,7 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
     ydocRef.current = ydoc;
 
     // Connect to WebSocket server with chat-specific room
-    const wsUrl = `ws://localhost:4001?token=${encodeURIComponent(token)}`;
+    const wsUrl = `${WS_URL}?token=${encodeURIComponent(token)}`;
     const provider = new WebsocketProvider(wsUrl, `chat-${sessionId}`, ydoc);
     providerRef.current = provider;
 

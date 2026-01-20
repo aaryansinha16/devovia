@@ -6,6 +6,10 @@
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
+// WebSocket URL for collaboration server
+export const WS_URL =
+  process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:4001";
+
 // Default request headers
 export const DEFAULT_HEADERS = {
   "Content-Type": "application/json",
@@ -22,7 +26,7 @@ export function buildUrl(base: string, params?: Record<string, any>): string {
   }
 
   const queryParams = Object.entries(params)
-    .filter(([_, value]) => value !== undefined && value !== null)
+    .filter(([_key, value]) => value !== undefined && value !== null)
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
     .join("&");
 

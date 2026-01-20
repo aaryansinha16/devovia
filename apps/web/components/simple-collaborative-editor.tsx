@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { useAuth } from '../lib/auth-context'
+import { WS_URL } from '../lib/api-config'
 
 interface SimpleCollaborativeEditorProps {
   sessionId: string
@@ -48,7 +49,7 @@ export function SimpleCollaborativeEditor({
 
         // Create WebSocket provider with JWT token
         console.log('Creating WebSocket provider...')
-        const wsUrl = `ws://localhost:4001/${sessionId}?token=${encodeURIComponent(token)}`
+        const wsUrl = `${WS_URL}/${sessionId}?token=${encodeURIComponent(token)}`
         const provider = new WebsocketProvider(wsUrl, sessionId, ydoc)
         providerRef.current = provider
 

@@ -2,6 +2,7 @@
 /* eslint-disable no-undef */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { WS_URL } from '../lib/api-config'
 import Editor, { Monaco, OnMount } from '@monaco-editor/react'
 import type { editor } from 'monaco-editor'
 import { MonacoBinding } from 'y-monaco'
@@ -13,8 +14,8 @@ interface CollaborativeEditorProps {
   sessionId: string
   language?: string
   theme?: string
-  onSave?: (content: string) => void
-  onContentChange?: (content: string) => void
+  onSave?: (_content: string) => void
+  onContentChange?: (_content: string) => void
   className?: string
 }
 
@@ -116,7 +117,7 @@ export function CollaborativeEditor({
     const ytext = ydoc.getText('monaco')
 
     // Create WebSocket provider with session-specific room
-    const wsUrl = `ws://localhost:4001?token=${encodeURIComponent(token)}`
+    const wsUrl = `${WS_URL}?token=${encodeURIComponent(token)}`
     const provider = new WebsocketProvider(wsUrl, sessionId, ydoc)
     providerRef.current = provider
 
