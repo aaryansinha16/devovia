@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Editor, Monaco } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { useSessionStore } from '../../../../lib/stores/session-store';
+import { useSessionStore } from '../../../../../lib/stores/session-store';
 
 interface CodeEditorProps {
   language: string;

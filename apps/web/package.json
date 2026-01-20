@@ -31,6 +31,7 @@
     "next-auth": "^5.0.0-beta.15",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
     "y-monaco": "0.1.6",
     "y-protocols": "^1.0.6",
     "y-websocket": "2.0.4",

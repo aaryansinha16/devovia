@@ -245,6 +245,7 @@ model CollaborativeSession {
   // Relations
   permissions SessionPermission[]
   snapshots   SessionSnapshot[]
+  changes     SessionChange[]
   
   @@map("collaborative_sessions")
 }
@@ -278,13 +279,43 @@ model SessionSnapshot {
   yjsState  Bytes?              // Phase B - serialized Yjs document
   
   // Metadata
+  version   Int      @default(autoincrement())
   createdAt DateTime @default(now())
   createdBy String?
+  createdByName String? // Denormalized for quick access
   note      String?  // Optional snapshot description
   size      Int?     // Content size in bytes
+  isAutoSave Boolean @default(false) // Auto-save vs manual snapshot
   
   // Relations
   session   CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   
+  @@index([sessionId, createdAt])
   @@map("session_snapshots")
+}
+
+// Granular change tracking for session recording and playback
+model SessionChange {
+  id        String   @id @default(cuid())
+  sessionId String
+  
+  // Change details
+  userId    String
+  userName  String?  // Denormalized for quick access
+  userColor String?  // User's cursor color
+  
+  // Change type and content
+  changeType String  // 'insert', 'delete', 'replace'
+  position   Int     // Character position in document
+  length     Int?    // Length of change (for delete/replace)
+  content    String? @db.Text // Inserted/replaced content
+  
+  // Timing
+  timestamp DateTime @default(now())
+  
+  // Relations
+  session   CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId, timestamp])
+  @@map("session_changes")
 }

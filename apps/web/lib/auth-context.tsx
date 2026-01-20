@@ -60,9 +60,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setIsLoading(false);
             }
           } else {
-            // Token is valid, set the user
-            const user = getUserFromToken(storedTokens.accessToken);
-            setUser(user);
+            // Token is valid, fetch full user profile
+            try {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/users/profile`, {
+                headers: {
+                  'Authorization': `Bearer ${storedTokens.accessToken}`
+                }
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                setUser(data.user);
+              } else {
+                // Fallback to token data if profile fetch fails
+                const user = getUserFromToken(storedTokens.accessToken);
+                setUser(user);
+              }
+            } catch (error) {
+              console.error("Error fetching user profile:", error);
+              // Fallback to token data
+              const user = getUserFromToken(storedTokens.accessToken);
+              setUser(user);
+            }
+            
             setToken(storedTokens.accessToken);
             setIsLoading(false);
           }

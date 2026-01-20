@@ -8,13 +8,13 @@ export function generateInviteCode(): string {
   // Use characters that are easy to read and type (no 0, O, 1, l, I)
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
   let result = '';
-  
+
   // Generate 8 random characters
   for (let i = 0; i < 8; i++) {
     const randomIndex = crypto.randomInt(0, chars.length);
     result += chars[randomIndex];
   }
-  
+
   return result;
 }
 

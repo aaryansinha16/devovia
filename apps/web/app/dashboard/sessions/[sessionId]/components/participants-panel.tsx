@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
   Badge
 } from '@repo/ui/components';
@@ -30,9 +31,9 @@ import {
   Zap,
   Users
 } from 'lucide-react';
-import { useAuth } from '../../../../lib/auth-context';
-import { useSessionStore } from '../../../../lib/stores/session-store';
-import { formatDate } from '../../../../lib/utils/date-utils';
+import { useAuth } from '../../../../../lib/auth-context';
+import { useSessionStore } from '../../../../../lib/stores/session-store';
+import { formatDate } from '../../../../../lib/utils/date-utils';
 
 function InviteUserDialog() {
   const [open, setOpen] = useState(false);
@@ -53,6 +54,7 @@ function InviteUserDialog() {
       setOpen(false);
     } catch (error) {
       console.error('Failed to invite user:', error);
+      alert('Failed to invite user. Please check the console for details.');
     } finally {
       setIsInviting(false);
     }
@@ -66,60 +68,86 @@ function InviteUserDialog() {
           Invite
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-gray-900 border-gray-700">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-white">Invite Collaborator</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-white">Invite Collaborator</DialogTitle>
+          <DialogDescription className="text-slate-400 mt-1">
+            Invite a team member to collaborate on this coding session.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        
+        <div className="space-y-5 mt-2">
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
               Email Address
             </label>
-            <Input
+            <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="colleague@company.com"
-              className="bg-gray-800 border-gray-600 text-white"
+              className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
             />
           </div>
           
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">
-              Role
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
+              Permission Level
             </label>
-            <Select value={role} onValueChange={(value: 'EDITOR' | 'VIEWER') => setRole(value)}>
-              <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-600">
-                <SelectItem value="VIEWER" className="text-white hover:bg-gray-700">
-                  <Eye className="w-4 h-4 mr-2 inline" />
-                  Viewer - Can view and comment
-                </SelectItem>
-                <SelectItem value="EDITOR" className="text-white hover:bg-gray-700">
-                  <Edit className="w-4 h-4 mr-2 inline" />
-                  Editor - Can edit and collaborate
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setRole('VIEWER')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                  role === 'VIEWER' 
+                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                    : 'bg-slate-800/30 border-slate-600/30 text-slate-400 hover:bg-slate-800/50 hover:border-slate-500/50'
+                }`}
+              >
+                <Eye className="w-5 h-5" />
+                <span className="text-sm font-medium">Viewer</span>
+                <span className="text-xs opacity-70">View & comment</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('EDITOR')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                  role === 'EDITOR' 
+                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                    : 'bg-slate-800/30 border-slate-600/30 text-slate-400 hover:bg-slate-800/50 hover:border-slate-500/50'
+                }`}
+              >
+                <Edit className="w-5 h-5" />
+                <span className="text-sm font-medium">Editor</span>
+                <span className="text-xs opacity-70">Edit & collaborate</span>
+              </button>
+            </div>
           </div>
           
-          <div className="flex justify-end gap-2 pt-4">
-            <Button 
-              variant="outline" 
+          <div className="flex justify-end gap-3 pt-2">
+            <button 
               onClick={() => setOpen(false)}
-              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              className="px-5 py-2.5 text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl border border-slate-600/30 transition-all"
             >
               Cancel
-            </Button>
-            <Button 
+            </button>
+            <button 
               onClick={handleInvite}
               disabled={!email.trim() || isInviting}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isInviting ? 'Inviting...' : 'Send Invite'}
-            </Button>
+              {isInviting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4" />
+                  Send Invite
+                </>
+              )}
+            </button>
           </div>
         </div>
       </DialogContent>

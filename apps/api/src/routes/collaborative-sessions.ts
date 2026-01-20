@@ -11,42 +11,70 @@ const router = Router();
 const createSessionSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().optional(),
-  language: z.enum(['TYPESCRIPT', 'JAVASCRIPT', 'PYTHON', 'SQL', 'JSON', 'MARKDOWN', 'HTML', 'CSS', 'YAML']).default('TYPESCRIPT'),
-  visibility: z.enum(['PUBLIC', 'PRIVATE', 'UNLISTED']).default('PRIVATE')
+  language: z
+    .enum([
+      'TYPESCRIPT',
+      'JAVASCRIPT',
+      'PYTHON',
+      'SQL',
+      'JSON',
+      'MARKDOWN',
+      'HTML',
+      'CSS',
+      'YAML',
+    ])
+    .default('TYPESCRIPT'),
+  visibility: z.enum(['PUBLIC', 'PRIVATE', 'UNLISTED']).default('PRIVATE'),
 });
 
 const updateSessionSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   content: z.string().optional(),
-  language: z.enum(['TYPESCRIPT', 'JAVASCRIPT', 'PYTHON', 'SQL', 'JSON', 'MARKDOWN', 'HTML', 'CSS', 'YAML']).optional(),
-  visibility: z.enum(['PUBLIC', 'PRIVATE', 'UNLISTED']).optional()
+  language: z
+    .enum([
+      'TYPESCRIPT',
+      'JAVASCRIPT',
+      'PYTHON',
+      'SQL',
+      'JSON',
+      'MARKDOWN',
+      'HTML',
+      'CSS',
+      'YAML',
+    ])
+    .optional(),
+  visibility: z.enum(['PUBLIC', 'PRIVATE', 'UNLISTED']).optional(),
 });
 
 const inviteUserSchema = z.object({
   email: z.string().email(),
-  role: z.enum(['EDITOR', 'VIEWER']).default('VIEWER')
+  role: z.enum(['EDITOR', 'VIEWER']).default('VIEWER'),
 });
 
 const updateRoleSchema = z.object({
-  role: z.enum(['EDITOR', 'VIEWER'])
+  role: z.enum(['EDITOR', 'VIEWER']),
 });
 
 const createSnapshotSchema = z.object({
   content: z.string().optional(),
-  note: z.string().optional()
+  note: z.string().optional(),
 });
 
 // Helper function to check session access
-async function checkSessionAccess(sessionId: string, userId: string, requiredRole?: 'OWNER' | 'EDITOR' | 'VIEWER') {
+async function checkSessionAccess(
+  sessionId: string,
+  userId: string,
+  requiredRole?: 'OWNER' | 'EDITOR' | 'VIEWER',
+) {
   const session = await prisma.collaborativeSession.findUnique({
     where: { id: sessionId },
     include: {
       permissions: {
         where: { userId },
-        include: { user: true }
-      }
-    }
+        include: { user: true },
+      },
+    },
   });
 
   if (!session) return { hasAccess: false, session: null, userRole: null };
@@ -68,10 +96,10 @@ async function checkSessionAccess(sessionId: string, userId: string, requiredRol
 
   // Check role requirements
   if (requiredRole) {
-    const roleHierarchy = { 'VIEWER': 0, 'EDITOR': 1, 'OWNER': 2 };
+    const roleHierarchy = { VIEWER: 0, EDITOR: 1, OWNER: 2 };
     const userRoleLevel = roleHierarchy[permission.role];
     const requiredRoleLevel = roleHierarchy[requiredRole];
-    
+
     if (userRoleLevel < requiredRoleLevel) {
       return { hasAccess: false, session, userRole: permission.role };
     }
@@ -85,13 +113,13 @@ async function cleanupExpiredLocks() {
   await prisma.collaborativeSession.updateMany({
     where: {
       lockedUntil: {
-        lt: new Date()
-      }
+        lt: new Date(),
+      },
     },
     data: {
       lockedBy: null,
-      lockedUntil: null
-    }
+      lockedUntil: null,
+    },
   });
 }
 
@@ -105,31 +133,31 @@ router.get('/', authenticateJWT, async (req, res) => {
         OR: [
           { ownerId: userId },
           { permissions: { some: { userId } } },
-          { visibility: 'PUBLIC' }
+          { visibility: 'PUBLIC' },
         ],
-        isActive: true
+        isActive: true,
       },
       include: {
         owner: {
-          select: { id: true, name: true, username: true, avatar: true }
+          select: { id: true, name: true, username: true, avatar: true },
         },
         permissions: {
           include: {
             user: {
-              select: { id: true, name: true, username: true, avatar: true }
-            }
-          }
+              select: { id: true, name: true, username: true, avatar: true },
+            },
+          },
         },
         snapshots: {
           select: { id: true, createdAt: true, note: true, size: true },
           orderBy: { createdAt: 'desc' },
-          take: 1
+          take: 1,
         },
         _count: {
-          select: { permissions: true, snapshots: true }
-        }
+          select: { permissions: true, snapshots: true },
+        },
       },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
 
     res.json(sessions);
@@ -142,7 +170,8 @@ router.get('/', authenticateJWT, async (req, res) => {
 // POST /api/collaborative-sessions - Create new session
 router.post('/', authenticateJWT, async (req, res) => {
   try {
-    const { title, description, language, visibility } = createSessionSchema.parse(req.body);
+    const { title, description, language, visibility } =
+      createSessionSchema.parse(req.body);
     const userId = (req.user as JwtPayload).sub;
 
     const session = await prisma.collaborativeSession.create({
@@ -152,27 +181,29 @@ router.post('/', authenticateJWT, async (req, res) => {
         language,
         visibility,
         ownerId: userId,
-        inviteCode: visibility !== 'PRIVATE' ? generateInviteCode() : null
+        inviteCode: visibility !== 'PRIVATE' ? generateInviteCode() : null,
       },
       include: {
         owner: {
-          select: { id: true, name: true, username: true, avatar: true }
+          select: { id: true, name: true, username: true, avatar: true },
         },
         permissions: {
           include: {
             user: {
-              select: { id: true, name: true, username: true, avatar: true }
-            }
-          }
+              select: { id: true, name: true, username: true, avatar: true },
+            },
+          },
         },
-        snapshots: true
-      }
+        snapshots: true,
+      },
     });
 
     res.status(201).json(session);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.errors });
     }
     console.error('Error creating session:', error);
     res.status(500).json({ error: 'Failed to create session' });
@@ -188,36 +219,44 @@ router.get('/:id', authenticateJWT, async (req, res) => {
     const { hasAccess, session } = await checkSessionAccess(sessionId, userId);
 
     if (!hasAccess || !session) {
-      return res.status(404).json({ error: 'Session not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or access denied' });
     }
 
     const fullSession = await prisma.collaborativeSession.findUnique({
       where: { id: sessionId },
       include: {
         owner: {
-          select: { id: true, name: true, username: true, avatar: true }
+          select: { id: true, name: true, username: true, avatar: true },
         },
         permissions: {
           include: {
             user: {
-              select: { id: true, name: true, username: true, avatar: true }
-            }
+              select: { id: true, name: true, username: true, avatar: true },
+            },
           },
-          orderBy: { joinedAt: 'asc' }
+          orderBy: { joinedAt: 'asc' },
         },
         snapshots: {
-          select: { id: true, createdAt: true, note: true, size: true, createdBy: true },
+          select: {
+            id: true,
+            createdAt: true,
+            note: true,
+            size: true,
+            createdBy: true,
+          },
           orderBy: { createdAt: 'desc' },
-          take: 10
-        }
-      }
+          take: 10,
+        },
+      },
     });
 
     // Update last active timestamp for user
     if (session.ownerId !== userId) {
       await prisma.sessionPermission.updateMany({
         where: { sessionId, userId },
-        data: { lastActive: new Date() }
+        data: { lastActive: new Date() },
       });
     }
 
@@ -235,10 +274,16 @@ router.put('/:id', authenticateJWT, async (req, res) => {
     const userId = (req.user as JwtPayload).sub;
     const updates = updateSessionSchema.parse(req.body);
 
-    const { hasAccess, userRole } = await checkSessionAccess(sessionId, userId, 'EDITOR');
+    const { hasAccess, userRole } = await checkSessionAccess(
+      sessionId,
+      userId,
+      'EDITOR',
+    );
 
     if (!hasAccess) {
-      return res.status(404).json({ error: 'Session not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or access denied' });
     }
 
     // Only owner can update metadata, editors can update content
@@ -249,7 +294,8 @@ router.put('/:id', authenticateJWT, async (req, res) => {
 
     if (userRole === 'OWNER') {
       if (updates.title) allowedUpdates.title = updates.title;
-      if (updates.description !== undefined) allowedUpdates.description = updates.description;
+      if (updates.description !== undefined)
+        allowedUpdates.description = updates.description;
       if (updates.language) allowedUpdates.language = updates.language;
       if (updates.visibility) allowedUpdates.visibility = updates.visibility;
     }
@@ -259,22 +305,24 @@ router.put('/:id', authenticateJWT, async (req, res) => {
       data: allowedUpdates,
       include: {
         owner: {
-          select: { id: true, name: true, username: true, avatar: true }
+          select: { id: true, name: true, username: true, avatar: true },
         },
         permissions: {
           include: {
             user: {
-              select: { id: true, name: true, username: true, avatar: true }
-            }
-          }
-        }
-      }
+              select: { id: true, name: true, username: true, avatar: true },
+            },
+          },
+        },
+      },
     });
 
     res.json(updatedSession);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.errors });
     }
     console.error('Error updating session:', error);
     res.status(500).json({ error: 'Failed to update session' });
@@ -288,15 +336,17 @@ router.delete('/:id', authenticateJWT, async (req, res) => {
     const userId = (req.user as JwtPayload).sub;
 
     const session = await prisma.collaborativeSession.findUnique({
-      where: { id: sessionId }
+      where: { id: sessionId },
     });
 
     if (!session || session.ownerId !== userId) {
-      return res.status(404).json({ error: 'Session not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or access denied' });
     }
 
     await prisma.collaborativeSession.delete({
-      where: { id: sessionId }
+      where: { id: sessionId },
     });
 
     res.json({ message: 'Session deleted successfully' });
@@ -315,7 +365,9 @@ router.post('/:id/lock', authenticateJWT, async (req, res) => {
     const { hasAccess } = await checkSessionAccess(sessionId, userId, 'EDITOR');
 
     if (!hasAccess) {
-      return res.status(404).json({ error: 'Session not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or access denied' });
     }
 
     // Clean up expired locks first
@@ -331,19 +383,22 @@ router.post('/:id/lock', authenticateJWT, async (req, res) => {
           OR: [
             { lockedBy: null },
             { lockedBy: userId }, // User can extend their own lock
-            { lockedUntil: { lt: new Date() } } // Expired lock
-          ]
+            { lockedUntil: { lt: new Date() } }, // Expired lock
+          ],
         },
         data: {
           lockedBy: userId,
-          lockedUntil: lockUntil
-        }
+          lockedUntil: lockUntil,
+        },
       });
 
       res.json({ locked: true, lockedUntil: lockUntil });
     } catch (error) {
       // Lock is held by someone else
-      res.json({ locked: false, error: 'Session is currently locked by another user' });
+      res.json({
+        locked: false,
+        error: 'Session is currently locked by another user',
+      });
     }
   } catch (error) {
     console.error('Error acquiring lock:', error);
@@ -360,18 +415,20 @@ router.post('/:id/unlock', authenticateJWT, async (req, res) => {
     const { hasAccess } = await checkSessionAccess(sessionId, userId);
 
     if (!hasAccess) {
-      return res.status(404).json({ error: 'Session not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or access denied' });
     }
 
     await prisma.collaborativeSession.updateMany({
       where: {
         id: sessionId,
-        lockedBy: userId
+        lockedBy: userId,
       },
       data: {
         lockedBy: null,
-        lockedUntil: null
-      }
+        lockedUntil: null,
+      },
     });
 
     res.json({ message: 'Lock released successfully' });
@@ -391,13 +448,15 @@ router.post('/:id/invite', authenticateJWT, async (req, res) => {
     const { hasAccess, userRole } = await checkSessionAccess(sessionId, userId);
 
     if (!hasAccess || userRole !== 'OWNER') {
-      return res.status(404).json({ error: 'Session not found or insufficient permissions' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or insufficient permissions' });
     }
 
     // Find user by email
     const invitedUser = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, name: true, username: true, avatar: true }
+      select: { id: true, name: true, username: true, avatar: true },
     });
 
     if (!invitedUser) {
@@ -409,9 +468,9 @@ router.post('/:id/invite', authenticateJWT, async (req, res) => {
       where: {
         sessionId_userId: {
           sessionId,
-          userId: invitedUser.id
-        }
-      }
+          userId: invitedUser.id,
+        },
+      },
     });
 
     if (existingPermission) {
@@ -423,19 +482,21 @@ router.post('/:id/invite', authenticateJWT, async (req, res) => {
       data: {
         sessionId,
         userId: invitedUser.id,
-        role
+        role,
       },
       include: {
         user: {
-          select: { id: true, name: true, username: true, avatar: true }
-        }
-      }
+          select: { id: true, name: true, username: true, avatar: true },
+        },
+      },
     });
 
     res.status(201).json(permission);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.errors });
     }
     console.error('Error inviting user:', error);
     res.status(500).json({ error: 'Failed to invite user' });
@@ -450,31 +511,38 @@ router.put('/:id/permissions/:userId', authenticateJWT, async (req, res) => {
     const requesterId = (req.user as JwtPayload).sub;
     const { role } = updateRoleSchema.parse(req.body);
 
-    const { hasAccess, userRole } = await checkSessionAccess(sessionId, requesterId);
+    const { hasAccess, userRole } = await checkSessionAccess(
+      sessionId,
+      requesterId,
+    );
 
     if (!hasAccess || userRole !== 'OWNER') {
-      return res.status(404).json({ error: 'Session not found or insufficient permissions' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or insufficient permissions' });
     }
 
     const updatedPermission = await prisma.sessionPermission.update({
       where: {
         sessionId_userId: {
           sessionId,
-          userId: targetUserId
-        }
+          userId: targetUserId,
+        },
       },
       data: { role },
       include: {
         user: {
-          select: { id: true, name: true, username: true, avatar: true }
-        }
-      }
+          select: { id: true, name: true, username: true, avatar: true },
+        },
+      },
     });
 
     res.json(updatedPermission);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.errors });
     }
     console.error('Error updating user role:', error);
     res.status(500).json({ error: 'Failed to update user role' });
@@ -488,19 +556,24 @@ router.delete('/:id/permissions/:userId', authenticateJWT, async (req, res) => {
     const targetUserId = req.params.userId;
     const requesterId = (req.user as JwtPayload).sub;
 
-    const { hasAccess, userRole } = await checkSessionAccess(sessionId, requesterId);
+    const { hasAccess, userRole } = await checkSessionAccess(
+      sessionId,
+      requesterId,
+    );
 
     if (!hasAccess || userRole !== 'OWNER') {
-      return res.status(404).json({ error: 'Session not found or insufficient permissions' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or insufficient permissions' });
     }
 
     await prisma.sessionPermission.delete({
       where: {
         sessionId_userId: {
           sessionId,
-          userId: targetUserId
-        }
-      }
+          userId: targetUserId,
+        },
+      },
     });
 
     res.json({ message: 'User removed successfully' });
@@ -519,15 +592,17 @@ router.post('/:id/invite-link', authenticateJWT, async (req, res) => {
     const { hasAccess, userRole } = await checkSessionAccess(sessionId, userId);
 
     if (!hasAccess || userRole !== 'OWNER') {
-      return res.status(404).json({ error: 'Session not found or insufficient permissions' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or insufficient permissions' });
     }
 
     // Generate or update invite code
     const inviteCode = generateInviteCode();
-    
+
     await prisma.collaborativeSession.update({
       where: { id: sessionId },
-      data: { inviteCode }
+      data: { inviteCode },
     });
 
     const inviteLink = `${process.env.FRONTEND_URL}/sessions/join/${inviteCode}`;
@@ -549,7 +624,9 @@ router.post('/:id/snapshots', authenticateJWT, async (req, res) => {
     const { hasAccess } = await checkSessionAccess(sessionId, userId, 'EDITOR');
 
     if (!hasAccess) {
-      return res.status(404).json({ error: 'Session not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: 'Session not found or access denied' });
     }
 
     const snapshot = await prisma.sessionSnapshot.create({
@@ -558,14 +635,16 @@ router.post('/:id/snapshots', authenticateJWT, async (req, res) => {
         content,
         note,
         createdBy: userId,
-        size: content ? Buffer.byteLength(content, 'utf8') : 0
-      }
+        size: content ? Buffer.byteLength(content, 'utf8') : 0,
+      },
     });
 
     res.status(201).json(snapshot);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.errors });
     }
     console.error('Error creating snapshot:', error);
     res.status(500).json({ error: 'Failed to create snapshot' });
@@ -580,7 +659,7 @@ router.get('/snapshots/:id', authenticateJWT, async (req, res) => {
 
     const snapshot = await prisma.sessionSnapshot.findUnique({
       where: { id: snapshotId },
-      include: { session: true }
+      include: { session: true },
     });
 
     if (!snapshot) {

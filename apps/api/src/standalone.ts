@@ -13,7 +13,7 @@ async function startServer() {
     // Connect to database
     console.log('🔌 Connecting to database...');
     const dbConnected = await connectToDatabase();
-    
+
     if (!dbConnected) {
       console.warn('⚠️  Database connection failed, but continuing startup...');
     } else {
@@ -24,7 +24,7 @@ async function startServer() {
     console.log('🚀 Starting Yjs collaboration server...');
     yjsServer = new SimpleYjsServer(4001);
     await yjsServer.start();
-    
+
     // Start Express API server
     console.log('🚀 Starting Express API server...');
     const server = apiApp.listen(PORT, () => {
@@ -37,21 +37,20 @@ async function startServer() {
     // Graceful shutdown
     const shutdown = async () => {
       console.log('\n🛑 Shutting down servers...');
-      
+
       server.close(() => {
         console.log('✅ Express server closed');
       });
-      
+
       if (yjsServer) {
         await yjsServer.stop();
       }
-      
+
       process.exit(0);
     };
 
     process.on('SIGTERM', shutdown);
     process.on('SIGINT', shutdown);
-
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

@@ -2,7 +2,6 @@ import request from 'supertest';
 import express from 'express';
 import blogRoutes from '../routes/blog.routes';
 import { PrismaClient } from '@prisma/client';
-import { requireAuth } from '../middleware/auth.middleware';
 
 // Mock dependencies
 jest.mock('@prisma/client', () => {
