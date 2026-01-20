@@ -11,12 +11,9 @@ cmds = [
 cmds = [
   "cd packages/database && pnpm exec prisma generate",
   "cd packages/database && pnpm exec tsc",
-  "ls -la packages/database/dist/",
+  "cp -r packages/database/dist node_modules/.pnpm/file+packages+database_prisma@5.11.0/node_modules/@repo/database/",
   "cd apps/api && pnpm exec prisma generate",
-  "cd apps/api && pnpm exec tsc",
-  "ls -la apps/api/dist/",
-  "ls -la apps/api/node_modules/@repo/ || echo 'No @repo symlink'",
-  "ls -la apps/api/node_modules/@repo/database/ || echo 'No database symlink'"
+  "cd apps/api && pnpm exec tsc"
 ]
 
 [start]
