@@ -16,4 +16,4 @@ cmds = [
 ]
 
 [start]
-cmd = "cd apps/api && pnpm exec prisma migrate deploy && node dist/index.js"
+cmd = "cd apps/api && pnpm exec prisma migrate deploy && node dist/apps/api/src/index.js"
