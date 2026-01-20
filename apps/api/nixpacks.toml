@@ -1,15 +1,16 @@
 [phases.setup]
 aptPkgs = ["nodejs", "git"]
+nixPkgs = ["pnpm"]
 
 [phases.install]
 cmds = [
-  "npm install --legacy-peer-deps"
+  "pnpm install --frozen-lockfile"
 ]
 
 [phases.build]
 cmds = [
-  "npm run build"
+  "cd apps/api && pnpm run build"
 ]
 
 [start]
-cmd = "npx prisma migrate deploy && node dist/index.js"
+cmd = "cd apps/api && npx prisma migrate deploy && node dist/index.js"
