@@ -30,7 +30,7 @@
   "dependencies": {
     "@hocuspocus/extension-logger": "^3.2.3",
     "@hocuspocus/server": "^3.2.3",
-    "@octokit/rest": "^22.0.1",
+    "@octokit/rest": "^20.1.1",
     "@prisma/client": "^5.11.0",
     "@repo/database": "file:../../packages/database",
     "@types/cookie-parser": "^1.4.8",
