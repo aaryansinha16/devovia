@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Editor, Monaco } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
 import { useSessionStore } from '../../../../../lib/stores/session-store';
@@ -25,14 +25,12 @@ const MONACO_LANGUAGE_MAP = {
 export default function CodeEditor({ language, readOnly = false }: CodeEditorProps) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
   
   const { content, updateContent, currentSession } = useSessionStore();
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
-    setIsEditorReady(true);
 
     // Configure editor for collaborative features
     editor.updateOptions({

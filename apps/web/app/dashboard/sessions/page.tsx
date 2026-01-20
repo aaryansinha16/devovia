@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  Button, 
-  Card,
-  Badge
+  Button
 } from '@repo/ui/components';
 import { 
   Plus, 
@@ -14,15 +12,12 @@ import {
   Calendar,
   Search,
   Filter,
-  Clock,
-  Eye,
   Globe,
   Play,
   Archive
 } from 'lucide-react';
 import { useAuth } from '../../../lib/auth-context';
 import { useSessionStore } from '../../../lib/stores/session-store';
-import { formatDate } from '../../../lib/utils/date-utils';
 
 const LANGUAGE_ICONS = {
   TYPESCRIPT: '🔷',
@@ -293,7 +288,7 @@ function SessionCardSkeleton() {
 }
 
 export default function SessionsPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { sessions, isLoading, error, fetchSessions } = useSessionStore();
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('all');
   const [searchQuery, setSearchQuery] = useState('');

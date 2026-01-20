@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Terminal, Play, X, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Terminal, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ConsoleOutput {
   id: string;

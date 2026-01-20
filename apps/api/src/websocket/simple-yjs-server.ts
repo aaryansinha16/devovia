@@ -20,8 +20,14 @@ export class SimpleYjsServer {
 
   constructor(port: number = 4001) {
     this.port = port;
-    this.jwtSecret = 'TEMP_HARDCODED_SECRET_12345';
+    this.jwtSecret = process.env.JWT_SECRET || 'TEMP_HARDCODED_SECRET_12345';
     this.prisma = new PrismaClient();
+
+    if (!process.env.JWT_SECRET) {
+      console.warn(
+        '⚠️  JWT_SECRET not found in environment variables, using fallback secret',
+      );
+    }
   }
 
   private verifyToken(token: string): DecodedToken | null {

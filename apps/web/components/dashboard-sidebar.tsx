@@ -47,21 +47,6 @@ export function DashboardSidebar() {
   const { user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (email) {
-      return email.slice(0, 2).toUpperCase();
-    }
-    return "U";
-  };
-
   return (
     <div 
       className={`bg-card border-r border-slate-700 flex flex-col h-full transition-all duration-300 ease-in-out relative ${

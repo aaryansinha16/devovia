@@ -3,15 +3,11 @@
 import { useState, useEffect } from 'react';
 import { 
   History, 
-  Clock, 
-  User, 
+  Clock,
+  User,
   RotateCcw, 
   Save,
   ChevronRight,
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
   FileText,
   GitCompare,
   X
@@ -32,14 +28,14 @@ interface Snapshot {
 interface HistoryPanelProps {
   sessionId: string;
   currentContent: string;
-  onRestore: (content: string) => void;
+  onRestore: (_content: string) => void;
   onClose: () => void;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 export default function HistoryPanel({ sessionId, currentContent, onRestore, onClose }: HistoryPanelProps) {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSnapshot, setSelectedSnapshot] = useState<Snapshot | null>(null);

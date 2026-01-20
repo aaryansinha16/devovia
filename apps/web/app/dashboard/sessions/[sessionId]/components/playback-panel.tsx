@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+/* eslint-disable no-undef */
 import { 
   Play, 
   Pause, 
@@ -8,8 +9,6 @@ import {
   SkipForward,
   FastForward,
   Rewind,
-  Clock,
-  User,
   X,
   Film
 } from 'lucide-react';
@@ -29,7 +28,7 @@ interface SessionChange {
 
 interface PlaybackPanelProps {
   sessionId: string;
-  onApplyContent: (content: string) => void;
+  onApplyContent: (_content: string) => void;
   onClose: () => void;
   initialContent?: string;
 }
@@ -103,7 +102,6 @@ export default function PlaybackPanel({
         content = applyChange(content, change);
       }
     }
-    setReconstructedContent(content);
     onApplyContent(content);
   }, [changes, initialContent, applyChange, onApplyContent]);
 

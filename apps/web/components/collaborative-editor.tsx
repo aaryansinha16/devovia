@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable no-undef */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import Editor, { Monaco, OnMount } from '@monaco-editor/react'
@@ -355,10 +356,11 @@ export function CollaborativeEditor({
     editor.onDidChangeModelContent((e) => {
       const content = editor.getValue()
       
+      // Notify parent component of content changes
       if (onContentChange) {
         onContentChange(content)
       }
-
+      
       // Record changes for playback
       e.changes.forEach(change => {
         pendingChanges.push({
@@ -414,7 +416,7 @@ export function CollaborativeEditor({
       }
       cleanup()
     }
-  }, [isEditorReady, sessionId, token, user, monacoLanguage, onSave, onContentChange, cleanup])
+  }, [isEditorReady, sessionId, token, user, monacoLanguage, onSave, cleanup])
 
   // Handle editor mount
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -422,15 +424,6 @@ export function CollaborativeEditor({
     editorRef.current = editor
     monacoRef.current = monaco
     setIsEditorReady(true)
-  }
-
-  // Handle editor unmount
-  const handleEditorWillUnmount = () => {
-    console.log('📝 Monaco editor will unmount')
-    cleanup()
-    editorRef.current = null
-    monacoRef.current = null
-    setIsEditorReady(false)
   }
 
   const handleSave = () => {

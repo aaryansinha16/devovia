@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Bot, 
   Send, 
@@ -256,7 +256,7 @@ Select some code in the editor, then ask me anything!`,
                   <div className="prose prose-invert prose-sm max-w-none">
                     <ReactMarkdown
                       components={{
-                        code: ({ node, className, children, ...props }: any) => {
+                        code: ({ className, children, ...props }: any) => {
                           const isInline = !className;
                           if (isInline) {
                             return <code className="bg-slate-700 px-1 py-0.5 rounded text-blue-300" {...props}>{children}</code>;

@@ -4,21 +4,14 @@ import { useState, useEffect } from 'react';
 import { 
   GitBranch, 
   GitCommit,
-  GitMerge,
   Plus,
-  Check,
   X,
   RefreshCw,
-  ChevronRight,
-  Clock,
-  User,
-  FileCode,
   RotateCcw,
   Trash2,
   Github,
   Upload,
   Download,
-  Link as LinkIcon,
   Unlink
 } from 'lucide-react';
 import { useAuth } from '../../../../../lib/auth-context';
@@ -43,7 +36,7 @@ interface GitStatus {
 interface GitPanelProps {
   sessionId: string;
   currentContent: string;
-  onContentChange: (content: string) => void;
+  onContentChange: (_content: string) => void;
   onClose: () => void;
 }
 
@@ -55,7 +48,7 @@ export default function GitPanel({
   onContentChange,
   onClose 
 }: GitPanelProps) {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState<'commits' | 'branches'>('commits');
   const [commits, setCommits] = useState<Commit[]>([]);
   const [branches, setBranches] = useState<string[]>([]);
@@ -67,7 +60,6 @@ export default function GitPanel({
   const [showNewBranch, setShowNewBranch] = useState(false);
   const [isCommitting, setIsCommitting] = useState(false);
   const [selectedCommit, setSelectedCommit] = useState<Commit | null>(null);
-  const [diff, setDiff] = useState<string | null>(null);
   const [githubRemote, setGithubRemote] = useState<{ connected: boolean; url?: string } | null>(null);
   const [showGithubDialog, setShowGithubDialog] = useState(false);
   const [githubRepoUrl, setGithubRepoUrl] = useState('');

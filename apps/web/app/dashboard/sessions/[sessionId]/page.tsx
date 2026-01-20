@@ -2,14 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { 
-  Button, 
-  Card,
-  Badge
-} from '@repo/ui/components';
+// Removed unused imports
 import { 
   Users, 
-  Settings, 
   Save, 
   Lock, 
   Unlock, 
@@ -18,12 +13,8 @@ import {
   MessageSquare,
   Bot,
   Play,
-  Pause,
   Sidebar,
   Crown,
-  Edit,
-  Eye,
-  ChevronDown,
   Clock,
   History,
   Film,
@@ -58,6 +49,8 @@ interface SessionWorkspaceProps {
     sessionId: string;
   }>;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 export default function SessionWorkspace({ params }: SessionWorkspaceProps) {
   const { user, token } = useAuth();

@@ -12,7 +12,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { sessionId } = req.params;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -72,7 +72,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { sessionId, snapshotId } = req.params;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -124,7 +124,7 @@ router.post(
     try {
       const { sessionId } = req.params;
       const { content, note } = req.body;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -193,7 +193,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { sessionId, snapshotId } = req.params;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -279,7 +279,7 @@ router.get(
     try {
       const { sessionId } = req.params;
       const { from, to, limit = '1000' } = req.query;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -346,7 +346,7 @@ router.post(
       const { sessionId } = req.params;
       const { changeType, position, length, content, userName, userColor } =
         req.body;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -384,7 +384,7 @@ router.post(
     try {
       const { sessionId } = req.params;
       const { changes, userName, userColor } = req.body;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -429,7 +429,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { sessionId, snapshotId1, snapshotId2 } = req.params;
-      const userId = (req.user as any)?.userId;
+      const userId = req.user?.sub;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });

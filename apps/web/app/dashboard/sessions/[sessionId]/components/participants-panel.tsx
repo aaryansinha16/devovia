@@ -4,12 +4,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { 
   Button, 
-  Input, 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Dialog,
   DialogContent,
   DialogHeader,
@@ -28,12 +22,10 @@ import {
   Mail,
   Circle,
   Lock,
-  Zap,
   Users
 } from 'lucide-react';
 import { useAuth } from '../../../../../lib/auth-context';
 import { useSessionStore } from '../../../../../lib/stores/session-store';
-import { formatDate } from '../../../../../lib/utils/date-utils';
 
 function InviteUserDialog() {
   const [open, setOpen] = useState(false);
@@ -155,7 +147,7 @@ function InviteUserDialog() {
   );
 }
 
-function ParticipantItem({ participant, isOwner, canManage }: { 
+function ParticipantItem({ participant, canManage }: { 
   participant: any; 
   isOwner: boolean;
   canManage: boolean;
