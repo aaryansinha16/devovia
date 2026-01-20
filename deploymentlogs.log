@@ -1,0 +1,254 @@
+2026-01-20T15:07:07.000000000Z [inf]  Starting Container
+2026-01-20T15:07:10.590323270Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:10.590330424Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:10.590338009Z [inf]  
+2026-01-20T15:07:10.590343468Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:10.590349243Z [inf]  
+2026-01-20T15:07:10.590354864Z [inf]  
+2026-01-20T15:07:10.590359882Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:10.590365676Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:10.590373145Z [err]    throw err;
+2026-01-20T15:07:10.590383721Z [err]    ^
+2026-01-20T15:07:10.590388887Z [err]  
+2026-01-20T15:07:10.590395491Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:10.590400066Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:10.590405634Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:10.590412595Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:10.590419342Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:10.590427399Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:10.590433323Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:10.590439078Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:10.590445010Z [err]    requireStack: []
+2026-01-20T15:07:10.590455490Z [err]  }
+2026-01-20T15:07:10.590461791Z [err]  
+2026-01-20T15:07:10.590469096Z [err]  Node.js v22.11.0
+2026-01-20T15:07:13.526125510Z [inf]  
+2026-01-20T15:07:13.526144308Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:13.526154228Z [inf]  
+2026-01-20T15:07:13.526163789Z [inf]  
+2026-01-20T15:07:13.526262957Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:13.526402002Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:13.526410343Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:13.564044140Z [err]    requireStack: []
+2026-01-20T15:07:13.564072656Z [err]  }
+2026-01-20T15:07:13.564083862Z [err]  
+2026-01-20T15:07:13.564092968Z [err]  Node.js v22.11.0
+2026-01-20T15:07:13.564152225Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:13.564159610Z [err]    throw err;
+2026-01-20T15:07:13.564166089Z [err]    ^
+2026-01-20T15:07:13.564173088Z [err]  
+2026-01-20T15:07:13.564180962Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:13.564188713Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:13.564194891Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:13.564202330Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:13.564209615Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:13.564215157Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:13.564221923Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:13.564227559Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:16.851775942Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:16.864604312Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:17.576825902Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:17.576839595Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:17.576848837Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:17.576856499Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:17.576876868Z [inf]  
+2026-01-20T15:07:17.576888488Z [inf]  
+2026-01-20T15:07:17.576890336Z [inf]  
+2026-01-20T15:07:17.576903350Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:17.576907389Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:17.576917424Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:17.576925915Z [err]    throw err;
+2026-01-20T15:07:17.576933447Z [err]    ^
+2026-01-20T15:07:17.576942179Z [err]  
+2026-01-20T15:07:17.576955168Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:17.581006986Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:17.581019348Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:17.581025672Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:17.581033354Z [err]    requireStack: []
+2026-01-20T15:07:17.581062256Z [err]  }
+2026-01-20T15:07:17.581069125Z [err]  
+2026-01-20T15:07:17.581075467Z [err]  Node.js v22.11.0
+2026-01-20T15:07:20.612965169Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:20.617519133Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:21.504517931Z [err]    ^
+2026-01-20T15:07:21.504532175Z [err]  
+2026-01-20T15:07:21.504543613Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:21.504552000Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:21.504559721Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:21.504567398Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:21.504574702Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:21.504582196Z [inf]  
+2026-01-20T15:07:21.504584592Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:21.504592088Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:21.504593048Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:21.504599832Z [inf]  
+2026-01-20T15:07:21.504603646Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:21.504607893Z [inf]  
+2026-01-20T15:07:21.504612053Z [err]    requireStack: []
+2026-01-20T15:07:21.504615957Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:21.504620490Z [err]  }
+2026-01-20T15:07:21.504624452Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:21.504628536Z [err]  
+2026-01-20T15:07:21.504633381Z [err]    throw err;
+2026-01-20T15:07:21.504637231Z [err]  Node.js v22.11.0
+2026-01-20T15:07:24.580963515Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:24.580971612Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:24.580979481Z [inf]  
+2026-01-20T15:07:24.580986943Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:24.580994380Z [inf]  
+2026-01-20T15:07:24.581002034Z [inf]  
+2026-01-20T15:07:24.581012065Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:24.581020059Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:24.581031248Z [err]    throw err;
+2026-01-20T15:07:24.581040511Z [err]    ^
+2026-01-20T15:07:24.581125472Z [err]  
+2026-01-20T15:07:24.584750385Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:24.584763173Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:24.584770907Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:24.584777946Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:24.584783990Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:24.584790597Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:24.584796427Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:24.584802601Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:24.584808750Z [err]    requireStack: []
+2026-01-20T15:07:24.584815988Z [err]  }
+2026-01-20T15:07:24.584822409Z [err]  
+2026-01-20T15:07:24.584828256Z [err]  Node.js v22.11.0
+2026-01-20T15:07:27.626285337Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:27.626293129Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:27.626300229Z [inf]  
+2026-01-20T15:07:27.626307245Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:27.626314896Z [inf]  
+2026-01-20T15:07:27.682115831Z [inf]  
+2026-01-20T15:07:27.682124901Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:27.834746486Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:27.834756759Z [err]    throw err;
+2026-01-20T15:07:27.834763538Z [err]    ^
+2026-01-20T15:07:27.834769958Z [err]  
+2026-01-20T15:07:27.834775270Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:27.834782027Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:27.834787325Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:27.834791945Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:27.834796544Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:27.834800943Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:27.834805744Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:27.834813343Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:27.834818139Z [err]    requireStack: []
+2026-01-20T15:07:27.834825706Z [err]  }
+2026-01-20T15:07:27.834830402Z [err]  
+2026-01-20T15:07:27.834835588Z [err]  Node.js v22.11.0
+2026-01-20T15:07:30.847310270Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:30.852736748Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:31.687266551Z [inf]  
+2026-01-20T15:07:31.687271938Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:31.687277714Z [inf]  
+2026-01-20T15:07:31.687283014Z [inf]  
+2026-01-20T15:07:31.687288864Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:31.687295175Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:31.687301730Z [err]    throw err;
+2026-01-20T15:07:31.687307509Z [err]    ^
+2026-01-20T15:07:31.687314656Z [err]  
+2026-01-20T15:07:31.687320261Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:31.687325893Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:31.687331889Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:31.687339884Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:31.687346829Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:31.687352333Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:31.687358955Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:31.687367765Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:31.687374044Z [err]    requireStack: []
+2026-01-20T15:07:31.687380227Z [err]  }
+2026-01-20T15:07:31.687387134Z [err]  
+2026-01-20T15:07:31.687393462Z [err]  Node.js v22.11.0
+2026-01-20T15:07:35.604579704Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:35.604585742Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:35.852020653Z [inf]  
+2026-01-20T15:07:35.852027818Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:35.852034670Z [inf]  
+2026-01-20T15:07:35.930969165Z [inf]  
+2026-01-20T15:07:35.930975115Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:36.669639291Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:36.669652549Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:36.669718765Z [err]    throw err;
+2026-01-20T15:07:36.669728195Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:36.669728512Z [err]    ^
+2026-01-20T15:07:36.669740764Z [err]  
+2026-01-20T15:07:36.674014046Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:36.674027432Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:36.674034822Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:36.674047364Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:36.674057464Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:36.674065084Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:36.674071974Z [err]    requireStack: []
+2026-01-20T15:07:36.674078331Z [err]  }
+2026-01-20T15:07:36.674086074Z [err]  
+2026-01-20T15:07:36.674093148Z [err]  Node.js v22.11.0
+2026-01-20T15:07:39.614141616Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:39.614151043Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:39.614158282Z [err]    requireStack: []
+2026-01-20T15:07:39.614343207Z [err]  
+2026-01-20T15:07:39.614353271Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:39.614363370Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:39.614368395Z [err]  }
+2026-01-20T15:07:39.614370878Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:39.614379994Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:39.614380048Z [err]  
+2026-01-20T15:07:39.614390148Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:39.614390334Z [err]  Node.js v22.11.0
+2026-01-20T15:07:39.614397904Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:39.614411948Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:39.614420193Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:39.614428099Z [inf]  
+2026-01-20T15:07:39.614436380Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:39.614444605Z [inf]  
+2026-01-20T15:07:39.614452545Z [inf]  
+2026-01-20T15:07:39.614460582Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:39.614466836Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:39.614473376Z [err]    throw err;
+2026-01-20T15:07:39.614481271Z [err]    ^
+2026-01-20T15:07:42.442280629Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:42.442383963Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:42.592249837Z [inf]  
+2026-01-20T15:07:42.592260112Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:42.592268294Z [inf]  
+2026-01-20T15:07:42.652720338Z [inf]  
+2026-01-20T15:07:42.652728387Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:42.807071433Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:42.807076173Z [err]    throw err;
+2026-01-20T15:07:42.807080579Z [err]    ^
+2026-01-20T15:07:42.807085362Z [err]  
+2026-01-20T15:07:42.807089663Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:42.807093398Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:42.807097739Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:42.807101838Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:42.807107723Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:42.807112585Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:42.807117019Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:42.807121296Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:42.807125641Z [err]    requireStack: []
+2026-01-20T15:07:42.807129830Z [err]  }
+2026-01-20T15:07:42.807134106Z [err]  
+2026-01-20T15:07:42.807139268Z [err]  Node.js v22.11.0
+2026-01-20T15:07:46.629827446Z [err]  
+2026-01-20T15:07:46.629831075Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:07:46.629840048Z [err]  Node.js v22.11.0
+2026-01-20T15:07:46.629858034Z [inf]  
+2026-01-20T15:07:46.629867375Z [inf]  
+2026-01-20T15:07:46.629869009Z [err]  Error: Cannot find module '/app/apps/api/dist/index.js'
+2026-01-20T15:07:46.629878994Z [inf]  No pending migrations to apply.
+2026-01-20T15:07:46.629881537Z [err]      at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+2026-01-20T15:07:46.629888712Z [err]  node:internal/modules/cjs/loader:1252
+2026-01-20T15:07:46.629890677Z [err]      at Function._load (node:internal/modules/cjs/loader:1075:27)
+2026-01-20T15:07:46.629899225Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:07:46.629900703Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+2026-01-20T15:07:46.629908114Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)
+2026-01-20T15:07:46.629910369Z [err]      at node:internal/main/run_main_module:36:49 {
+2026-01-20T15:07:46.629918412Z [err]    throw err;
+2026-01-20T15:07:46.629921877Z [err]    code: 'MODULE_NOT_FOUND',
+2026-01-20T15:07:46.629930554Z [err]    requireStack: []
+2026-01-20T15:07:46.629936689Z [err]    ^
+2026-01-20T15:07:46.629939287Z [err]  }
+2026-01-20T15:07:46.629946315Z [err]  
+2026-01-20T15:07:46.629990336Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:07:46.629998879Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:07:46.630005575Z [inf]  

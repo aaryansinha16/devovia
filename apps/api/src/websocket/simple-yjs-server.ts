@@ -3,6 +3,7 @@ import { WebSocketServer } from 'ws';
 import { setupWSConnection } from 'y-websocket/bin/utils';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@repo/database';
+import type { Server } from 'http';
 
 interface DecodedToken {
   userId: string;
@@ -142,10 +143,17 @@ export class SimpleYjsServer {
     }
   }
 
-  async start() {
+  async start(httpServer?: Server) {
     console.log(`🚀 Starting Yjs WebSocket server on port ${this.port}...`);
 
-    this.wss = new WebSocketServer({ port: this.port });
+    // If an HTTP server is provided, attach to it; otherwise create standalone server
+    if (httpServer) {
+      this.wss = new WebSocketServer({ server: httpServer });
+      console.log('✅ WebSocket server attached to HTTP server');
+    } else {
+      this.wss = new WebSocketServer({ port: this.port });
+      console.log(`✅ WebSocket server listening on port ${this.port}`);
+    }
 
     this.wss.on('connection', async (ws, request) => {
       console.log('New WebSocket connection established');

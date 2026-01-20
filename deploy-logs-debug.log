@@ -1,0 +1,220 @@
+2026-01-20T15:51:51.000000000Z [inf]  Starting Container
+2026-01-20T15:51:55.283312518Z [inf]  
+2026-01-20T15:51:55.283331647Z [inf]  No pending migrations to apply.
+2026-01-20T15:51:55.283349141Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:51:55.283357684Z [err]  undefined
+2026-01-20T15:51:55.283365816Z [err]               ^
+2026-01-20T15:51:55.283374686Z [err]  
+2026-01-20T15:51:55.283384268Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:51:55.283395189Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:51:55.283403296Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:51:55.283410966Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:51:55.283418645Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:51:55.283429691Z [err]  }
+2026-01-20T15:51:55.283436440Z [err]  Node.js v22.11.0
+2026-01-20T15:51:55.283443398Z [err]  
+2026-01-20T15:51:55.284222744Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:51:55.284231378Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:51:55.284238542Z [inf]  
+2026-01-20T15:51:55.284245188Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:51:55.284257123Z [inf]  
+2026-01-20T15:51:59.389077010Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:51:59.389079666Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:51:59.389086457Z [err]  undefined
+2026-01-20T15:51:59.389088606Z [err]  }
+2026-01-20T15:51:59.389095235Z [inf]  
+2026-01-20T15:51:59.389097261Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:51:59.389098465Z [err]  
+2026-01-20T15:51:59.389101238Z [err]               ^
+2026-01-20T15:51:59.389110295Z [inf]  
+2026-01-20T15:51:59.389115647Z [inf]  No pending migrations to apply.
+2026-01-20T15:51:59.389125793Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:51:59.389136501Z [err]  Node.js v22.11.0
+2026-01-20T15:51:59.389144982Z [err]  
+2026-01-20T15:51:59.389146355Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:51:59.389154852Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:51:59.389157174Z [inf]  
+2026-01-20T15:51:59.389174109Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:51:59.389184486Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:51:59.389192356Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:03.274048381Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:03.274055268Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:03.274064669Z [inf]  
+2026-01-20T15:52:03.274069835Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:03.274075574Z [inf]  
+2026-01-20T15:52:03.274081846Z [inf]  
+2026-01-20T15:52:03.274092527Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:03.274098938Z [err]  ┌─────────────────────────────────────────────────────────┐
+2026-01-20T15:52:03.274104942Z [err]  │  Update available 5.11.0 -> 7.2.0                       │
+2026-01-20T15:52:03.274111630Z [err]  │                                                         │
+2026-01-20T15:52:03.274117945Z [err]  │  This is a major update - please follow the guide at    │
+2026-01-20T15:52:03.274124730Z [err]  │  https://pris.ly/d/major-version-upgrade                │
+2026-01-20T15:52:03.274130454Z [err]  │                                                         │
+2026-01-20T15:52:03.274135983Z [err]  │  Run the following to update                            │
+2026-01-20T15:52:03.274141756Z [err]  │    npm i --save-dev prisma@latest                       │
+2026-01-20T15:52:03.274147678Z [err]  │    npm i @prisma/client@latest                          │
+2026-01-20T15:52:03.274153158Z [err]  └─────────────────────────────────────────────────────────┘
+2026-01-20T15:52:04.444078076Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:04.444083102Z [err]  undefined
+2026-01-20T15:52:04.444088776Z [err]               ^
+2026-01-20T15:52:04.444094629Z [err]  
+2026-01-20T15:52:04.444099721Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:04.444105498Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:04.444112925Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:04.444119352Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:04.444125733Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:04.444131538Z [err]  }
+2026-01-20T15:52:04.444137516Z [err]  
+2026-01-20T15:52:04.444143672Z [err]  Node.js v22.11.0
+2026-01-20T15:52:07.236317027Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:07.236329545Z [inf]  
+2026-01-20T15:52:07.236537363Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:07.236544475Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:07.236552389Z [inf]  
+2026-01-20T15:52:07.245982146Z [inf]  
+2026-01-20T15:52:07.245999467Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:08.380112182Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:08.380117678Z [err]  undefined
+2026-01-20T15:52:08.380122360Z [err]               ^
+2026-01-20T15:52:08.380127660Z [err]  
+2026-01-20T15:52:08.380134313Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:08.380141399Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:08.380146453Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:08.380152010Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:08.380157552Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:08.380162580Z [err]  }
+2026-01-20T15:52:08.380168438Z [err]  
+2026-01-20T15:52:08.380174836Z [err]  Node.js v22.11.0
+2026-01-20T15:52:11.224438869Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:11.224459579Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:11.224471164Z [inf]  
+2026-01-20T15:52:11.224519380Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:11.224536794Z [inf]  
+2026-01-20T15:52:11.224548964Z [inf]  
+2026-01-20T15:52:11.224559986Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:12.311761617Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:12.311767581Z [err]  undefined
+2026-01-20T15:52:12.311773945Z [err]               ^
+2026-01-20T15:52:12.311780195Z [err]  
+2026-01-20T15:52:12.311786724Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:12.311793843Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:12.311803881Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:12.311810511Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:12.311816201Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:12.311825844Z [err]  }
+2026-01-20T15:52:12.311831111Z [err]  
+2026-01-20T15:52:12.311838355Z [err]  Node.js v22.11.0
+2026-01-20T15:52:15.385654194Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:15.385662827Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:15.385734054Z [inf]  
+2026-01-20T15:52:15.385751835Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:15.385760557Z [inf]  
+2026-01-20T15:52:15.385772533Z [inf]  
+2026-01-20T15:52:15.385780116Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:16.575420713Z [err]  Node.js v22.11.0
+2026-01-20T15:52:16.575463009Z [err]  undefined
+2026-01-20T15:52:16.575480163Z [err]               ^
+2026-01-20T15:52:16.575508042Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:16.575520190Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:16.575540866Z [err]  }
+2026-01-20T15:52:16.575546578Z [err]  
+2026-01-20T15:52:16.575553210Z [err]  
+2026-01-20T15:52:16.575562807Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:16.575570468Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:16.575622433Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:16.575635883Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:20.113979129Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:20.113984705Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:20.113990370Z [inf]  
+2026-01-20T15:52:20.113997212Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:20.114002629Z [inf]  
+2026-01-20T15:52:20.114008797Z [inf]  
+2026-01-20T15:52:20.114014670Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:21.051006139Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:21.051010241Z [err]  undefined
+2026-01-20T15:52:21.051016847Z [err]               ^
+2026-01-20T15:52:21.051021940Z [err]  
+2026-01-20T15:52:21.051027201Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:21.051031835Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:21.051036332Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:21.051041590Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:21.051047783Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:21.051055294Z [err]  }
+2026-01-20T15:52:21.051061556Z [err]  
+2026-01-20T15:52:21.051069951Z [err]  Node.js v22.11.0
+2026-01-20T15:52:23.104196787Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:23.116166271Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:23.866897360Z [inf]  
+2026-01-20T15:52:23.866903772Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:23.866914964Z [inf]  
+2026-01-20T15:52:23.866921505Z [inf]  
+2026-01-20T15:52:23.866928736Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:24.065542465Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:24.065554953Z [err]  undefined
+2026-01-20T15:52:24.065561624Z [err]               ^
+2026-01-20T15:52:24.065570720Z [err]  
+2026-01-20T15:52:24.065579084Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:24.065584284Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:24.065589548Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:24.065595790Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:24.065602505Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:24.065609137Z [err]  }
+2026-01-20T15:52:24.065615956Z [err]  
+2026-01-20T15:52:24.065623925Z [err]  Node.js v22.11.0
+2026-01-20T15:52:27.027801481Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:27.027809680Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:27.982385288Z [inf]  
+2026-01-20T15:52:27.982392122Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:27.982398041Z [inf]  
+2026-01-20T15:52:27.982405400Z [inf]  
+2026-01-20T15:52:27.982411630Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:27.982417738Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:27.982425109Z [err]  undefined
+2026-01-20T15:52:27.982431581Z [err]               ^
+2026-01-20T15:52:27.982439447Z [err]  
+2026-01-20T15:52:27.982445889Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:27.982453625Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:27.982460888Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:27.982469675Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:27.982476380Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:27.982482936Z [err]  }
+2026-01-20T15:52:27.982490841Z [err]  
+2026-01-20T15:52:27.982497843Z [err]  Node.js v22.11.0
+2026-01-20T15:52:32.028296678Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:32.028346809Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:32.028353387Z [inf]  
+2026-01-20T15:52:32.028357157Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:32.028361806Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:32.028368376Z [inf]  
+2026-01-20T15:52:32.028374666Z [inf]  
+2026-01-20T15:52:32.851817022Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:32.851823759Z [err]  undefined
+2026-01-20T15:52:32.851831105Z [err]               ^
+2026-01-20T15:52:32.851838072Z [err]  
+2026-01-20T15:52:32.851846052Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:32.851855911Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:32.851862106Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:32.851869044Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:32.851875812Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:32.851882599Z [err]  }
+2026-01-20T15:52:32.851891699Z [err]  
+2026-01-20T15:52:32.851898119Z [err]  Node.js v22.11.0
+2026-01-20T15:52:35.914407778Z [inf]  Prisma schema loaded from prisma/schema.prisma
+2026-01-20T15:52:35.948136435Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-01-20T15:52:36.841192671Z [inf]  
+2026-01-20T15:52:36.841198858Z [inf]  6 migrations found in prisma/migrations
+2026-01-20T15:52:36.841204178Z [inf]  
+2026-01-20T15:52:36.841210062Z [inf]  
+2026-01-20T15:52:36.841215648Z [inf]  No pending migrations to apply.
+2026-01-20T15:52:37.781514892Z [err]      at Object.<anonymous> (/app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:42:16) {
+2026-01-20T15:52:37.781526196Z [err]    code: 'ERR_REQUIRE_ESM'
+2026-01-20T15:52:37.781532337Z [err]  }
+2026-01-20T15:52:37.781538681Z [err]  
+2026-01-20T15:52:37.781544344Z [err]  Node.js v22.11.0
+2026-01-20T15:52:37.781578114Z [err]               ^
+2026-01-20T15:52:37.781610216Z [err]  
+2026-01-20T15:52:37.781625858Z [err]  Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/.pnpm/@octokit+rest@22.0.1/node_modules/@octokit/rest/dist-src/index.js from /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js not supported.
+2026-01-20T15:52:37.781635036Z [err]  Instead change the require of index.js in /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js to a dynamic import() which is available in all CommonJS modules.
+2026-01-20T15:52:37.781642497Z [err]      at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+2026-01-20T15:52:37.781655466Z [err]  /app/apps/api/dist/apps/api/src/routes/github-integration.routes.js:315
+2026-01-20T15:52:37.781663023Z [err]  undefined

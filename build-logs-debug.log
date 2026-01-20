@@ -1,0 +1,169 @@
+2026-01-20T15:48:44.115657225Z [inf]  
+2026-01-20T15:48:47.331381008Z [inf]  [35m[Region: asia-southeast1][0m
+2026-01-20T15:48:47.364847589Z [inf]  [35m==============
+2026-01-20T15:48:47.364982241Z [inf]  Using Nixpacks
+2026-01-20T15:48:47.364989368Z [inf]  ==============
+2026-01-20T15:48:47.364996212Z [inf]  [0m
+2026-01-20T15:48:47.365104951Z [inf]  context: 5cgf-jxzM
+2026-01-20T15:48:47.491714741Z [inf]  ╔══════════════════════════════ Nixpacks v1.38.0 ══════════════════════════════╗
+2026-01-20T15:48:47.491747612Z [inf]  ║ setup      │ pnpm, nodejs_22, git                                            ║
+2026-01-20T15:48:47.491754245Z [inf]  ║──────────────────────────────────────────────────────────────────────────────║
+2026-01-20T15:48:47.491759413Z [inf]  ║ install    │ pnpm install --frozen-lockfile                                  ║
+2026-01-20T15:48:47.491767265Z [inf]  ║──────────────────────────────────────────────────────────────────────────────║
+2026-01-20T15:48:47.491772142Z [inf]  ║ build      │ cd packages/database && pnpm exec prisma generate               ║
+2026-01-20T15:48:47.491776904Z [inf]  ║            │ cd packages/database && pnpm exec tsc                           ║
+2026-01-20T15:48:47.491781429Z [inf]  ║            │ cp -r packages/database/dist                                    ║
+2026-01-20T15:48:47.491786515Z [inf]  ║            │ node_modules/.pnpm/file+packages+database_prisma@5.11.0/node_mo ║
+2026-01-20T15:48:47.491790845Z [inf]  ║            │ dules/@repo/database/                                           ║
+2026-01-20T15:48:47.491795197Z [inf]  ║            │ cd apps/api && pnpm exec prisma generate                        ║
+2026-01-20T15:48:47.491799661Z [inf]  ║            │ cd apps/api && pnpm exec tsc                                    ║
+2026-01-20T15:48:47.491804558Z [inf]  ║──────────────────────────────────────────────────────────────────────────────║
+2026-01-20T15:48:47.491808782Z [inf]  ║ start      │ cd apps/api && pnpm exec prisma migrate deploy && node          ║
+2026-01-20T15:48:47.491813210Z [inf]  ║            │ dist/apps/api/src/index.js                                      ║
+2026-01-20T15:48:47.491817635Z [inf]  ╚══════════════════════════════════════════════════════════════════════════════╝
+2026-01-20T15:48:47.746671265Z [inf]  [internal] load build definition from Dockerfile
+2026-01-20T15:48:47.746717406Z [inf]  [internal] load build definition from Dockerfile
+2026-01-20T15:48:47.746736415Z [inf]  [internal] load build definition from Dockerfile
+2026-01-20T15:48:47.757654501Z [inf]  [internal] load build definition from Dockerfile
+2026-01-20T15:48:47.760550672Z [inf]  [internal] load metadata for ghcr.io/railwayapp/nixpacks:ubuntu-1745885067
+2026-01-20T15:48:48.063585618Z [inf]  [internal] load metadata for ghcr.io/railwayapp/nixpacks:ubuntu-1745885067
+2026-01-20T15:48:48.063932694Z [inf]  [internal] load .dockerignore
+2026-01-20T15:48:48.063996494Z [inf]  [internal] load .dockerignore
+2026-01-20T15:48:48.064018104Z [inf]  [internal] load .dockerignore
+2026-01-20T15:48:48.099657446Z [inf]  [internal] load .dockerignore
+2026-01-20T15:48:48.107050205Z [inf]  [internal] load build context
+2026-01-20T15:48:48.108196019Z [inf]  [internal] load build context
+2026-01-20T15:48:48.452221128Z [inf]  [internal] load build context
+2026-01-20T15:48:48.457059518Z [inf]  [stage-0 2/8] WORKDIR /app/
+2026-01-20T15:48:48.457112660Z [inf]  [stage-0  3/15] COPY .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix
+2026-01-20T15:48:48.457126578Z [inf]  [stage-0  4/15] RUN nix-env -if .nixpacks/nixpkgs-ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7.nix && nix-collect-garbage -d
+2026-01-20T15:48:48.457133667Z [inf]  [stage-0  5/15] RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends git
+2026-01-20T15:48:48.457146850Z [inf]  [stage-0  6/15] COPY . /app/.
+2026-01-20T15:48:48.595510271Z [inf]  [stage-0  6/15] COPY . /app/.
+2026-01-20T15:48:48.597128701Z [inf]  [stage-0  7/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-/root/local/share/pnpm/store/v3,target=/root/.local/share/pnpm/store/v3 pnpm install --frozen-lockfile
+2026-01-20T15:48:50.069534848Z [inf]  Scope: all 9 workspace projects
+
+2026-01-20T15:48:50.15053876Z [inf]  Lockfile is up to date, resolution step is skipped
+
+2026-01-20T15:48:50.224948754Z [inf]  Progress: resolved 1, reused 0, downloaded 0, added 0
+
+2026-01-20T15:48:50.658288876Z [inf]  Packages: +1316
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+2026-01-20T15:48:51.24853062Z [inf]  Progress: resolved 1316, reused 1299, downloaded 0, added 0
+
+2026-01-20T15:48:52.249585751Z [inf]  Progress: resolved 1316, reused 1307, downloaded 0, added 1309
+
+2026-01-20T15:48:53.250046945Z [inf]  Progress: resolved 1316, reused 1307, downloaded 0, added 1314
+
+2026-01-20T15:48:54.250806098Z [inf]  Progress: resolved 1316, reused 1307, downloaded 0, added 1315
+
+2026-01-20T15:48:54.26139235Z [inf]  Progress: resolved 1316, reused 1307, downloaded 0, added 1316, done
+
+2026-01-20T15:48:55.112040621Z [inf]  
+dependencies:
++ @prisma/client 5.22.0
++ axios 1.10.0
++ next 15.3.8
+
+devDependencies:
++ husky 9.1.7
++ lint-staged 15.5.1
++ prettier 3.5.3
++ prettier-plugin-tailwindcss 0.6.11
++ turbo 2.5.0
+
+
+2026-01-20T15:48:55.122400711Z [inf]  . prepare$ husky
+
+2026-01-20T15:48:55.184673289Z [inf]  . prepare: .git can't be found
+
+2026-01-20T15:48:55.185339799Z [inf]  . prepare: Done
+
+2026-01-20T15:48:55.224752281Z [inf]  apps/api postinstall$ echo 'Skipping prisma generate in postinstall'
+
+2026-01-20T15:48:55.239893504Z [inf]  apps/api postinstall: Skipping prisma generate in postinstall
+
+2026-01-20T15:48:55.24086373Z [inf]  apps/api postinstall: Done
+
+2026-01-20T15:48:55.257471368Z [inf]  Done in 5.5s
+
+2026-01-20T15:48:55.884774868Z [inf]  [stage-0  7/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-/root/local/share/pnpm/store/v3,target=/root/.local/share/pnpm/store/v3 pnpm install --frozen-lockfile
+2026-01-20T15:48:55.886397020Z [inf]  [stage-0  8/15] COPY . /app/.
+2026-01-20T15:48:56.572228022Z [inf]  [stage-0  8/15] COPY . /app/.
+2026-01-20T15:48:56.573630936Z [inf]  [stage-0  9/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd packages/database && pnpm exec prisma generate
+2026-01-20T15:48:57.671363713Z [inf]  Prisma schema loaded from prisma/schema.prisma
+
+2026-01-20T15:48:58.42508376Z [inf]  
+✔ Generated Prisma Client (v5.22.0) to ./../../node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client in 138ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+
+
+2026-01-20T15:48:58.669096597Z [inf]  [stage-0  9/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd packages/database && pnpm exec prisma generate
+2026-01-20T15:48:58.670038021Z [inf]  [stage-0 10/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd packages/database && pnpm exec tsc
+2026-01-20T15:49:00.818609377Z [inf]  [stage-0 10/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd packages/database && pnpm exec tsc
+2026-01-20T15:49:00.820443080Z [inf]  [stage-0 11/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cp -r packages/database/dist node_modules/.pnpm/file+packages+database_prisma@5.11.0/node_modules/@repo/database/
+2026-01-20T15:49:00.956360454Z [inf]  [stage-0 11/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cp -r packages/database/dist node_modules/.pnpm/file+packages+database_prisma@5.11.0/node_modules/@repo/database/
+2026-01-20T15:49:00.958067037Z [inf]  [stage-0 12/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd apps/api && pnpm exec prisma generate
+2026-01-20T15:49:02.111605994Z [inf]  Prisma schema loaded from prisma/schema.prisma
+
+2026-01-20T15:49:02.849119833Z [inf]  
+✔ Generated Prisma Client (v5.11.0) to ./../../node_modules/.pnpm/@prisma+client@5.11.0_prisma@5.11.0/node_modules/@prisma/client in 134ms
+
+Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+```
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
+```
+or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+```
+import { PrismaClient } from '@prisma/client/edge'
+const prisma = new PrismaClient()
+```
+
+See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+┌─────────────────────────────────────────────────────────────┐
+│  Deploying your app to serverless or edge functions?        │
+│  Try Prisma Accelerate for connection pooling and caching.  │
+│  https://pris.ly/cli/accelerate                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+2026-01-20T15:49:03.100192660Z [inf]  [stage-0 12/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd apps/api && pnpm exec prisma generate
+2026-01-20T15:49:03.101848581Z [inf]  [stage-0 13/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd apps/api && pnpm exec tsc
+2026-01-20T15:49:07.379600742Z [inf]  [stage-0 13/15] RUN --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-next/cache,target=/app/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/docs/next/cache,target=/app/apps/docs/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-apps/web/next/cache,target=/app/apps/web/.next/cache --mount=type=cache,id=s/78b2b18b-bb84-41e0-be9f-7ba52648069e-node_modules/cache,target=/app/node_modules/.cache cd apps/api && pnpm exec tsc
+2026-01-20T15:49:07.380994875Z [inf]  [stage-0 14/15] RUN printf '\nPATH=/app/node_modules/.bin:$PATH' >> /root/.profile
+2026-01-20T15:49:07.485427904Z [inf]  [stage-0 14/15] RUN printf '\nPATH=/app/node_modules/.bin:$PATH' >> /root/.profile
+2026-01-20T15:49:07.486438246Z [inf]  [stage-0 15/15] COPY . /app
+2026-01-20T15:49:07.578654471Z [inf]  [stage-0 15/15] COPY . /app
+2026-01-20T15:49:07.581506405Z [inf]  exporting to docker image format
+2026-01-20T15:49:07.581549657Z [inf]  exporting to image
+2026-01-20T15:50:10.010074320Z [inf]  importing to docker
+2026-01-20T15:50:21.871337690Z [inf]  [auth] sharing credentials for production-asia-southeast1-eqsg3a.railway-registry.com
+2026-01-20T15:50:21.871450143Z [inf]  [auth] sharing credentials for production-asia-southeast1-eqsg3a.railway-registry.com
+2026-01-20T15:51:03.081229976Z [inf]  importing to docker
+2026-01-20T15:51:11.419291563Z [inf]  === Successfully Built! ===
+2026-01-20T15:51:11.419350045Z [inf]  Run:
+2026-01-20T15:51:11.419356868Z [inf]  docker run -it production-asia-southeast1-eqsg3a.railway-registry.com/78b2b18b-bb84-41e0-be9f-7ba52648069e:8efb9861-1685-4540-b446-8e402bf83428
+2026-01-20T15:51:11.592160390Z [inf]  [92mBuild time: 144.23 seconds[0m
+2026-01-20T15:51:52.780049660Z [inf]  
+2026-01-20T15:51:52.780127399Z [inf]  [35m====================
+Starting Healthcheck
+====================
+[0m
+2026-01-20T15:51:52.780130296Z [inf]  [37mPath: /api/hc[0m
+2026-01-20T15:51:52.780131505Z [inf]  [37mRetry window: 1m40s[0m
+2026-01-20T15:51:52.780132545Z [inf]  
+2026-01-20T15:52:03.041807788Z [inf]  [93mAttempt #1 failed with service unavailable. Continuing to retry for 1m29s[0m
+2026-01-20T15:52:14.219710645Z [inf]  [93mAttempt #2 failed with service unavailable. Continuing to retry for 1m18s[0m
+2026-01-20T15:52:26.395497277Z [inf]  [93mAttempt #3 failed with service unavailable. Continuing to retry for 1m6s[0m
+2026-01-20T15:52:40.584435397Z [inf]  [93mAttempt #4 failed with service unavailable. Continuing to retry for 52s[0m
+2026-01-20T15:52:48.771806592Z [inf]  [93mAttempt #5 failed with service unavailable. Continuing to retry for 44s[0m
+2026-01-20T15:53:04.951588609Z [inf]  [93mAttempt #6 failed with service unavailable. Continuing to retry for 27s[0m
+2026-01-20T15:53:05.012085536Z [inf]  
+2026-01-20T15:53:05.012179573Z [inf]  [91m1/1 replicas never became healthy![0m
+2026-01-20T15:53:05.012182551Z [inf]  [91mHealthcheck failed![0m

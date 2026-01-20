@@ -4,6 +4,7 @@
 import dotenv from 'dotenv';
 import { apiApp, connectToDatabase, disconnectFromDatabase } from './server';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import SimpleYjsServer from './websocket/simple-yjs-server';
 
 // Load environment variables
 dotenv.config();
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 4000;
 
 // Initialize database connection status
 let isConnected = false;
+let yjsServer: SimpleYjsServer | null = null;
 
 // Handler for Vercel serverless function
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -43,6 +45,12 @@ if (require.main === module) {
       try {
         // Connect to the database - don't crash the app if this fails
         isConnected = await connectToDatabase();
+        
+        // Start WebSocket server on the same port as HTTP server
+        console.log('🚀 Starting WebSocket collaboration server...');
+        yjsServer = new SimpleYjsServer(Number(PORT));
+        await yjsServer.start(server);
+        console.log(`✅ WebSocket server running on port ${PORT}`);
       } catch (err) {
         console.error('Error during database connection:', err);
         // Continue running even if DB connection fails
@@ -51,6 +59,9 @@ if (require.main === module) {
 
     // Handle graceful shutdown
     process.on('SIGINT', async () => {
+      if (yjsServer) {
+        await yjsServer.stop();
+      }
       if (isConnected) {
         await disconnectFromDatabase();
       }
