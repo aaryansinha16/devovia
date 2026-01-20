@@ -2,6 +2,8 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
+    "rootDirectory": "/",
+    "buildCommand": "cd apps/api && pnpm run build",
     "watchPatterns": ["apps/api/**", "packages/database/**"]
   },
   "deploy": {

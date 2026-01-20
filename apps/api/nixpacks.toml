@@ -6,11 +6,3 @@ nixPkgs = ["pnpm"]
 cmds = [
   "pnpm install --frozen-lockfile"
 ]
-
-[phases.build]
-cmds = [
-  "cd apps/api && pnpm run build"
-]
-
-[start]
-cmd = "cd apps/api && npx prisma migrate deploy && node dist/index.js"
