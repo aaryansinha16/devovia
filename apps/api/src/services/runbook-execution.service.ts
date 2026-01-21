@@ -3,7 +3,19 @@
  * Handles the execution of runbook steps with proper error handling, logging, and state management
  */
 
-import { PrismaClient, ExecutionStatus, StepType } from '@repo/database';
+import { PrismaClient, ExecutionStatus } from '@repo/database';
+
+// Step types as string literals (Prisma enums are not available at runtime)
+type StepTypeString =
+  | 'HTTP'
+  | 'SQL'
+  | 'SHELL'
+  | 'SCRIPT'
+  | 'MANUAL'
+  | 'CONDITIONAL'
+  | 'AI'
+  | 'WAIT'
+  | 'PARALLEL';
 import {
   RunbookStep,
   ExecutionContext,
@@ -21,7 +33,7 @@ import { EventEmitter } from 'events';
 
 export class RunbookExecutionService extends EventEmitter {
   private prisma: PrismaClient;
-  private executors: Map<StepType, StepExecutor>;
+  private executors: Map<StepTypeString, StepExecutor>;
 
   constructor(prisma: PrismaClient) {
     super();
@@ -34,13 +46,13 @@ export class RunbookExecutionService extends EventEmitter {
    * Register step executors for each step type
    */
   private registerExecutors() {
-    this.executors.set(StepType.HTTP, new HttpStepExecutor());
-    this.executors.set(StepType.SQL, new SqlStepExecutor(this.prisma));
-    this.executors.set(StepType.MANUAL, new ManualStepExecutor(this.prisma));
-    this.executors.set(StepType.AI, new AiStepExecutor());
-    this.executors.set(StepType.WAIT, new WaitStepExecutor());
-    this.executors.set(StepType.CONDITIONAL, new ConditionalStepExecutor(this));
-    this.executors.set(StepType.PARALLEL, new ParallelStepExecutor(this));
+    this.executors.set('HTTP', new HttpStepExecutor());
+    this.executors.set('SQL', new SqlStepExecutor(this.prisma));
+    this.executors.set('MANUAL', new ManualStepExecutor(this.prisma));
+    this.executors.set('AI', new AiStepExecutor());
+    this.executors.set('WAIT', new WaitStepExecutor());
+    this.executors.set('CONDITIONAL', new ConditionalStepExecutor(this));
+    this.executors.set('PARALLEL', new ParallelStepExecutor(this));
     // SHELL and SCRIPT executors will be added when sandboxing is implemented
   }
 
@@ -370,13 +382,13 @@ export class RunbookExecutionService extends EventEmitter {
     let count = 0;
     for (const step of steps) {
       count++;
-      if (step.type === StepType.CONDITIONAL) {
+      if (step.type === 'CONDITIONAL') {
         const conditionalStep = step as ConditionalStep;
         count += this.countSteps(conditionalStep.config.onTrue);
         if (conditionalStep.config.onFalse) {
           count += this.countSteps(conditionalStep.config.onFalse);
         }
-      } else if (step.type === StepType.PARALLEL) {
+      } else if (step.type === 'PARALLEL') {
         const parallelStep = step as ParallelStep;
         count += this.countSteps(parallelStep.config.steps);
       }
