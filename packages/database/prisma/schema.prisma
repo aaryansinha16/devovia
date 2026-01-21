@@ -49,6 +49,7 @@ model User {
   posts               Post[]
   comments            Comment[]
   likes               Like[]
+  runbooks            Runbook[]           @relation("RunbookOwner")
 }
 
 // User sessions for authentication and token management
@@ -318,4 +319,417 @@ model SessionChange {
   
   @@index([sessionId, timestamp])
   @@map("session_changes")
+}
+
+// ============================================================================
+// RUNBOOKS MODELS
+// ============================================================================
+
+// Enums for Runbooks
+enum RunbookStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum RunbookEnvironment {
+  DEVELOPMENT
+  STAGING
+  PRODUCTION
+}
+
+enum StepType {
+  HTTP         // HTTP/webhook requests
+  SQL          // Database queries
+  SHELL        // Shell commands (sandboxed)
+  SCRIPT       // Node/Python scripts (sandboxed)
+  MANUAL       // Manual approval/confirmation
+  CONDITIONAL  // If/else branching
+  AI           // AI-powered analysis/generation
+  WAIT         // Delay/sleep
+  PARALLEL     // Run multiple steps in parallel
+}
+
+enum ExecutionStatus {
+  QUEUED
+  RUNNING
+  PAUSED        // Waiting for approval
+  SUCCESS
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum SecretType {
+  API_KEY
+  DATABASE_URL
+  PASSWORD
+  TOKEN
+  CERTIFICATE
+  OTHER
+}
+
+enum IntegrationType {
+  SLACK
+  DISCORD
+  PAGERDUTY
+  WEBHOOK
+  EMAIL
+  JIRA
+  GITHUB
+}
+
+enum ScheduleFrequency {
+  ONCE
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  CRON
+}
+
+// Main Runbook model
+model Runbook {
+  id            String            @id @default(cuid())
+  name          String
+  description   String?           @db.Text
+  
+  // Ownership and team
+  ownerId       String
+  owner         User              @relation("RunbookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  teamId        String?
+  
+  // Configuration
+  status        RunbookStatus     @default(DRAFT)
+  environment   RunbookEnvironment @default(DEVELOPMENT)
+  tags          String[]          // For categorization: deploy, backup, incident, db, infra
+  
+  // Steps stored as JSON for flexibility
+  steps         Json              // Array of RunbookStep objects
+  
+  // Variables and parameters
+  parameters    Json?             // Input parameters definition
+  variables     Json?             // Environment variables (non-sensitive)
+  
+  // Execution settings
+  timeoutSeconds Int              @default(3600) // 1 hour default
+  retryPolicy   Json?             // Retry configuration
+  rollbackSteps Json?             // Rollback step definitions
+  
+  // Version control
+  version       Int               @default(1)
+  isLatest      Boolean           @default(true)
+  parentId      String?           // Previous version reference
+  
+  // Collaboration
+  collaborativeSessionId String?  // Link to collaborative editing session
+  
+  // Timestamps
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  publishedAt   DateTime?
+  
+  // Relations
+  executions    RunbookExecution[]
+  schedules     RunbookSchedule[]
+  secrets       RunbookSecret[]
+  permissions   RunbookPermission[]
+  webhooks      RunbookWebhook[]
+  
+  @@index([ownerId])
+  @@index([status])
+  @@index([environment])
+  @@map("runbooks")
+}
+
+// Runbook execution instance
+model RunbookExecution {
+  id            String          @id @default(cuid())
+  runbookId     String
+  runbook       Runbook         @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+  
+  // Execution metadata
+  status        ExecutionStatus @default(QUEUED)
+  triggeredBy   String          // User ID who triggered
+  triggeredByName String?       // Denormalized for quick access
+  triggerType   String          @default("manual") // manual, scheduled, webhook, api
+  
+  // Input/Output
+  inputParams   Json?           // Runtime parameter values
+  outputData    Json?           // Execution output/results
+  
+  // Progress tracking
+  currentStep   Int             @default(0)
+  totalSteps    Int             @default(0)
+  
+  // Timing
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  duration      Int?            // Duration in milliseconds
+  
+  // Error handling
+  errorMessage  String?         @db.Text
+  errorStep     Int?
+  
+  // Environment info
+  environment   RunbookEnvironment
+  executionContext Json?        // Runtime context (sanitized)
+  
+  // Timestamps
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  // Relations
+  logs          RunbookLog[]
+  stepResults   RunbookStepResult[]
+  approvals     RunbookApproval[]
+  
+  @@index([runbookId])
+  @@index([status])
+  @@index([triggeredBy])
+  @@index([createdAt])
+  @@map("runbook_executions")
+}
+
+// Individual step execution results
+model RunbookStepResult {
+  id            String          @id @default(cuid())
+  executionId   String
+  execution     RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  
+  // Step identification
+  stepIndex     Int
+  stepName      String?
+  stepType      StepType
+  
+  // Execution details
+  status        ExecutionStatus
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  duration      Int?            // Duration in milliseconds
+  
+  // Input/Output
+  input         Json?           // Step input (sanitized)
+  output        Json?           // Step output
+  
+  // Error details
+  errorMessage  String?         @db.Text
+  errorCode     String?
+  
+  // Retry tracking
+  attemptNumber Int             @default(1)
+  
+  @@index([executionId])
+  @@index([stepIndex])
+  @@map("runbook_step_results")
+}
+
+// Execution logs
+model RunbookLog {
+  id            String          @id @default(cuid())
+  executionId   String
+  execution     RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  
+  // Log details
+  stepIndex     Int?
+  level         String          @default("info") // debug, info, warn, error
+  message       String          @db.Text
+  metadata      Json?           // Additional structured data
+  
+  // Timing
+  timestamp     DateTime        @default(now())
+  
+  @@index([executionId, timestamp])
+  @@index([level])
+  @@map("runbook_logs")
+}
+
+// Approval workflow
+model RunbookApproval {
+  id            String          @id @default(cuid())
+  executionId   String
+  execution     RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  
+  // Approval details
+  stepIndex     Int
+  stepName      String?
+  
+  // Status
+  status        ApprovalStatus  @default(PENDING)
+  
+  // Approver info
+  requestedAt   DateTime        @default(now())
+  requiredApprovers String[]    // User IDs required to approve
+  approvedBy    String?         // User ID who approved/rejected
+  approvedByName String?
+  respondedAt   DateTime?
+  
+  // Comments
+  requestNote   String?         @db.Text
+  responseNote  String?         @db.Text
+  
+  // Expiration
+  expiresAt     DateTime?
+  
+  @@index([executionId])
+  @@index([status])
+  @@map("runbook_approvals")
+}
+
+// Scheduled runbook executions
+model RunbookSchedule {
+  id            String            @id @default(cuid())
+  runbookId     String
+  runbook       Runbook           @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+  
+  // Schedule configuration
+  name          String?
+  frequency     ScheduleFrequency
+  cronExpression String?         // For CRON frequency
+  timezone      String            @default("UTC")
+  
+  // Execution parameters
+  inputParams   Json?             // Default parameters for scheduled runs
+  environment   RunbookEnvironment
+  
+  // Status
+  isActive      Boolean           @default(true)
+  
+  // Timing
+  nextRunAt     DateTime?
+  lastRunAt     DateTime?
+  
+  // Timestamps
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  createdBy     String
+  
+  @@index([runbookId])
+  @@index([isActive, nextRunAt])
+  @@map("runbook_schedules")
+}
+
+// Secrets management
+model RunbookSecret {
+  id            String          @id @default(cuid())
+  runbookId     String?         // Null = organization-wide secret
+  runbook       Runbook?        @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+  
+  // Secret details
+  name          String          // Secret key name
+  description   String?
+  type          SecretType      @default(OTHER)
+  
+  // Encrypted value (encrypted at application level)
+  encryptedValue String         @db.Text
+  
+  // Scope
+  environment   RunbookEnvironment? // Null = all environments
+  
+  // Audit
+  createdBy     String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  lastUsedAt    DateTime?
+  
+  // Version for rotation
+  version       Int             @default(1)
+  
+  @@unique([runbookId, name, environment])
+  @@index([runbookId])
+  @@map("runbook_secrets")
+}
+
+// Runbook permissions (RBAC)
+model RunbookPermission {
+  id            String          @id @default(cuid())
+  runbookId     String
+  runbook       Runbook         @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+  
+  // Permission target
+  userId        String?         // Specific user
+  teamId        String?         // Or entire team
+  
+  // Permissions
+  canView       Boolean         @default(true)
+  canEdit       Boolean         @default(false)
+  canExecute    Boolean         @default(false)
+  canApprove    Boolean         @default(false)
+  canManage     Boolean         @default(false) // Full admin access
+  
+  // Timestamps
+  createdAt     DateTime        @default(now())
+  grantedBy     String
+  
+  @@unique([runbookId, userId])
+  @@index([runbookId])
+  @@map("runbook_permissions")
+}
+
+// Webhook integrations for runbooks
+model RunbookWebhook {
+  id            String          @id @default(cuid())
+  runbookId     String
+  runbook       Runbook         @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+  
+  // Webhook configuration
+  name          String
+  type          IntegrationType
+  url           String?         // Webhook URL (for WEBHOOK, SLACK, DISCORD)
+  
+  // Authentication (encrypted)
+  authConfig    Json?           // API keys, tokens, etc.
+  
+  // Trigger configuration
+  triggerOn     String[]        // Events: execution_started, execution_completed, execution_failed, approval_required
+  
+  // Status
+  isActive      Boolean         @default(true)
+  
+  // Timestamps
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  lastTriggeredAt DateTime?
+  
+  @@index([runbookId])
+  @@map("runbook_webhooks")
+}
+
+// Audit log for runbook changes
+model RunbookAuditLog {
+  id            String          @id @default(cuid())
+  runbookId     String?
+  executionId   String?
+  
+  // Actor
+  userId        String
+  userName      String?
+  
+  // Action details
+  action        String          // created, updated, deleted, executed, approved, rejected
+  resourceType  String          // runbook, execution, secret, schedule
+  resourceId    String
+  
+  // Change details
+  previousValue Json?           // Before state
+  newValue      Json?           // After state
+  
+  // Context
+  ipAddress     String?
+  userAgent     String?
+  
+  // Timing
+  timestamp     DateTime        @default(now())
+  
+  @@index([runbookId])
+  @@index([userId])
+  @@index([timestamp])
+  @@map("runbook_audit_logs")
 }
