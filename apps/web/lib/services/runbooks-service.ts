@@ -125,6 +125,7 @@ export interface CreateRunbookRequest {
 }
 
 export interface UpdateRunbookRequest extends Partial<CreateRunbookRequest> {
+  status?: "DRAFT" | "ACTIVE" | "ARCHIVED" | "DEPRECATED";
   createVersion?: boolean;
 }
 
@@ -195,7 +196,8 @@ export async function listRunbooks(params?: {
     searchParams.set("pageSize", params.pageSize.toString());
 
   const query = searchParams.toString();
-  return apiRequest<Runbook[]>(`/runbooks${query ? `?${query}` : ""}`);
+  const response = await apiRequest<{ data: Runbook[]; total: number }>(`/runbooks${query ? `?${query}` : ""}`);
+  return response.data;
 }
 
 /**

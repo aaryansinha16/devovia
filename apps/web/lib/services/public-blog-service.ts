@@ -20,7 +20,7 @@ export interface BlogPost {
     username: string;
     avatar?: string;
   };
-  tags: Array<String>;
+  tags: Array<string>;
   _count?: {
     comments: number;
     likes: number;

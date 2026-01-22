@@ -3,7 +3,7 @@
  * Handles the execution of runbook steps with proper error handling, logging, and state management
  */
 
-import { PrismaClient, ExecutionStatus } from '@repo/database';
+import { PrismaClient, ExecutionStatus } from '../lib/prisma';
 
 // Step types as string literals (Prisma enums are not available at runtime)
 type StepTypeString =
@@ -110,11 +110,27 @@ export class RunbookExecutionService extends EventEmitter {
           where: { id: executionId },
           data: { currentStep: currentStepIndex },
         });
+
+        // Emit progress update
+        this.emit('execution:progress', {
+          executionId,
+          currentStep: currentStepIndex,
+          totalSteps,
+        });
       }
 
       // Mark as successful
       const finishedAt = new Date();
-      const duration = finishedAt.getTime() - execution.startedAt!.getTime();
+
+      // Fetch fresh execution to get startedAt
+      const updatedExecution = await this.prisma.runbookExecution.findUnique({
+        where: { id: executionId },
+        select: { startedAt: true },
+      });
+
+      const duration = updatedExecution?.startedAt
+        ? finishedAt.getTime() - new Date(updatedExecution.startedAt).getTime()
+        : 0;
 
       await this.prisma.runbookExecution.update({
         where: { id: executionId },
@@ -333,6 +349,8 @@ export class RunbookExecutionService extends EventEmitter {
     message: string,
     metadata?: any,
   ): Promise<void> {
+    const timestamp = new Date();
+
     await this.prisma.runbookLog.create({
       data: {
         executionId,
@@ -340,11 +358,19 @@ export class RunbookExecutionService extends EventEmitter {
         level,
         message,
         metadata: metadata as any,
+        timestamp,
       },
     });
 
     // Emit log event for real-time streaming
-    this.emit('log', { executionId, stepIndex, level, message, metadata });
+    this.emit('log', {
+      executionId,
+      stepIndex,
+      level,
+      message,
+      metadata,
+      timestamp: timestamp.toISOString(),
+    });
   }
 
   /**

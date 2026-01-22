@@ -4,12 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { PrismaClient, ApprovalStatus, ExecutionStatus } from '@repo/database';
+import prisma, { ApprovalStatus, ExecutionStatus } from '../lib/prisma';
 import { authenticateJWT } from '../middleware/auth.middleware';
 import { RunbookExecutionService } from '../services/runbook-execution.service';
 
 const router = Router();
-const prisma = new PrismaClient();
 const executionService = new RunbookExecutionService(prisma);
 
 /**

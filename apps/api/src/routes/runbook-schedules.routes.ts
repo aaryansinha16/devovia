@@ -4,12 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { PrismaClient, ScheduleFrequency } from '@repo/database';
+import prisma, { ScheduleFrequency } from '../lib/prisma';
 import { authenticateJWT } from '../middleware/auth.middleware';
 import { SchedulerService } from '../services/scheduler.service';
 
 const router = Router();
-const prisma = new PrismaClient();
 const schedulerService = new SchedulerService(prisma);
 
 /**

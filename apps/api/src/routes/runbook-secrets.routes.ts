@@ -4,12 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { PrismaClient, SecretType, RunbookEnvironment } from '@repo/database';
+import prisma, { SecretType, RunbookEnvironment } from '../lib/prisma';
 import { authenticateJWT } from '../middleware/auth.middleware';
 import { SecretsService } from '../services/secrets.service';
 
 const router = Router();
-const prisma = new PrismaClient();
 const secretsService = new SecretsService(prisma);
 
 /**

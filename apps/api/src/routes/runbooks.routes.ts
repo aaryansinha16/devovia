@@ -4,7 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { PrismaClient, RunbookStatus, ExecutionStatus } from '@repo/database';
+import prisma, { RunbookStatus, ExecutionStatus } from '../lib/prisma';
 import { authenticateJWT } from '../middleware/auth.middleware';
 import {
   CreateRunbookRequest,
@@ -14,7 +14,6 @@ import {
 import { RunbookExecutionService } from '../services/runbook-execution.service';
 
 const router = Router();
-const prisma = new PrismaClient();
 const executionService = new RunbookExecutionService(prisma);
 
 // ============================================================================
@@ -176,7 +175,7 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
         timeoutSeconds: data.timeoutSeconds || 3600,
         retryPolicy: data.retryPolicy as any,
         rollbackSteps: data.rollbackSteps as any,
-        status: RunbookStatus.DRAFT,
+        status: RunbookStatus.ACTIVE,
       },
       include: {
         owner: {
@@ -237,10 +236,8 @@ router.put('/:id', authenticateJWT, async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Create new version if status is changing to ACTIVE
-    const shouldCreateVersion =
-      data.status === RunbookStatus.ACTIVE &&
-      existingRunbook.status !== RunbookStatus.ACTIVE;
+    // Create new version only if explicitly requested
+    const shouldCreateVersion = data.createVersion === true;
 
     if (shouldCreateVersion) {
       // Mark current version as not latest
@@ -582,9 +579,30 @@ router.post(
  */
 router.get(
   '/executions/:id/logs/stream',
-  authenticateJWT,
   async (req: Request, res: Response) => {
     const { id } = req.params;
+    const token = req.query.token as string;
+
+    // Verify token from query parameter (EventSource doesn't support headers)
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Manually verify JWT token
+    try {
+      const jwt = await import('jsonwebtoken');
+      const decoded: any = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'your-secret-key',
+      );
+      (req as any).user = {
+        sub: decoded.sub,
+        email: decoded.email,
+        role: decoded.role,
+      };
+    } catch (error) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -607,10 +625,38 @@ router.get(
       }
     };
 
+    // Listen for status updates (progress, completion, etc.)
+    const statusHandler = async (data: any) => {
+      if (data.executionId === id) {
+        // Fetch current execution status
+        const execution = await prisma.runbookExecution.findUnique({
+          where: { id },
+          select: {
+            status: true,
+            currentStep: true,
+            totalSteps: true,
+            finishedAt: true,
+          },
+        });
+
+        if (execution) {
+          res.write(`event: status\ndata: ${JSON.stringify(execution)}\n\n`);
+        }
+      }
+    };
+
     executionService.on('log', logHandler);
+    executionService.on('execution:started', statusHandler);
+    executionService.on('execution:progress', statusHandler);
+    executionService.on('execution:completed', statusHandler);
+    executionService.on('execution:failed', statusHandler);
 
     req.on('close', () => {
       executionService.off('log', logHandler);
+      executionService.off('execution:started', statusHandler);
+      executionService.off('execution:progress', statusHandler);
+      executionService.off('execution:completed', statusHandler);
+      executionService.off('execution:failed', statusHandler);
     });
   },
 );

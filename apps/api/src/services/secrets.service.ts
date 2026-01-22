@@ -3,7 +3,7 @@
  * Handles encryption, storage, and retrieval of secrets for runbooks
  */
 
-import { PrismaClient, SecretType, RunbookEnvironment } from '@repo/database';
+import { PrismaClient, SecretType, RunbookEnvironment } from '../lib/prisma';
 import crypto from 'crypto';
 
 // Encryption configuration

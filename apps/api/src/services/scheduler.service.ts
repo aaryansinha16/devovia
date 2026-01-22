@@ -7,7 +7,7 @@ import {
   PrismaClient,
   ScheduleFrequency,
   ExecutionStatus,
-} from '@repo/database';
+} from '../lib/prisma';
 import { RunbookExecutionService } from './runbook-execution.service';
 
 export class SchedulerService {

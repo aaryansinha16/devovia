@@ -13,6 +13,10 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@reactflow/background": "^11.3.14",
+    "@reactflow/controls": "^11.2.14",
+    "@reactflow/core": "^11.11.4",
+    "@reactflow/minimap": "^11.7.14",
     "@repo/database": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tabler/icons-react": "^3.33.0",
@@ -32,6 +36,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
+    "reactflow": "^11.11.4",
     "y-monaco": "0.1.6",
     "y-protocols": "^1.0.6",
     "y-websocket": "2.0.4",

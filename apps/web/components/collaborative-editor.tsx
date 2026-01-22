@@ -1,5 +1,5 @@
 'use client'
-/* eslint-disable no-undef */
+ 
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { WS_URL } from '../lib/api-config'

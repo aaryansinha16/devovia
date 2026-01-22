@@ -334,6 +334,7 @@ export interface UpdateRunbookRequest {
   timeoutSeconds?: number;
   retryPolicy?: RetryPolicy;
   rollbackSteps?: RunbookStep[];
+  createVersion?: boolean;
 }
 
 /**

@@ -8,7 +8,7 @@ import { updateUserAvatar } from "../lib/profile-api";
 interface AvatarUploadProps {
   currentAvatar: string | null;
   username: string;
-  // eslint-disable-next-line no-unused-vars
+   
   onAvatarUpdate: (url: string) => void;
 }
 
