@@ -50,7 +50,7 @@ interface SessionWorkspaceProps {
   }>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 
 export default function SessionWorkspace({ params }: SessionWorkspaceProps) {
   const { user, token } = useAuth();

@@ -45,7 +45,7 @@ if (require.main === module) {
       try {
         // Connect to the database - don't crash the app if this fails
         isConnected = await connectToDatabase();
-        
+
         // Start WebSocket server on the same port as HTTP server
         console.log('🚀 Starting WebSocket collaboration server...');
         yjsServer = new SimpleYjsServer(Number(PORT));

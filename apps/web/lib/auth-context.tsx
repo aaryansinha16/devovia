@@ -18,7 +18,7 @@ import {
 } from "./auth";
 import AuthModal from "../components/auth-modal";
 
-// eslint-disable-next-line no-unused-vars
+ 
 type LoginFunction = (tokens: AuthTokens) => void;
 
 interface AuthContextType {

@@ -9,7 +9,7 @@ import Link from "next/link";
 
 export default function ChangePasswordPage() {
   // We still need useAuth for the token but don't need to destructure anything
-  // eslint-disable-next-line no-unused-vars
+   
   const auth = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");

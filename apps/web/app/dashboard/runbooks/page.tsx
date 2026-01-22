@@ -1,0 +1,268 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  IconPlus,
+  IconPlayerPlay,
+  IconEdit,
+  IconTrash,
+  IconLoader2,
+  IconCalendar,
+} from "@tabler/icons-react";
+import {
+  listRunbooks,
+  deleteRunbook,
+  executeRunbook,
+  type Runbook,
+} from "../../../lib/services/runbooks-service";
+
+const statusColors: Record<string, string> = {
+  DRAFT: "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
+  ACTIVE: "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400",
+  ARCHIVED: "bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400",
+  DEPRECATED: "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",
+};
+
+const environmentColors: Record<string, string> = {
+  DEVELOPMENT: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
+  STAGING: "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400",
+  PRODUCTION: "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",
+};
+
+export default function RunbooksPage() {
+  const router = useRouter();
+  const [runbooks, setRunbooks] = useState<Runbook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [environmentFilter, setEnvironmentFilter] = useState("all");
+  const [executing, setExecuting] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadRunbooks();
+  }, [statusFilter, environmentFilter]);
+
+  async function loadRunbooks() {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await listRunbooks({
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        environment: environmentFilter !== "all" ? environmentFilter : undefined,
+      });
+      setRunbooks(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load runbooks";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleExecute(runbook: Runbook) {
+    if (executing) return;
+
+    try {
+      setExecuting(runbook.id);
+      const execution = await executeRunbook(runbook.id);
+      router.push(`/dashboard/runbooks/executions/${execution.id}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to execute runbook";
+      setError(message);
+    } finally {
+      setExecuting(null);
+    }
+  }
+
+  async function handleDelete(runbook: Runbook) {
+    if (!confirm(`Are you sure you want to delete "${runbook.name}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteRunbook(runbook.id);
+      setRunbooks(runbooks.filter((r) => r.id !== runbook.id));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to delete runbook";
+      setError(message);
+    }
+  }
+
+  const filteredRunbooks = runbooks.filter((runbook) => {
+    if (statusFilter !== "all" && runbook.status !== statusFilter) return false;
+    if (environmentFilter !== "all" && runbook.environment !== environmentFilter) return false;
+    return true;
+  });
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-10">
+          <div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+              Runbooks
+            </h1>
+            <p className="text-slate-600 dark:text-slate-300 mt-3 text-base sm:text-lg">
+              Automate your operational workflows
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="py-3 px-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-lg transition-all"
+            >
+              <option value="all">All Statuses</option>
+              <option value="DRAFT">Draft</option>
+              <option value="ACTIVE">Active</option>
+              <option value="ARCHIVED">Archived</option>
+              <option value="DEPRECATED">Deprecated</option>
+            </select>
+
+            <select
+              value={environmentFilter}
+              onChange={(e) => setEnvironmentFilter(e.target.value)}
+              className="py-3 px-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-lg transition-all"
+            >
+              <option value="all">All Environments</option>
+              <option value="DEVELOPMENT">Development</option>
+              <option value="STAGING">Staging</option>
+              <option value="PRODUCTION">Production</option>
+            </select>
+
+            <button
+              onClick={() => router.push("/dashboard/runbooks/create")}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105"
+            >
+              <IconPlus size={18} />
+              <span>Create Runbook</span>
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <IconLoader2 className="w-8 h-8 animate-spin text-sky-500" />
+          </div>
+        ) : error ? (
+          <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-500">
+            <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
+            <button
+              onClick={() => loadRunbooks()}
+              className="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 underline font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : filteredRunbooks.length === 0 ? (
+          <div className="text-center py-16 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-700">
+            <div className="text-7xl mb-6">⚡</div>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">
+              No runbooks yet
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
+              Create your first runbook to automate workflows!
+            </p>
+            <button
+              onClick={() => router.push("/dashboard/runbooks/create")}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30"
+            >
+              <IconPlus size={18} />
+              Create Runbook
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {filteredRunbooks.map((runbook) => (
+              <div
+                key={runbook.id}
+                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                      {runbook.name}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-2">
+                      {runbook.description || "No description"}
+                    </p>
+
+                    <div className="flex items-center gap-3 text-sm flex-wrap">
+                      <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/50 px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400">
+                        <IconCalendar size={14} />
+                        {new Date(runbook.createdAt).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/50 px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400">
+                        {runbook.steps?.length || 0} steps
+                      </span>
+                      <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${statusColors[runbook.status]}`}>
+                        {runbook.status}
+                      </span>
+                      <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${environmentColors[runbook.environment]}`}>
+                        {runbook.environment}
+                      </span>
+                      <span className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400">
+                        v{runbook.version}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => handleExecute(runbook)}
+                      disabled={executing === runbook.id || runbook.status !== "ACTIVE"}
+                      className="p-2.5 text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Execute"
+                    >
+                      {executing === runbook.id ? (
+                        <IconLoader2 size={18} className="animate-spin" />
+                      ) : (
+                        <IconPlayerPlay size={18} />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => router.push(`/dashboard/runbooks/${runbook.id}`)}
+                      className="p-2.5 text-slate-600 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-xl transition-all"
+                      title="Edit"
+                    >
+                      <IconEdit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(runbook)}
+                      className="p-2.5 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                      title="Delete"
+                    >
+                      <IconTrash size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {runbook.tags && runbook.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {runbook.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1.5 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-700 dark:text-sky-300 text-xs rounded-lg font-medium"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -26,6 +26,10 @@ import aiRoutes from './routes/ai.routes';
 import sessionHistoryRoutes from './routes/session-history.routes';
 import gitRoutes from './routes/git.routes';
 import githubIntegrationRoutes from './routes/github-integration.routes';
+import runbooksRoutes from './routes/runbooks.routes';
+import runbookApprovalsRoutes from './routes/runbook-approvals.routes';
+import runbookSecretsRoutes from './routes/runbook-secrets.routes';
+import runbookSchedulesRoutes from './routes/runbook-schedules.routes';
 
 // Import WebSocket collaboration server
 import CollaborationServer from './websocket/collaboration-server';
@@ -117,6 +121,10 @@ export function createExpressApp() {
   app.use('/api/sessions', sessionHistoryRoutes);
   app.use('/api/git', gitRoutes);
   app.use('/api/github', githubIntegrationRoutes);
+  app.use('/api/runbooks', runbooksRoutes);
+  app.use('/api/runbooks/approvals', runbookApprovalsRoutes);
+  app.use('/api/runbooks/secrets', runbookSecretsRoutes);
+  app.use('/api/runbooks', runbookSchedulesRoutes);
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {
