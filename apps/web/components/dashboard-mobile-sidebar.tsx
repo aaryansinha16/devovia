@@ -19,6 +19,7 @@ import {
   IconPlayerPlay,
   IconMenu2,
   IconX,
+  IconBriefcase,
 } from "@tabler/icons-react";
 
 interface NavItem {
@@ -33,13 +34,13 @@ const navigation: NavItem[] = [
   { name: "Runbooks", href: "/dashboard/runbooks", icon: IconPlayerPlay },
   { name: "Blogs", href: "/dashboard/blogs", icon: IconFileText },
   { name: "Code Snippets", href: "/dashboard/snippets", icon: IconCode },
+  { name: "Projects & Teams", href: "/dashboard/projects", icon: IconBriefcase },
   {
     name: "Project Templates",
     href: "/dashboard/templates",
     icon: IconTemplate,
   },
   { name: "Deployments", href: "/dashboard/deployments", icon: IconRocket },
-  { name: "Team Collaboration", href: "/dashboard/team", icon: IconUsers },
   { name: "Analytics", href: "/dashboard/analytics", icon: IconChartBar },
   { name: "Settings", href: "/settings", icon: IconSettings },
 ];

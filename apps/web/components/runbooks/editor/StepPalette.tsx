@@ -12,7 +12,7 @@ import {
 } from "@tabler/icons-react";
 
 interface StepPaletteProps {
-  // eslint-disable-next-line no-unused-vars
+   
   onAddStep: (type: string) => void;
 }
 

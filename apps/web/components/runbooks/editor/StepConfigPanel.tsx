@@ -6,7 +6,7 @@ import type { RunbookStep } from "../../../lib/services/runbooks-service";
 
 interface StepConfigPanelProps {
   step: RunbookStep;
-  // eslint-disable-next-line no-unused-vars
+   
   onUpdate: (updates: Partial<RunbookStep>) => void;
   onDelete: () => void;
   onClose: () => void;
@@ -194,7 +194,7 @@ function HttpStepConfig({
   onUpdate,
 }: {
   config: HttpConfig;
-  // eslint-disable-next-line no-unused-vars
+   
   onUpdate: (config: Partial<HttpConfig>) => void;
 }) {
   const [headerKey, setHeaderKey] = useState("");
@@ -317,7 +317,7 @@ function SqlStepConfig({
   onUpdate,
 }: {
   config: SqlConfig;
-  // eslint-disable-next-line no-unused-vars
+   
   onUpdate: (config: Partial<SqlConfig>) => void;
 }) {
   return (
@@ -361,7 +361,7 @@ function WaitStepConfig({
   onUpdate,
 }: {
   config: WaitConfig;
-  // eslint-disable-next-line no-unused-vars
+   
   onUpdate: (config: Partial<WaitConfig>) => void;
 }) {
   return (
@@ -391,7 +391,7 @@ function ManualStepConfig({
   onUpdate,
 }: {
   config: ManualConfig;
-  // eslint-disable-next-line no-unused-vars
+   
   onUpdate: (config: Partial<ManualConfig>) => void;
 }) {
   return (
@@ -423,7 +423,7 @@ function AiStepConfig({
   onUpdate,
 }: {
   config: AiConfig;
-  // eslint-disable-next-line no-unused-vars
+   
   onUpdate: (config: Partial<AiConfig>) => void;
 }) {
   return (

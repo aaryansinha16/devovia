@@ -12,7 +12,7 @@ import type { RunbookStep } from "../../../lib/services/runbooks-service";
 
 interface FormBasedEditorProps {
   steps: RunbookStep[];
-  // eslint-disable-next-line no-unused-vars
+   
   onChange: (steps: RunbookStep[]) => void;
 }
 
@@ -183,7 +183,7 @@ function StepConfigForm({
   onChange,
 }: {
   step: RunbookStep;
-  // eslint-disable-next-line no-unused-vars
+   
   onChange: (updates: Partial<RunbookStep>) => void;
 }) {
   const updateConfig = (configUpdates: Record<string, unknown>) => {
@@ -241,7 +241,7 @@ function HttpConfigForm({
   onChange,
 }: {
   config: Record<string, unknown>;
-  // eslint-disable-next-line no-unused-vars
+   
   onChange: (updates: Record<string, unknown>) => void;
 }) {
   return (
@@ -298,7 +298,7 @@ function SqlConfigForm({
   onChange,
 }: {
   config: Record<string, unknown>;
-  // eslint-disable-next-line no-unused-vars
+   
   onChange: (updates: Record<string, unknown>) => void;
 }) {
   return (
@@ -337,7 +337,7 @@ function WaitConfigForm({
   onChange,
 }: {
   config: Record<string, unknown>;
-  // eslint-disable-next-line no-unused-vars
+   
   onChange: (updates: Record<string, unknown>) => void;
 }) {
   return (
@@ -362,7 +362,7 @@ function ManualConfigForm({
   onChange,
 }: {
   config: Record<string, unknown>;
-  // eslint-disable-next-line no-unused-vars
+   
   onChange: (updates: Record<string, unknown>) => void;
 }) {
   return (
@@ -387,7 +387,7 @@ function AiConfigForm({
   onChange,
 }: {
   config: Record<string, unknown>;
-  // eslint-disable-next-line no-unused-vars
+   
   onChange: (updates: Record<string, unknown>) => void;
 }) {
   return (

@@ -6,7 +6,7 @@
 // Import the PrismaClient directly
 import { PrismaClient } from "@prisma/client";
 
-// Re-export all types from Prisma client
+// Re-export all types and enums from Prisma client
 export * from "@prisma/client";
 
 // Add prisma to the NodeJS global type
@@ -36,3 +36,6 @@ function createPrismaClient() {
 
 // Export the Prisma client instance
 export const prisma = createPrismaClient();
+
+// Default export for convenience
+export default prisma;

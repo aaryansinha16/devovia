@@ -14,6 +14,7 @@ import {
   IconSettings,
   IconDeviceDesktop,
   IconPlayerPlay,
+  IconBriefcase,
 } from "@tabler/icons-react";
 
 export function DashboardFloatingDock() {
@@ -61,6 +62,14 @@ export function DashboardFloatingDock() {
       isActive: pathname.startsWith("/dashboard/snippets"),
     },
     {
+      title: "Projects & Teams",
+      icon: (
+        <IconBriefcase className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+      ),
+      href: "/dashboard/projects",
+      isActive: pathname.startsWith("/dashboard/projects"),
+    },
+    {
       title: "Templates",
       icon: (
         <IconTemplate className="h-full w-full text-neutral-500 dark:text-neutral-300" />
@@ -75,14 +84,6 @@ export function DashboardFloatingDock() {
       ),
       href: "/dashboard/deployments",
       isActive: pathname.startsWith("/dashboard/deployments"),
-    },
-    {
-      title: "Team",
-      icon: (
-        <IconUsers className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-      ),
-      href: "/dashboard/team",
-      isActive: pathname.startsWith("/dashboard/team"),
     },
     {
       title: "Analytics",
