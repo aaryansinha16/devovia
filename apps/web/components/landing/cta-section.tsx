@@ -70,7 +70,7 @@ const CTASection: React.FC = () => {
             />
             <Button
               type="submit"
-              variant="primary"
+              variant="default"
               size="md"
               className="w-full sm:w-auto submit-button"
               id="early-access-submit-btn"

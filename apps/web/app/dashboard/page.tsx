@@ -16,29 +16,28 @@ import {
   IconRocket,
   IconUsers,
 } from "@tabler/icons-react";
+import { Button, Container, Heading, Text, IconButton, BackgroundDecorative } from "@repo/ui";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
-      </div>
+      <BackgroundDecorative />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Container className="relative z-10">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-10">
           <div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+            <Heading size="h1" variant="gradient" spacing="sm">
               Welcome back, {user?.name || user?.username || "Developer"}!
-            </h2>
-            <p className="text-slate-600 dark:text-slate-300 mt-3 text-base sm:text-lg">
+            </Heading>
+            <Text>
               Here's what's happening with your projects today.
-            </p>
+            </Text>
           </div>
           <div className="flex gap-3">
             <Link
@@ -48,9 +47,7 @@ export default function DashboardPage() {
               <IconPlus className="w-5 h-5" />
               <span>New Project</span>
             </Link>
-            <button className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 px-4 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105">
-              <IconBell className="w-5 h-5 text-slate-700 dark:text-slate-300" />
-            </button>
+            <IconButton icon={<IconBell className="w-5 h-5 text-slate-700 dark:text-slate-300" />} />
           </div>
         </div>
 
@@ -106,7 +103,7 @@ export default function DashboardPage() {
             <DashboardQuickActions />
           </div>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }

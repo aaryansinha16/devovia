@@ -10,6 +10,7 @@ import {
   type RunbookLog,
 } from "../../../../../lib/services/runbooks-service";
 import { API_URL } from "../../../../../lib/api-config";
+import { Container, Heading, Text, GlassCard, IconButton, BackgroundDecorative } from "@repo/ui";
 
 const statusColors: Record<string, string> = {
   QUEUED: "bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400",
@@ -156,7 +157,7 @@ export default function ExecutionDetailsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900">
         <div className="container mx-auto px-4 py-8">
-          <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-500">
+          <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
             <p className="text-red-600 dark:text-red-400 mb-3">{error || "Execution not found"}</p>
             <button
               onClick={() => router.back()}
@@ -174,26 +175,20 @@ export default function ExecutionDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "2s" }}></div>
-      </div>
+      <BackgroundDecorative variant="subtle" />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Container className="relative z-10">
         <div className="flex items-center gap-4 mb-8">
-          <button
+          <IconButton
             onClick={() => router.back()}
-            className="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            icon={<IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />}
             aria-label="Go back"
-          >
-            <IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
-          </button>
+          />
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+              <Heading size="h1" variant="gradient" spacing="none">
                 {execution.runbook?.name || "Execution"}
-              </h1>
+              </Heading>
               <span className={`px-3 py-1.5 text-sm font-medium rounded-lg ${statusColors[execution.status]}`}>
                 {execution.status}
               </span>
@@ -224,11 +219,11 @@ export default function ExecutionDetailsPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-            <p className="text-sm text-slate-600 dark:text-slate-400">Trigger Type</p>
-            <p className="text-lg font-semibold text-slate-800 dark:text-slate-100 capitalize">{execution.triggerType}</p>
-          </div>
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
+          <GlassCard padding="default">
+            <Text size="sm" variant="muted">Trigger Type</Text>
+            <Text size="lg" weight="semibold" className="capitalize">{execution.triggerType}</Text>
+          </GlassCard>
+          <GlassCard padding="default">
             <p className="text-sm text-slate-600 dark:text-slate-400">Triggered By</p>
             <div className="flex items-center gap-2">
               {execution.triggeredByName ? (
@@ -250,23 +245,23 @@ export default function ExecutionDetailsPage() {
                 </>
               )}
             </div>
-          </div>
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-            <p className="text-sm text-slate-600 dark:text-slate-400">Duration</p>
-            <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          </GlassCard>
+          <GlassCard padding="default">
+            <Text size="sm" variant="muted">Duration</Text>
+            <Text size="lg" weight="semibold">
               {formatDuration(execution.startedAt, execution.finishedAt)}
-            </p>
-          </div>
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-            <p className="text-sm text-slate-600 dark:text-slate-400">Progress</p>
-            <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+            </Text>
+          </GlassCard>
+          <GlassCard padding="default">
+            <Text size="sm" variant="muted">Progress</Text>
+            <Text size="lg" weight="semibold">
               {execution.currentStep || 0} / {execution.totalSteps || 0} steps
-            </p>
-          </div>
+            </Text>
+          </GlassCard>
         </div>
 
         {execution.totalSteps && execution.totalSteps > 0 && (
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 shadow-lg mb-8">
+          <GlassCard padding="default" className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-slate-600 dark:text-slate-400">Progress</span>
               <span className="text-sm text-slate-800 dark:text-slate-100 font-medium">
@@ -283,12 +278,12 @@ export default function ExecutionDetailsPage() {
                 }}
               />
             </div>
-          </div>
+          </GlassCard>
         )}
 
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg">
+        <GlassCard className="overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Execution Logs</h2>
+            <Heading size="h2">Execution Logs</Heading>
             {isRunning && (
               <span className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
                 <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
@@ -319,8 +314,8 @@ export default function ExecutionDetailsPage() {
             )}
             <div ref={logsEndRef} />
           </div>
-        </div>
-      </div>
+        </GlassCard>
+      </Container>
     </div>
   );
 }

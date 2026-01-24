@@ -5,20 +5,28 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { getAllPublishedBlogs } from "../../lib/services/public-blog-service";
-import { Button } from "@repo/ui/components";
+import { Button, Container, Heading, Text, GlassCard, BackgroundDecorative } from "@repo/ui";
 import ServerPagination from "../../components/server-pagination";
 import { formatDate } from "../../lib/utils/date-utils";
 import Footer from "../../components/footer";
+import Navbar from "../../components/navbar";
+import { IconSearch, IconTag, IconClock, IconMessage, IconArrowRight, IconX, IconTrendingUp, IconSparkles } from "@tabler/icons-react";
 
 type BlogsData = Awaited<ReturnType<typeof getAllPublishedBlogs>>;
 
 // Create a loading component for Suspense
 function BlogsLoading() {
   return (
-    <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">Loading blogs...</h2>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+      <BackgroundDecorative variant="subtle" />
+      <Container className="relative z-10 py-12">
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <Heading size="h2">Loading blogs...</Heading>
+          </div>
+        </div>
+      </Container>
     </div>
   );
 }
@@ -58,10 +66,16 @@ function BlogsContent() {
   // Loading state
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Loading blogs...</h2>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+        <BackgroundDecorative variant="subtle" />
+        <Container className="relative z-10 py-20">
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <Heading size="h2">Loading blogs...</Heading>
+            </div>
+          </div>
+        </Container>
       </div>
     );
   }
@@ -69,20 +83,25 @@ function BlogsContent() {
   // Error state
   if (error || !blogsData) {
     return (
-      <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Failed to load blogs</h2>
-          <p className="mt-4">
-            {error?.message || "Could not retrieve blog posts."}
-          </p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => window.location.reload()}
-          >
-            Try again
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+        <BackgroundDecorative variant="subtle" />
+        <Container className="relative z-10 py-20">
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <GlassCard className="text-center max-w-md">
+              <div className="text-6xl mb-4">⚠️</div>
+              <Heading size="h2" className="mb-4">Failed to load blogs</Heading>
+              <Text className="mb-6">
+                {error?.message || "Could not retrieve blog posts."}
+              </Text>
+              <Button
+                variant="gradient"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </Button>
+            </GlassCard>
+          </div>
+        </Container>
       </div>
     );
   }
@@ -90,154 +109,280 @@ function BlogsContent() {
   const { posts, total, hasMore } = blogsData;
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-2">Developer Blogs</h1>
-        <p className="text-gray-600 dark:text-gray-400 text-center mb-12">
-          Latest tutorials, insights, and developer stories
-        </p>
-
-        {/* Tag filter if tag is applied */}
-        {tagParam && (
-          <div className="mb-8 flex items-center justify-center">
-            <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-full flex items-center">
-              <span className="mr-2">Filtered by:</span>
-              <span className="bg-blue-100 dark:bg-blue-800 px-3 py-1 rounded-full text-blue-800 dark:text-blue-200 font-medium text-sm flex items-center">
-                {tagParam}
-                <Link href="/blogs" className="ml-2 hover:text-blue-600">
-                  <span className="sr-only">Remove filter</span>×
-                </Link>
-              </span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
+      <BackgroundDecorative variant="subtle" />
+      <Container className="relative z-10 py-12">
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 rounded-full mb-6">
+              <IconSparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <Text size="sm" className="font-medium text-sky-700 dark:text-sky-300">
+                Latest Articles & Insights
+              </Text>
             </div>
+            <Heading size="h1" className="mb-4 bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+              Discover Our Blog
+            </Heading>
+            <Text size="lg" variant="muted" className="max-w-2xl mx-auto">
+              Explore in-depth articles, tutorials, and insights on development, automation, and technology
+            </Text>
           </div>
-        )}
 
-        {/* Blog list */}
-        <div className="grid gap-8 md:gap-10">
-          {posts.length === 0 ? (
-            <div className="text-center py-20">
-              <h3 className="text-xl font-medium mb-2">No posts found</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {tagParam
-                  ? `No posts found with tag "${tagParam}"`
-                  : "No published posts yet."}
-              </p>
-              <Link href="/blogs">
-                <Button>View all posts</Button>
-              </Link>
-            </div>
-          ) : (
-            posts.map((post) => (
-              <article
-                key={post.id}
-                className="border-b border-gray-200 dark:border-gray-800 pb-8 last:border-b-0"
-              >
-                <Link href={`/blogs/${post.slug}`}>
-                  <div className="group">
-                    {post.coverImage && (
-                      <div className="mb-6 rounded-lg overflow-hidden">
-                        <div className="relative aspect-video w-full">
+          {/* Stats and Filter Bar */}
+          <div className="mb-12">
+            <GlassCard className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <IconTrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                  <div>
+                    <Text size="sm" variant="muted">Total Posts</Text>
+                    <Text className="font-bold text-lg">{total || 0}</Text>
+                  </div>
+                </div>
+                {tagParam && (
+                  <div className="flex items-center gap-2">
+                    <IconTag className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1.5 bg-gradient-to-r from-sky-500/20 to-indigo-500/20 text-sky-700 dark:text-sky-300 rounded-lg text-sm font-medium flex items-center gap-2">
+                        #{tagParam}
+                        <Link href="/blogs">
+                          <IconX className="w-4 h-4 hover:text-red-500 cursor-pointer transition-colors" />
+                        </Link>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search posts..."
+                    className="pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  />
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+
+          {/* Blog list */}
+          <div className="grid gap-6">
+            {posts.length === 0 ? (
+              <GlassCard className="text-center py-20">
+                <div className="text-6xl mb-4">📝</div>
+                <Heading size="h3" className="mb-2">No posts found</Heading>
+                <Text variant="muted" className="mb-6">
+                  {tagParam
+                    ? `No posts found with tag "${tagParam}"`
+                    : "No published posts yet."}
+                </Text>
+                <Button href="/blogs" variant="gradient">
+                  View all posts
+                </Button>
+              </GlassCard>
+            ) : (
+              <>
+                {/* Featured post (first post) */}
+                {page === 1 && posts.length > 0 && posts[0] && (
+                  <GlassCard className="group hover:shadow-2xl transition-all duration-300 mb-12">
+                    <div className="grid md:grid-cols-1 gap-6">
+                      {posts[0]?.coverImage && (
+                        <div className="relative h-64 md:h-full rounded-xl overflow-hidden">
                           <Image
-                            src={post.coverImage}
-                            alt={post.title}
+                            src={posts[0].coverImage}
+                            alt={posts[0].title}
                             fill
-                            className="object-cover transition-transform group-hover:scale-105"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 60vw"
-                            quality={85}
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
+                          <div className="absolute top-4 left-4">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+                              <IconSparkles className="w-3 h-3" />
+                              Featured
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex flex-col justify-between">
+                        <div>
+                          <Heading size="h2" className="mb-4 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                            <Link href={`/blogs/${posts[0].slug}`}>
+                              {posts[0].title}
+                            </Link>
+                          </Heading>
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="flex items-center gap-2">
+                              {posts[0].user.avatar ? (
+                                <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-sky-500/20">
+                                  <Image
+                                    src={posts[0].user.avatar}
+                                    alt={posts[0].user.name || posts[0].user.username}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center ring-2 ring-sky-500/20">
+                                  <span className="text-xs text-white font-bold">
+                                    {(posts[0].user.name || posts[0].user.username || "U").charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                              )}
+                              <Text size="sm" className="font-medium">{posts[0].user.name || posts[0].user.username}</Text>
+                            </div>
+                            <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                              <IconClock className="w-4 h-4" />
+                              <Text size="sm">{formatDate(posts[0].createdAt)}</Text>
+                            </div>
+                          </div>
+                          <Text className="mb-4 line-clamp-3">{posts[0].excerpt}</Text>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-wrap gap-2">
+                            {posts[0].tags.slice(0, 3).map((tag) => (
+                              <Link
+                                key={String(tag)}
+                                href={`/blogs?tag=${encodeURIComponent(String(tag))}`}
+                                className="px-2 py-1 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-700 dark:text-sky-300 rounded text-xs font-medium hover:from-sky-500/20 hover:to-indigo-500/20 transition-all"
+                              >
+                                #{String(tag)}
+                              </Link>
+                            ))}
+                          </div>
+                          <Button
+                            href={`/blogs/${posts[0].slug}`}
+                            variant="gradient"
+                            size="sm"
+                            rightIcon={<IconArrowRight className="w-4 h-4" />}
+                          >
+                            Read More
+                          </Button>
                         </div>
                       </div>
-                    )}
-                    <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {post.title}
-                    </h2>
-                  </div>
-                </Link>
-
-                <div className="flex items-center gap-3 mb-3 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center">
-                    {post.user.avatar ? (
-                      <div className="relative w-6 h-6 rounded-full overflow-hidden mr-2">
-                        <Image
-                          src={post.user.avatar}
-                          alt={post.user.name || post.user.username}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-2">
-                        <span className="text-xs text-blue-800 dark:text-blue-200 font-medium">
-                          {(post.user.name || post.user.username || "User")
-                            .charAt(0)
-                            .toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                    <span>{post.user.name || post.user.username}</span>
-                  </div>
-                  <span>•</span>
-                  <time dateTime={post.createdAt}>
-                    {formatDate(post.createdAt)}
-                  </time>
-                  {post._count && (
-                    <>
-                      <span>•</span>
-                      <span>
-                        {post._count.comments} comment
-                        {post._count.comments !== 1 ? "s" : ""}
-                      </span>
-                    </>
-                  )}
-                </div>
-
-                {post.excerpt && (
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    {post.excerpt}
-                  </p>
+                    </div>
+                  </GlassCard>
                 )}
 
-                {post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {post.tags.map((tag, index) => (
-                      <Link
-                        key={String(tag)}
-                        href={`/blogs?tag=${encodeURIComponent(String(tag))}`}
-                        className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        {String(tag)}
+                {/* Regular posts grid */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {posts.slice(page === 1 ? 1 : 0).map((post) => (
+                    <GlassCard key={post.id} className="group hover:shadow-2xl transition-all duration-300">
+                      {post.coverImage && (
+                        <Link href={`/blogs/${post.slug}`} className="block mb-4 rounded-xl overflow-hidden -m-6 mb-6">
+                          <div className="relative aspect-video w-full">
+                            <Image
+                              src={post.coverImage}
+                              alt={post.title}
+                              fill
+                              className="object-cover transition-transform group-hover:scale-105 duration-500"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              quality={85}
+                            />
+                          </div>
+                        </Link>
+                      )}
+                      
+                      <Link href={`/blogs/${post.slug}`}>
+                        <Heading size="h3" className="mb-3 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                          {post.title}
+                        </Heading>
                       </Link>
-                    ))}
-                  </div>
-                )}
 
-                <div className="mt-4">
-                  <Link href={`/blogs/${post.slug}`}>
+                  <div className="flex items-center gap-3 mb-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      {post.user.avatar ? (
+                        <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-sky-500/20">
+                          <Image
+                            src={post.user.avatar}
+                            alt={post.user.name || post.user.username}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center ring-2 ring-sky-500/20">
+                          <span className="text-xs text-white font-bold">
+                            {(post.user.name || post.user.username || "User")
+                              .charAt(0)
+                              .toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <Text size="sm" className="font-medium">{post.user.name || post.user.username}</Text>
+                    </div>
+                    <span className="text-slate-400">•</span>
+                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                      <IconClock className="w-4 h-4" />
+                      <time dateTime={post.createdAt}>
+                        {formatDate(post.createdAt)}
+                      </time>
+                    </div>
+                    {post._count && (
+                      <>
+                        <span className="text-slate-400">•</span>
+                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                          <IconMessage className="w-4 h-4" />
+                          <span>
+                            {post._count.comments}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {post.excerpt && (
+                    <Text className="mb-4 line-clamp-3">
+                      {post.excerpt}
+                    </Text>
+                  )}
+
+                  {post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {post.tags.map((tag, index) => (
+                        <Link
+                          key={String(tag)}
+                          href={`/blogs?tag=${encodeURIComponent(String(tag))}`}
+                          className="px-3 py-1.5 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-700 dark:text-sky-300 rounded-lg text-sm font-medium hover:from-sky-500/20 hover:to-indigo-500/20 transition-all"
+                        >
+                          #{String(tag)}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <Button
-                      variant="ghost"
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-0"
+                      href={`/blogs/${post.slug}`}
+                      variant="link"
+                      className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 p-0 group/btn"
+                      rightIcon={<IconArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />}
                     >
-                      Read more →
+                      Read more
                     </Button>
-                  </Link>
+                  </div>
+                </GlassCard>
+                  ))}
                 </div>
-              </article>
-            ))
+              </>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {posts.length > 0 && total > limit && (
+            <div className="mt-12 flex justify-center">
+              <GlassCard padding="sm">
+                <ServerPagination
+                  currentPage={page}
+                  totalPages={Math.ceil(total / limit) || 1}
+                  basePath="/blogs"
+                  queryParams={{ tag: tagParam }}
+                />
+              </GlassCard>
+            </div>
           )}
         </div>
-
-        {/* Pagination */}
-        {posts.length > 0 && (
-          <div className="mt-12 flex justify-center">
-            <ServerPagination
-              currentPage={page}
-              totalPages={Math.ceil(total / limit)}
-              basePath="/blogs"
-              queryParams={{ tag: tagParam }}
-            />
-          </div>
-        )}
-      </div>
+      </Container>
     </div>
   );
 }
@@ -245,9 +390,14 @@ function BlogsContent() {
 // Main page component that wraps the content with Suspense
 export default function BlogsPage() {
   return (
-    <Suspense fallback={<BlogsLoading />}>
-      <BlogsContent />
+    <div className="relative w-full">
+      <Navbar />
+      <div className="pt-20 md:pt-24">
+        <Suspense fallback={<BlogsLoading />}>
+          <BlogsContent />
+        </Suspense>
+      </div>
       <Footer />
-    </Suspense>
+    </div>
   );
 }

@@ -38,13 +38,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           Please log in or sign up to continue with this action.
         </p>
         <div className="flex flex-col space-y-3">
-          <Button onClick={handleLogin} className="w-full" variant="primary">
+          <Button onClick={handleLogin} className="w-full" variant="default">
             Log In
           </Button>
           <Button
             onClick={handleSignup}
             className="w-full"
-            variant="outlineAlt"
+            variant="outline"
           >
             Sign Up
           </Button>

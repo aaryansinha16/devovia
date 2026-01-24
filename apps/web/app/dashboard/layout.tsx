@@ -3,11 +3,8 @@
 import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../lib/auth-context";
-import { DashboardSidebar } from "../../components/dashboard-sidebar";
-import {
-  resetAllCursorStyles,
-  registerGlobalCursorFix,
-} from "../../lib/cursor-manager";
+import { DashboardFloatingDock } from "../../components/dashboard-floating-dock";
+import { DashboardMobileSidebar } from "../../components/dashboard-mobile-sidebar";
 
 export default function DashboardLayout({
   children,
@@ -23,19 +20,6 @@ export default function DashboardLayout({
       router.push("/login");
     }
   }, [user, isLoading, router]);
-
-  // Ensure cursor is always visible in dashboard
-  useEffect(() => {
-    // Reset any lingering cursor styles
-    resetAllCursorStyles();
-
-    // Register global fix for cursor disappearing on button hover
-    registerGlobalCursorFix();
-
-    return () => {
-      resetAllCursorStyles();
-    };
-  }, []);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -53,11 +37,16 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar */}
-      <DashboardSidebar />
+      {/* Mobile Sidebar - Only visible on mobile */}
+      <DashboardMobileSidebar />
 
-      {/* Main Content */}
+      {/* Main Content - Full width on desktop, with bottom padding for dock */}
       <div className="flex-1 overflow-y-auto">{children}</div>
+
+      {/* Floating Dock - Only visible on desktop (md and up) */}
+      <div className="hidden md:block">
+        <DashboardFloatingDock />
+      </div>
     </div>
   );
 }

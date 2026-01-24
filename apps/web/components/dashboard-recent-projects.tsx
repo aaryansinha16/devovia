@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { IconExternalLink } from "@tabler/icons-react";
+import { GlassCard, Heading, Text, EmptyState } from "@repo/ui";
 
 interface Project {
   id: string;
@@ -55,11 +56,11 @@ const statusConfig = {
 
 export function DashboardRecentProjects() {
   return (
-    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+    <GlassCard padding="lg">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+        <Heading size="h3" variant="gradient">
           Recent Projects
-        </h3>
+        </Heading>
         <Link
           href="/dashboard/projects"
           className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 text-sm font-medium transition-colors group"
@@ -94,9 +95,9 @@ export function DashboardRecentProjects() {
                 <h4 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors text-base">
                   {project.name}
                 </h4>
-                <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">
+                <Text variant="muted" size="sm" className="mt-0.5">
                   {project.tech.join(" • ")}
-                </p>
+                </Text>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -116,17 +117,19 @@ export function DashboardRecentProjects() {
       </div>
 
       {recentProjects.length === 0 && (
-        <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl">
-          <div className="text-5xl mb-4">📁</div>
-          <p className="text-slate-600 dark:text-slate-400 mb-4">No recent projects found.</p>
-          <Link
-            href="/dashboard/projects/create"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-sky-500/30"
-          >
-            Create your first project
-          </Link>
-        </div>
+        <EmptyState
+          icon="📁"
+          title="No recent projects found"
+          action={
+            <Link
+              href="/dashboard/projects/create"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-sky-500/30"
+            >
+              Create your first project
+            </Link>
+          }
+        />
       )}
-    </div>
+    </GlassCard>
   );
 }

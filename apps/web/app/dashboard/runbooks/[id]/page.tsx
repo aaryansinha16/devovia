@@ -10,6 +10,7 @@ import {
   executeRunbook,
   type RunbookStep,
 } from "../../../../lib/services/runbooks-service";
+import { Container, Heading, Text, GlassCard, IconButton, Input, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
 
 // Dynamic import to avoid SSR issues with ReactFlow
 const RunbookFlowEditor = dynamic(
@@ -146,99 +147,95 @@ export default function EditRunbookPage() {
   return (
     <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "2s" }}></div>
-      </div>
+      <BackgroundDecorative variant="subtle" />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Container className="relative z-10">
         <div className="flex items-center gap-4 mb-6">
-          <button
+          <IconButton
             onClick={() => router.back()}
-            className="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            icon={<IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />}
             aria-label="Go back"
-          >
-            <IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
-          </button>
+          />
           <div className="flex-1">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+            <Heading size="h1" variant="gradient" spacing="none">
               Edit Runbook
-            </h1>
-            <p className="text-slate-600 dark:text-slate-300 mt-1">Update your automation workflow</p>
+            </Heading>
+            <Text className="mt-1">Update your automation workflow</Text>
           </div>
           <div className="flex items-center gap-3">
             {status === "ACTIVE" && (
-              <button
+              <Button
                 onClick={handleExecute}
-                disabled={executing}
-                className="px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                disabled={executing || status !== "ACTIVE"}
+                variant="gradient"
+                size="md"
+                leftIcon={executing ? <IconLoader2 size={18} className="animate-spin" /> : <IconPlayerPlay size={18} />}
+                className="from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-green-500/30 hover:shadow-green-500/40"
               >
-                {executing ? (
-                  <IconLoader2 size={18} className="animate-spin" />
-                ) : (
-                  <IconPlayerPlay size={18} />
-                )}
                 {executing ? "Executing..." : "Execute"}
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={handleSave}
               disabled={saving}
-              className="px-6 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="gradient"
+              size="md"
+              className="from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 shadow-sky-500/30 hover:shadow-sky-500/40"
             >
               {saving ? "Saving..." : "Save Changes"}
-            </button>
+            </Button>
           </div>
         </div>
 
         {error && (
-          <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-500">
+          <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/20 rounded-xl shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
             <p className="text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
 
         {/* Basic Info Section */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg mb-6">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Basic Information</h2>
+        <GlassCard className="mb-6">
+          <Heading size="h2" spacing="default">Basic Information</Heading>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Name *</label>
-              <input
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Deploy to Production"
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as typeof status)}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="DRAFT">Draft</option>
-                <option value="ACTIVE">Active</option>
-                <option value="ARCHIVED">Archived</option>
-                <option value="DEPRECATED">Deprecated</option>
-              </select>
+              <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="ARCHIVED">Archived</SelectItem>
+                  <SelectItem value="DEPRECATED">Deprecated</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Environment</label>
-              <select
-                value={environment}
-                onChange={(e) => setEnvironment(e.target.value as "DEVELOPMENT" | "STAGING" | "PRODUCTION")}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="DEVELOPMENT">Development</option>
-                <option value="STAGING">Staging</option>
-                <option value="PRODUCTION">Production</option>
-              </select>
+              <Select value={environment} onValueChange={(value) => setEnvironment(value as "DEVELOPMENT" | "STAGING" | "PRODUCTION")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select environment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DEVELOPMENT">Development</SelectItem>
+                  <SelectItem value="STAGING">Staging</SelectItem>
+                  <SelectItem value="PRODUCTION">Production</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="md:col-span-2">
@@ -248,74 +245,62 @@ export default function EditRunbookPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what this runbook does..."
                 rows={2}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tags</label>
               <div className="flex gap-2">
-                <input
+                <Input
                   type="text"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                   placeholder="Add tag..."
-                  className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="flex-1"
                 />
-                <button
+                <Button
                   onClick={addTag}
-                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl transition-all"
+                  variant="secondary"
+                  size="sm"
+                  className="px-4 py-2"
                 >
                   Add
-                </button>
+                </Button>
               </div>
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {tags.map((tag) => (
                     <span key={tag} className="px-3 py-1.5 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-700 dark:text-sky-300 text-sm rounded-lg font-medium flex items-center gap-1">
                       {tag}
-                      <button onClick={() => removeTag(tag)} className="hover:text-red-600 dark:hover:text-red-400">×</button>
+                      <Button onClick={() => removeTag(tag)} variant="ghost" size="sm" className="h-auto p-0 hover:text-red-600 dark:hover:text-red-400">×</Button>
                     </span>
                   ))}
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Visual Editor Section */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+        <GlassCard>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Workflow Editor</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              <Heading size="h2" spacing="none">Workflow Editor</Heading>
+              <Text size="sm" variant="muted" className="mt-1">
                 {editorMode === "workflow" ? "Click steps from the left panel to add them. Drag nodes to reposition." : "Add and configure steps using the form below."}
-              </p>
+              </Text>
             </div>
             <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
-              <button
-                onClick={() => setEditorMode("workflow")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
-                  editorMode === "workflow"
-                    ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-                }`}
+              <Button
+                onClick={() => setEditorMode(editorMode === "workflow" ? "form" : "workflow")}
+                variant="secondary"
+                size="sm"
+                leftIcon={editorMode === "workflow" ? <IconList size={18} /> : <IconLayoutGrid size={18} />}
               >
-                <IconLayoutGrid size={16} />
-                Visual
-              </button>
-              <button
-                onClick={() => setEditorMode("form")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
-                  editorMode === "form"
-                    ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-                }`}
-              >
-                <IconList size={16} />
-                Form
-              </button>
+                Switch to {editorMode === "workflow" ? "Form" : "Workflow"} View
+              </Button>
             </div>
           </div>
 
@@ -332,8 +317,8 @@ export default function EditRunbookPage() {
               onChange={setSteps}
             />
           )}
-        </div>
-      </div>
+        </GlassCard>
+      </Container>
     </div>
 
     {/* Fullscreen Editor Overlay */}

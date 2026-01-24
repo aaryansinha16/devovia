@@ -5,35 +5,33 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed",
+  "inline-flex items-center justify-center font-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed",
   {
     variants: {
       variant: {
         default:
-          "ui-bg-primary ui-text-primary-foreground ui-hover:ui-bg-primary/90",
+          "bg-sky-500 hover:bg-sky-600 text-white shadow-sm",
+        gradient:
+          "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105 duration-200",
         destructive:
-          "ui-bg-destructive ui-text-destructive-foreground ui-hover:ui-bg-destructive/90",
+          "bg-red-500 hover:bg-red-600 text-white shadow-sm",
         outline:
-          "ui-border ui-border-input ui-bg-background ui-hover:ui-bg-accent ui-hover:ui-text-accent-foreground",
+          "border border-slate-200 dark:border-slate-700 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300",
         secondary:
-          "ui-bg-secondary ui-text-secondary-foreground ui-hover:ui-bg-secondary/80",
-        ghost: "ui-hover:ui-bg-accent ui-hover:ui-text-accent-foreground",
-        link: "ui-text-primary ui-underline-offset-4 ui-hover:ui-underline",
-        // New variants from custom button
-        primary:
-          "bg-sky-500 hover:bg-sky-600 dark:bg-sky-600 dark:hover:bg-sky-700 text-white focus:ring-sky-500 dark:focus:ring-sky-600",
-        secondaryAlt:
-          "ui-bg-indigo-500 ui-hover:ui-bg-indigo-600 dark:ui-bg-indigo-600 dark:ui-hover:ui-bg-indigo-700 ui-text-white ui-focus:ui-ring-indigo-500 dark:ui-focus:ui-ring-indigo-600 hover:ui--translate-y-0.5",
-        outlineAlt:
-          "ui-bg-transparent ui-hover:ui-bg-sky-500/10 dark:ui-hover:ui-bg-sky-400/10 ui-text-sky-500 dark:ui-text-sky-400 ui-border ui-border-sky-500 dark:ui-border-sky-400 ui-focus:ui-ring-sky-500 dark:ui-focus:ui-ring-sky-400 hover:ui--translate-y-0.5",
+          "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600",
+        ghost:
+          "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300",
+        icon:
+          "p-2 text-slate-600 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-xl",
+        link:
+          "text-sky-500 hover:text-sky-600 underline-offset-4 hover:underline",
       },
       size: {
-        default: "ui-h-10 ui-px-4 ui-py-2",
-        sm: "px-4 py-2 text-sm",
-        lg: "px-6 py-2.5 text-base",
-        icon: "ui-h-10 ui-w-10",
-        // New sizes from custom button
-        md: "px-6 py-2.5 text-base",
+        default: "px-4 py-2 text-sm",
+        sm: "px-3 py-1.5 text-xs",
+        md: "px-6 py-3 text-base",
+        lg: "px-8 py-4 text-lg",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {
@@ -84,11 +82,11 @@ const Button = React.forwardRef<HTMLElement, ButtonProps>(
     const content = (
       <>
         {leftIcon && (
-          <span className="ui-mr-2 ui--ml-1 ui-h-5 ui-w-5">{leftIcon}</span>
+          <span className="mr-2 -ml-1 h-5 w-5 flex items-center justify-center">{leftIcon}</span>
         )}
         {props.children}
         {rightIcon && (
-          <span className="ui-ml-2 ui--mr-1 ui-h-5 ui-w-5">{rightIcon}</span>
+          <span className="ml-2 -mr-1 h-5 w-5 flex items-center justify-center">{rightIcon}</span>
         )}
       </>
     );

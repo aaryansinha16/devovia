@@ -21,6 +21,10 @@ export const ServerPagination = ({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Safety checks
+  const safeTotalPages = Math.max(1, Math.floor(totalPages) || 1);
+  const safeCurrentPage = Math.max(1, Math.min(Math.floor(currentPage) || 1, safeTotalPages));
+
   // Create URLSearchParams object for building page links
   const createQueryString = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -44,39 +48,39 @@ export const ServerPagination = ({
   const getPageNumbers = () => {
     let pages: (number | "ellipsis")[] = [];
 
-    if (totalPages <= 7) {
+    if (safeTotalPages <= 7) {
       // If there are 7 or fewer pages, show all
-      pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+      pages = Array.from({ length: safeTotalPages }, (_, i) => i + 1);
     } else {
       // Always show the first page
       pages.push(1);
 
-      if (currentPage > 3) {
+      if (safeCurrentPage > 3) {
         // Add ellipsis if current page is further from start
         pages.push("ellipsis");
       }
 
       // Show pages around current page
-      const startPage = Math.max(2, currentPage - 1);
-      const endPage = Math.min(totalPages - 1, currentPage + 1);
+      const startPage = Math.max(2, safeCurrentPage - 1);
+      const endPage = Math.min(safeTotalPages - 1, safeCurrentPage + 1);
 
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
 
-      if (currentPage < totalPages - 2) {
+      if (safeCurrentPage < safeTotalPages - 2) {
         // Add ellipsis if current page is further from end
         pages.push("ellipsis");
       }
 
       // Always show the last page
-      pages.push(totalPages);
+      pages.push(safeTotalPages);
     }
 
     return pages;
   };
 
-  if (totalPages <= 1) return null;
+  if (safeTotalPages <= 1) return null;
 
   return (
     <nav
@@ -86,18 +90,18 @@ export const ServerPagination = ({
       {/* Previous Page Button */}
       <Link
         href={
-          currentPage > 1
-            ? `${basePath}?${createQueryString(currentPage - 1)}`
+          safeCurrentPage > 1
+            ? `${basePath}?${createQueryString(safeCurrentPage - 1)}`
             : "#"
         }
         className={cn(
           "relative inline-flex items-center px-2 py-2 rounded-md text-sm font-medium",
-          currentPage === 1
+          safeCurrentPage === 1
             ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
         )}
-        aria-disabled={currentPage === 1}
-        tabIndex={currentPage === 1 ? -1 : undefined}
+        aria-disabled={safeCurrentPage === 1}
+        tabIndex={safeCurrentPage === 1 ? -1 : undefined}
       >
         <span className="sr-only">Previous page</span>
         <svg
@@ -130,11 +134,11 @@ export const ServerPagination = ({
             href={`${basePath}?${createQueryString(pageNum)}`}
             className={cn(
               "relative inline-flex items-center px-3 py-2 rounded-md text-sm font-medium",
-              currentPage === pageNum
+              safeCurrentPage === pageNum
                 ? "bg-primary text-white"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
             )}
-            aria-current={currentPage === pageNum ? "page" : undefined}
+            aria-current={safeCurrentPage === pageNum ? "page" : undefined}
           >
             {pageNum}
           </Link>
@@ -144,18 +148,18 @@ export const ServerPagination = ({
       {/* Next Page Button */}
       <Link
         href={
-          currentPage < totalPages
-            ? `${basePath}?${createQueryString(currentPage + 1)}`
+          safeCurrentPage < safeTotalPages
+            ? `${basePath}?${createQueryString(safeCurrentPage + 1)}`
             : "#"
         }
         className={cn(
           "relative inline-flex items-center px-2 py-2 rounded-md text-sm font-medium",
-          currentPage >= totalPages
+          safeCurrentPage >= safeTotalPages
             ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
         )}
-        aria-disabled={currentPage >= totalPages}
-        tabIndex={currentPage >= totalPages ? -1 : undefined}
+        aria-disabled={safeCurrentPage >= safeTotalPages}
+        tabIndex={safeCurrentPage >= safeTotalPages ? -1 : undefined}
       >
         <span className="sr-only">Next page</span>
         <svg

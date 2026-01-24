@@ -49,3 +49,76 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+@layer utilities {
+  @keyframes heartBeat {
+    0%, 100% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(1.3);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes particle-burst {
+    0% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.2) translateY(-30px);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.5) translateY(-60px);
+    }
+  }
+
+  .animate-particle-burst {
+    animation: particle-burst 0.8s ease-out forwards;
+  }
+
+  @keyframes heart-pop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.4);
+      opacity: 1;
+    }
+    70% {
+      transform: scale(0.9);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-heart-pop {
+    animation: heart-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes float-up {
+    0% {
+      transform: translateY(0) scale(0.5);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100px) scale(1.2);
+      opacity: 0;
+    }
+  }
+
+  .animate-float-up {
+    animation: float-up 1.2s ease-out forwards;
+  }
+}

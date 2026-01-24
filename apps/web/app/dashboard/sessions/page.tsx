@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Button
-} from '@repo/ui/components';
+import { Container, Heading, Text, GlassCard, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from '@repo/ui';
 import { 
   Plus, 
   Users, 
@@ -14,7 +12,8 @@ import {
   Filter,
   Globe,
   Play,
-  Archive
+  Archive,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../../lib/auth-context';
 import { useSessionStore } from '../../../lib/stores/session-store';
@@ -70,13 +69,14 @@ function CreateSessionDialog() {
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
+        variant="gradient"
+        size="md"
+        leftIcon={<Plus className="w-5 h-5" />}
       >
-        <Plus className="w-5 h-5" />
         New Session
-      </button>
+      </Button>
       
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -89,13 +89,14 @@ function CreateSessionDialog() {
           {/* Modal */}
           <div className="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-0 rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">Create New Session</h2>
-              <button
+              <Heading size="h2" variant="gradient">Create New Session</Heading>
+              <Button
                 onClick={() => setOpen(false)}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+                variant="ghost"
+                size="icon"
               >
                 <span className="text-2xl text-slate-600 dark:text-slate-300">×</span>
-              </button>
+              </Button>
             </div>
             <div className="space-y-4">
               <div>
@@ -129,53 +130,57 @@ function CreateSessionDialog() {
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                     Language
                   </label>
-                  <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-0 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-                  >
-                    <option value="TYPESCRIPT">🔷 TypeScript</option>
-                    <option value="JAVASCRIPT">🟨 JavaScript</option>
-                    <option value="PYTHON">🐍 Python</option>
-                    <option value="SQL">🗄️ SQL</option>
-                    <option value="JSON">📄 JSON</option>
-                    <option value="MARKDOWN">📝 Markdown</option>
-                    <option value="HTML">🌐 HTML</option>
-                    <option value="CSS">🎨 CSS</option>
-                    <option value="YAML">⚙️ YAML</option>
-                  </select>
+                  <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TYPESCRIPT">🔷 TypeScript</SelectItem>
+                      <SelectItem value="JAVASCRIPT">🟨 JavaScript</SelectItem>
+                      <SelectItem value="PYTHON">🐍 Python</SelectItem>
+                      <SelectItem value="SQL">🗄️ SQL</SelectItem>
+                      <SelectItem value="JSON">📄 JSON</SelectItem>
+                      <SelectItem value="MARKDOWN">📝 Markdown</SelectItem>
+                      <SelectItem value="HTML">🌐 HTML</SelectItem>
+                      <SelectItem value="CSS">🎨 CSS</SelectItem>
+                      <SelectItem value="YAML">⚙️ YAML</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                     Visibility
                   </label>
-                  <select
-                    value={visibility}
-                    onChange={(e) => setVisibility(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-0 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-                  >
-                    <option value="PRIVATE">🔒 Private</option>
-                    <option value="UNLISTED">👁️ Unlisted</option>
-                    <option value="PUBLIC">🌍 Public</option>
-                  </select>
+                  <Select value={visibility} onValueChange={setVisibility}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select visibility" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PRIVATE">🔒 Private</SelectItem>
+                      <SelectItem value="UNLISTED">👁️ Unlisted</SelectItem>
+                      <SelectItem value="PUBLIC">🌍 Public</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
               <div className="flex justify-end gap-3 pt-6">
-                <button
+                <Button
                   onClick={() => setOpen(false)}
-                  className="px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl font-medium transition-all"
+                  variant="secondary"
+                  size="md"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleCreate}
                   disabled={!title.trim() || isCreating}
-                  className="px-6 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="gradient"
+                  size="md"
                 >
                   {isCreating ? 'Creating...' : 'Create Session'}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -237,8 +242,7 @@ function SessionCard({ session }: { session: any }) {
         <div className="flex items-center gap-2">
           {session.lockedBy && (
             <span className="text-xs text-red-400 flex items-center gap-1">
-              <Lock className="w-3 h-3" />
-              Locked
+              <X className="w-5 h-5" />
             </span>
           )}
           {session.visibility === 'PRIVATE' && (
@@ -249,11 +253,13 @@ function SessionCard({ session }: { session: any }) {
           )}
         </div>
         
-        <Link href={`/dashboard/sessions/${session.id}`}>
-          <button className="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl text-sm font-medium transition-all shadow-lg shadow-sky-500/30">
-            Open
-          </button>
-        </Link>
+        <Button
+          href={`/dashboard/sessions/${session.id}`}
+          variant="gradient"
+          size="sm"
+        >
+          Open
+        </Button>
       </div>
       </div>
     </div>
@@ -343,35 +349,31 @@ export default function SessionsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
-      </div>
+      <BackgroundDecorative variant="subtle" />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Container className="relative z-10">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent mb-2">
+            <Heading size="h1" variant="gradient" spacing="sm">
               Collaborative Sessions
-            </h1>
-            <p className="text-slate-600 dark:text-slate-300">
+            </Heading>
+            <Text>
               Code, debug, and collaborate with your team in real-time
-            </p>
+            </Text>
           </div>
           <CreateSessionDialog />
         </div>
 
         {/* Tabs */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg mb-6">
+        <GlassCard padding="sm" className="mb-6">
           <div className="flex gap-2">
             {(['all', 'active', 'archived'] as const).map((tab) => (
-              <button
+              <Button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all ${
+                variant="ghost"
+                className={`flex-1 ${
                   activeTab === tab
                     ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/30'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -388,10 +390,10 @@ export default function SessionsPage() {
                      sessions.filter(s => !s.isActive).length}
                   </span>
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Search and Filters */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -409,17 +411,18 @@ export default function SessionsPage() {
           
           {/* Language Filter */}
           <div className="relative">
-            <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <select
-              value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-lg appearance-none"
-            >
-              <option value="all">All Languages</option>
-              {languages.map(lang => (
-                <option key={lang} value={lang}>{lang}</option>
-              ))}
-            </select>
+            <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 z-10 pointer-events-none" />
+            <Select value={languageFilter} onValueChange={setLanguageFilter}>
+              <SelectTrigger className="w-full pl-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+                <SelectValue placeholder="All Languages" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Languages</SelectItem>
+                {languages.map(lang => (
+                  <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -456,7 +459,7 @@ export default function SessionsPage() {
 
         {/* Error state */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500 rounded-2xl p-6 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 mb-6 shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
             <p className="text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
@@ -477,37 +480,35 @@ export default function SessionsPage() {
           </div>
         ) : filteredSessions.length === 0 ? (
           searchQuery || languageFilter !== 'all' ? (
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-12 shadow-lg text-center">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-                No sessions found
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Try adjusting your search or filters.
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setLanguageFilter('all');
-                }}
-                className="px-6 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30"
-              >
-                Clear Filters
-              </button>
-            </div>
+            <EmptyState
+              icon="🔍"
+              title="No sessions found"
+              description="Try adjusting your search or filters."
+              action={
+                <Button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setLanguageFilter('all');
+                    setActiveTab('all');
+                  }}
+                  variant="gradient"
+                  size="md"
+                >
+                  Clear Filters
+                </Button>
+              }
+            />
           ) : (
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-12 shadow-lg text-center">
-              <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-                No {activeTab === 'active' ? 'active' : activeTab === 'archived' ? 'archived' : ''} sessions
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400 mb-6">
-                {activeTab === 'active' ? 'Start a new session to collaborate with your team.' : 
-                 activeTab === 'archived' ? 'Your archived sessions will appear here.' :
-                 'Create your first collaborative session to get started.'}
-              </p>
-              {activeTab !== 'archived' && <CreateSessionDialog />}
-            </div>
+            <EmptyState
+              icon="📝"
+              title={`No ${activeTab === 'active' ? 'active' : activeTab === 'archived' ? 'archived' : ''} sessions`}
+              description={
+                activeTab === 'active' ? 'Start a new session to collaborate with your team.' : 
+                activeTab === 'archived' ? 'Your archived sessions will appear here.' :
+                'Create your first collaborative session to get started.'
+              }
+              action={activeTab !== 'archived' ? <CreateSessionDialog /> : undefined}
+            />
           )
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -516,7 +517,7 @@ export default function SessionsPage() {
             ))}
           </div>
         )}
-      </div>
+      </Container>
     </div>
   );
 }
