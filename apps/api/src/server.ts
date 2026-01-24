@@ -30,6 +30,10 @@ import runbooksRoutes from './routes/runbooks.routes';
 import runbookApprovalsRoutes from './routes/runbook-approvals.routes';
 import runbookSecretsRoutes from './routes/runbook-secrets.routes';
 import runbookSchedulesRoutes from './routes/runbook-schedules.routes';
+import snippetRoutes from './routes/snippet.routes';
+import projectRoutes from './routes/project.routes';
+import projectNotesRoutes from './routes/project-notes.routes';
+import projectChatRoutes from './routes/project-chat.routes';
 
 // Import WebSocket collaboration server
 import CollaborationServer from './websocket/collaboration-server';
@@ -125,6 +129,10 @@ export function createExpressApp() {
   app.use('/api/runbooks/approvals', runbookApprovalsRoutes);
   app.use('/api/runbooks/secrets', runbookSecretsRoutes);
   app.use('/api/runbooks', runbookSchedulesRoutes);
+  app.use('/api/snippets', snippetRoutes);
+  app.use('/api/projects', projectRoutes);
+  app.use('/api/project-notes', projectNotesRoutes);
+  app.use('/api/project-chat', projectChatRoutes);
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {

@@ -34,7 +34,7 @@ const nodeTypes = {
 
 interface RunbookFlowEditorProps {
   initialSteps?: RunbookStep[];
-  // eslint-disable-next-line no-unused-vars
+   
   onChange?: (steps: RunbookStep[]) => void;
   readOnly?: boolean;
   isFullscreen?: boolean;

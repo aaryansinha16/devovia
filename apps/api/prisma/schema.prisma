@@ -19,175 +19,286 @@ enum Role {
 
 // Users and authentication
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  username      String    @unique
-  password      String?
-  bio           String?
-  avatar        String?
+  id             String  @id @default(cuid())
+  email          String  @unique
+  name           String?
+  username       String  @unique
+  password       String?
+  bio            String?
+  avatar         String?
   avatarPublicId String?
-  githubUrl     String?
-  twitterUrl    String?
-  portfolioUrl  String?
-  role          Role      @default(USER)
-  isVerified    Boolean   @default(false)
-  
+  githubUrl      String?
+  twitterUrl     String?
+  portfolioUrl   String?
+  role           Role    @default(USER)
+  isVerified     Boolean @default(false)
+
   // OAuth fields
-  githubId      String?   @unique
-  googleId      String?   @unique
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  githubId String? @unique
+  googleId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  sessions            Session[]           // Auth sessions
-  collaborativeSessions CollaborativeSession[] @relation("SessionOwner")
-  sessionPermissions  SessionPermission[]
-  projects            Project[]
-  snippets            Snippet[]
-  posts               Post[]
-  comments            Comment[]
-  likes               Like[]
-  runbooks            Runbook[]           @relation("RunbookOwner")
+  sessions              Session[]                  // Auth sessions
+  collaborativeSessions CollaborativeSession[]     @relation("SessionOwner")
+  sessionPermissions    SessionPermission[]
+  projects              Project[]
+  projectMemberships    ProjectMember[]
+  projectMessages       ProjectMessage[]
+  snippets              Snippet[]
+  posts                 Post[]
+  comments              Comment[]
+  likes                 Like[]
+  runbooks              Runbook[]                  @relation("RunbookOwner")
 }
 
 // User sessions for authentication and token management
 model Session {
-  id            String    @id @default(cuid())
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token         String    @unique // Refresh token
-  device        String?   // Device information
-  ipAddress     String?   // IP address
-  userAgent     String?   // Browser/app info
-  isValid       Boolean   @default(true) // For invalidating sessions
-  isActive      Boolean   @default(true) // Backward compatibility
-  lastActive    DateTime  @default(now())
-  expiresAt     DateTime
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String   @unique // Refresh token
+  device     String? // Device information
+  ipAddress  String? // IP address
+  userAgent  String? // Browser/app info
+  isValid    Boolean  @default(true) // For invalidating sessions
+  isActive   Boolean  @default(true) // Backward compatibility
+  lastActive DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   @@index([userId])
   @@index([token])
 }
 
+// Enum for project status
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+  ARCHIVED
+}
+
+// Enum for project visibility
+enum ProjectVisibility {
+  PUBLIC
+  PRIVATE
+  TEAM_ONLY
+}
+
+// Enum for project member role
+enum ProjectRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
 // Projects showcase
 model Project {
-  id            String    @id @default(cuid())
-  title         String
-  description   String
-  repoUrl       String?
-  demoUrl       String?
-  thumbnail     String?
-  techStack     String[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id                String            @id @default(cuid())
+  title             String
+  description       String            @db.Text
+  repoUrl           String?
+  demoUrl           String?
+  thumbnail         String?
+  thumbnailPublicId String?
+  techStack         String[]
+  status            ProjectStatus     @default(PLANNING)
+  visibility        ProjectVisibility @default(PRIVATE)
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
   // Relations
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments      Comment[]
-  likes         Like[]
-  tags          Tag[]     @relation("ProjectTags")
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members        ProjectMember[]
+  links          ProjectLink[]
+  comments       Comment[]
+  likes          Like[]
+  tags           Tag[]            @relation("ProjectTags")
+  ProjectNote    ProjectNote?
+  ProjectMessage ProjectMessage[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([visibility])
+}
+
+// Project team members
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(MEMBER)
+  joinedAt  DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+}
+
+// Project links (documentation, design, etc.)
+model ProjectLink {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  url       String
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Project collaborative notes (Yjs documents)
+model ProjectNote {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  title     String   @default("Project Notes")
+  yjsState  Bytes? // Yjs document state
+  content   String?  @db.Text // Fallback plain text content
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Project chat messages
+model ProjectMessage {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // Code snippets
 model Snippet {
-  id            String    @id @default(cuid())
-  title         String
-  description   String?
-  code          String
-  language      String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  code        String   @db.Text
+  language    String
+  tags        String[]
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments      Comment[]
-  likes         Like[]
-  tags          Tag[]     @relation("SnippetTags")
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+
+  @@index([userId])
+  @@index([language])
+  @@index([isPublic])
 }
 
 // Blog posts and guides
 model Post {
-  id            String    @id @default(cuid())
-  title         String
-  slug          String    @unique
-  content       String
-  excerpt       String?
-  coverImage    String?
-  published     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  content    String
+  excerpt    String?
+  coverImage String?
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   // Relations
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments      Comment[]
-  likes         Like[]
-  tags          Tag[]     @relation("PostTags")
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+  tags     Tag[]     @relation("PostTags")
 }
 
 // Templates
 model Template {
-  id            String    @id @default(cuid())
-  title         String
-  description   String
-  repoUrl       String
-  techStack     String[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  repoUrl     String
+  techStack   String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
-  tags          Tag[]     @relation("TemplateTags")
+  tags Tag[] @relation("TemplateTags")
 }
 
 // Shared models
 model Comment {
-  id            String    @id @default(cuid())
-  content       String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projectId     String?
-  project       Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  snippetId     String?
-  snippet       Snippet?  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-  postId        String?
-  post          Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  snippetId String?
+  snippet   Snippet? @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Like {
-  id            String    @id @default(cuid())
-  createdAt     DateTime  @default(now())
-  
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
   // Relations
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projectId     String?
-  project       Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  snippetId     String?
-  snippet       Snippet?  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-  postId        String?
-  post          Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  snippetId String?
+  snippet   Snippet? @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   @@unique([userId, projectId, snippetId, postId])
 }
 
 model Tag {
-  id            String    @id @default(cuid())
-  name          String    @unique
-  
+  id   String @id @default(cuid())
+  name String @unique
+
   // Relations
-  projects      Project[] @relation("ProjectTags")
-  snippets      Snippet[] @relation("SnippetTags")
-  posts         Post[]    @relation("PostTags")
-  templates     Template[] @relation("TemplateTags")
+  projects  Project[]  @relation("ProjectTags")
+  posts     Post[]     @relation("PostTags")
+  templates Template[] @relation("TemplateTags")
 }
 
 // ============================================================================
@@ -228,26 +339,26 @@ model CollaborativeSession {
   owner       User              @relation("SessionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   visibility  SessionVisibility @default(PRIVATE)
   language    SessionLanguage   @default(TYPESCRIPT)
-  
+
   // Content (Phase A - single writer)
-  content     String?           @db.Text
-  
+  content String? @db.Text
+
   // Locking mechanism (Phase A)
   lockedBy    String?
   lockedUntil DateTime?
-  
+
   // Session metadata
-  isActive    Boolean           @default(true)
-  inviteCode  String?           @unique // For shareable links
-  
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  
+  isActive   Boolean @default(true)
+  inviteCode String? @unique // For shareable links
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
   permissions SessionPermission[]
   snapshots   SessionSnapshot[]
   changes     SessionChange[]
-  
+
   @@map("collaborative_sessions")
 }
 
@@ -257,66 +368,66 @@ model SessionPermission {
   sessionId String
   userId    String
   role      SessionRole @default(VIEWER)
-  
+
   // Timestamps
-  joinedAt  DateTime    @default(now())
-  lastActive DateTime?  @default(now())
-  
+  joinedAt   DateTime  @default(now())
+  lastActive DateTime? @default(now())
+
   // Relations
-  session   CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  session CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([sessionId, userId])
   @@map("session_permissions")
 }
 
 // Session snapshots for versioning and persistence
 model SessionSnapshot {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   sessionId String
-  
+
   // Content (Phase A - text content, Phase B - Yjs state)
-  content   String?  @db.Text // Phase A fallback
-  yjsState  Bytes?              // Phase B - serialized Yjs document
-  
+  content  String? @db.Text // Phase A fallback
+  yjsState Bytes? // Phase B - serialized Yjs document
+
   // Metadata
-  version   Int      @default(autoincrement())
-  createdAt DateTime @default(now())
-  createdBy String?
+  version       Int      @default(autoincrement())
+  createdAt     DateTime @default(now())
+  createdBy     String?
   createdByName String? // Denormalized for quick access
-  note      String?  // Optional snapshot description
-  size      Int?     // Content size in bytes
-  isAutoSave Boolean @default(false) // Auto-save vs manual snapshot
-  
+  note          String? // Optional snapshot description
+  size          Int? // Content size in bytes
+  isAutoSave    Boolean  @default(false) // Auto-save vs manual snapshot
+
   // Relations
-  session   CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
+  session CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   @@index([sessionId, createdAt])
   @@map("session_snapshots")
 }
 
 // Granular change tracking for session recording and playback
 model SessionChange {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   sessionId String
-  
+
   // Change details
   userId    String
-  userName  String?  // Denormalized for quick access
-  userColor String?  // User's cursor color
-  
+  userName  String? // Denormalized for quick access
+  userColor String? // User's cursor color
+
   // Change type and content
-  changeType String  // 'insert', 'delete', 'replace'
-  position   Int     // Character position in document
-  length     Int?    // Length of change (for delete/replace)
+  changeType String // 'insert', 'delete', 'replace'
+  position   Int // Character position in document
+  length     Int? // Length of change (for delete/replace)
   content    String? @db.Text // Inserted/replaced content
-  
+
   // Timing
   timestamp DateTime @default(now())
-  
+
   // Relations
-  session   CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
+  session CollaborativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   @@index([sessionId, timestamp])
   @@map("session_changes")
 }
@@ -339,21 +450,21 @@ enum RunbookEnvironment {
 }
 
 enum StepType {
-  HTTP         // HTTP/webhook requests
-  SQL          // Database queries
-  SHELL        // Shell commands (sandboxed)
-  SCRIPT       // Node/Python scripts (sandboxed)
-  MANUAL       // Manual approval/confirmation
-  CONDITIONAL  // If/else branching
-  AI           // AI-powered analysis/generation
-  WAIT         // Delay/sleep
-  PARALLEL     // Run multiple steps in parallel
+  HTTP // HTTP/webhook requests
+  SQL // Database queries
+  SHELL // Shell commands (sandboxed)
+  SCRIPT // Node/Python scripts (sandboxed)
+  MANUAL // Manual approval/confirmation
+  CONDITIONAL // If/else branching
+  AI // AI-powered analysis/generation
+  WAIT // Delay/sleep
+  PARALLEL // Run multiple steps in parallel
 }
 
 enum ExecutionStatus {
   QUEUED
   RUNNING
-  PAUSED        // Waiting for approval
+  PAUSED // Waiting for approval
   SUCCESS
   FAILED
   CANCELLED
@@ -397,52 +508,52 @@ enum ScheduleFrequency {
 
 // Main Runbook model
 model Runbook {
-  id            String            @id @default(cuid())
-  name          String
-  description   String?           @db.Text
-  
+  id          String  @id @default(cuid())
+  name        String
+  description String? @db.Text
+
   // Ownership and team
-  ownerId       String
-  owner         User              @relation("RunbookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  teamId        String?
-  
+  ownerId String
+  owner   User    @relation("RunbookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  teamId  String?
+
   // Configuration
-  status        RunbookStatus     @default(DRAFT)
-  environment   RunbookEnvironment @default(DEVELOPMENT)
-  tags          String[]          // For categorization: deploy, backup, incident, db, infra
-  
+  status      RunbookStatus      @default(DRAFT)
+  environment RunbookEnvironment @default(DEVELOPMENT)
+  tags        String[] // For categorization: deploy, backup, incident, db, infra
+
   // Steps stored as JSON for flexibility
-  steps         Json              // Array of RunbookStep objects
-  
+  steps Json // Array of RunbookStep objects
+
   // Variables and parameters
-  parameters    Json?             // Input parameters definition
-  variables     Json?             // Environment variables (non-sensitive)
-  
+  parameters Json? // Input parameters definition
+  variables  Json? // Environment variables (non-sensitive)
+
   // Execution settings
-  timeoutSeconds Int              @default(3600) // 1 hour default
-  retryPolicy   Json?             // Retry configuration
-  rollbackSteps Json?             // Rollback step definitions
-  
+  timeoutSeconds Int   @default(3600) // 1 hour default
+  retryPolicy    Json? // Retry configuration
+  rollbackSteps  Json? // Rollback step definitions
+
   // Version control
-  version       Int               @default(1)
-  isLatest      Boolean           @default(true)
-  parentId      String?           // Previous version reference
-  
+  version  Int     @default(1)
+  isLatest Boolean @default(true)
+  parentId String? // Previous version reference
+
   // Collaboration
-  collaborativeSessionId String?  // Link to collaborative editing session
-  
+  collaborativeSessionId String? // Link to collaborative editing session
+
   // Timestamps
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  publishedAt   DateTime?
-  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
   // Relations
-  executions    RunbookExecution[]
-  schedules     RunbookSchedule[]
-  secrets       RunbookSecret[]
-  permissions   RunbookPermission[]
-  webhooks      RunbookWebhook[]
-  
+  executions  RunbookExecution[]
+  schedules   RunbookSchedule[]
+  secrets     RunbookSecret[]
+  permissions RunbookPermission[]
+  webhooks    RunbookWebhook[]
+
   @@index([ownerId])
   @@index([status])
   @@index([environment])
@@ -451,46 +562,46 @@ model Runbook {
 
 // Runbook execution instance
 model RunbookExecution {
-  id            String          @id @default(cuid())
-  runbookId     String
-  runbook       Runbook         @relation(fields: [runbookId], references: [id], onDelete: Cascade)
-  
+  id        String  @id @default(cuid())
+  runbookId String
+  runbook   Runbook @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+
   // Execution metadata
-  status        ExecutionStatus @default(QUEUED)
-  triggeredBy   String          // User ID who triggered
-  triggeredByName String?       // Denormalized for quick access
-  triggerType   String          @default("manual") // manual, scheduled, webhook, api
-  
+  status          ExecutionStatus @default(QUEUED)
+  triggeredBy     String // User ID who triggered
+  triggeredByName String? // Denormalized for quick access
+  triggerType     String          @default("manual") // manual, scheduled, webhook, api
+
   // Input/Output
-  inputParams   Json?           // Runtime parameter values
-  outputData    Json?           // Execution output/results
-  
+  inputParams Json? // Runtime parameter values
+  outputData  Json? // Execution output/results
+
   // Progress tracking
-  currentStep   Int             @default(0)
-  totalSteps    Int             @default(0)
-  
+  currentStep Int @default(0)
+  totalSteps  Int @default(0)
+
   // Timing
-  startedAt     DateTime?
-  finishedAt    DateTime?
-  duration      Int?            // Duration in milliseconds
-  
+  startedAt  DateTime?
+  finishedAt DateTime?
+  duration   Int? // Duration in milliseconds
+
   // Error handling
-  errorMessage  String?         @db.Text
-  errorStep     Int?
-  
+  errorMessage String? @db.Text
+  errorStep    Int?
+
   // Environment info
-  environment   RunbookEnvironment
-  executionContext Json?        // Runtime context (sanitized)
-  
+  environment      RunbookEnvironment
+  executionContext Json? // Runtime context (sanitized)
+
   // Timestamps
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  logs          RunbookLog[]
-  stepResults   RunbookStepResult[]
-  approvals     RunbookApproval[]
-  
+  logs        RunbookLog[]
+  stepResults RunbookStepResult[]
+  approvals   RunbookApproval[]
+
   @@index([runbookId])
   @@index([status])
   @@index([triggeredBy])
@@ -500,32 +611,32 @@ model RunbookExecution {
 
 // Individual step execution results
 model RunbookStepResult {
-  id            String          @id @default(cuid())
-  executionId   String
-  execution     RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
-  
+  id          String           @id @default(cuid())
+  executionId String
+  execution   RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
   // Step identification
-  stepIndex     Int
-  stepName      String?
-  stepType      StepType
-  
+  stepIndex Int
+  stepName  String?
+  stepType  StepType
+
   // Execution details
-  status        ExecutionStatus
-  startedAt     DateTime?
-  finishedAt    DateTime?
-  duration      Int?            // Duration in milliseconds
-  
+  status     ExecutionStatus
+  startedAt  DateTime?
+  finishedAt DateTime?
+  duration   Int? // Duration in milliseconds
+
   // Input/Output
-  input         Json?           // Step input (sanitized)
-  output        Json?           // Step output
-  
+  input  Json? // Step input (sanitized)
+  output Json? // Step output
+
   // Error details
-  errorMessage  String?         @db.Text
-  errorCode     String?
-  
+  errorMessage String? @db.Text
+  errorCode    String?
+
   // Retry tracking
-  attemptNumber Int             @default(1)
-  
+  attemptNumber Int @default(1)
+
   @@index([executionId])
   @@index([stepIndex])
   @@map("runbook_step_results")
@@ -533,19 +644,19 @@ model RunbookStepResult {
 
 // Execution logs
 model RunbookLog {
-  id            String          @id @default(cuid())
-  executionId   String
-  execution     RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
-  
+  id          String           @id @default(cuid())
+  executionId String
+  execution   RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
   // Log details
-  stepIndex     Int?
-  level         String          @default("info") // debug, info, warn, error
-  message       String          @db.Text
-  metadata      Json?           // Additional structured data
-  
+  stepIndex Int?
+  level     String @default("info") // debug, info, warn, error
+  message   String @db.Text
+  metadata  Json? // Additional structured data
+
   // Timing
-  timestamp     DateTime        @default(now())
-  
+  timestamp DateTime @default(now())
+
   @@index([executionId, timestamp])
   @@index([level])
   @@map("runbook_logs")
@@ -553,31 +664,31 @@ model RunbookLog {
 
 // Approval workflow
 model RunbookApproval {
-  id            String          @id @default(cuid())
-  executionId   String
-  execution     RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
-  
+  id          String           @id @default(cuid())
+  executionId String
+  execution   RunbookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
   // Approval details
-  stepIndex     Int
-  stepName      String?
-  
+  stepIndex Int
+  stepName  String?
+
   // Status
-  status        ApprovalStatus  @default(PENDING)
-  
+  status ApprovalStatus @default(PENDING)
+
   // Approver info
-  requestedAt   DateTime        @default(now())
-  requiredApprovers String[]    // User IDs required to approve
-  approvedBy    String?         // User ID who approved/rejected
-  approvedByName String?
-  respondedAt   DateTime?
-  
+  requestedAt       DateTime  @default(now())
+  requiredApprovers String[] // User IDs required to approve
+  approvedBy        String? // User ID who approved/rejected
+  approvedByName    String?
+  respondedAt       DateTime?
+
   // Comments
-  requestNote   String?         @db.Text
-  responseNote  String?         @db.Text
-  
+  requestNote  String? @db.Text
+  responseNote String? @db.Text
+
   // Expiration
-  expiresAt     DateTime?
-  
+  expiresAt DateTime?
+
   @@index([executionId])
   @@index([status])
   @@map("runbook_approvals")
@@ -585,32 +696,32 @@ model RunbookApproval {
 
 // Scheduled runbook executions
 model RunbookSchedule {
-  id            String            @id @default(cuid())
-  runbookId     String
-  runbook       Runbook           @relation(fields: [runbookId], references: [id], onDelete: Cascade)
-  
+  id        String  @id @default(cuid())
+  runbookId String
+  runbook   Runbook @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+
   // Schedule configuration
-  name          String?
-  frequency     ScheduleFrequency
-  cronExpression String?         // For CRON frequency
-  timezone      String            @default("UTC")
-  
+  name           String?
+  frequency      ScheduleFrequency
+  cronExpression String? // For CRON frequency
+  timezone       String            @default("UTC")
+
   // Execution parameters
-  inputParams   Json?             // Default parameters for scheduled runs
-  environment   RunbookEnvironment
-  
+  inputParams Json? // Default parameters for scheduled runs
+  environment RunbookEnvironment
+
   // Status
-  isActive      Boolean           @default(true)
-  
+  isActive Boolean @default(true)
+
   // Timing
-  nextRunAt     DateTime?
-  lastRunAt     DateTime?
-  
+  nextRunAt DateTime?
+  lastRunAt DateTime?
+
   // Timestamps
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  createdBy     String
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
   @@index([runbookId])
   @@index([isActive, nextRunAt])
   @@map("runbook_schedules")
@@ -618,30 +729,30 @@ model RunbookSchedule {
 
 // Secrets management
 model RunbookSecret {
-  id            String          @id @default(cuid())
-  runbookId     String?         // Null = organization-wide secret
-  runbook       Runbook?        @relation(fields: [runbookId], references: [id], onDelete: Cascade)
-  
+  id        String   @id @default(cuid())
+  runbookId String? // Null = organization-wide secret
+  runbook   Runbook? @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+
   // Secret details
-  name          String          // Secret key name
-  description   String?
-  type          SecretType      @default(OTHER)
-  
+  name        String // Secret key name
+  description String?
+  type        SecretType @default(OTHER)
+
   // Encrypted value (encrypted at application level)
-  encryptedValue String         @db.Text
-  
+  encryptedValue String @db.Text
+
   // Scope
-  environment   RunbookEnvironment? // Null = all environments
-  
+  environment RunbookEnvironment? // Null = all environments
+
   // Audit
-  createdBy     String
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  lastUsedAt    DateTime?
-  
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  lastUsedAt DateTime?
+
   // Version for rotation
-  version       Int             @default(1)
-  
+  version Int @default(1)
+
   @@unique([runbookId, name, environment])
   @@index([runbookId])
   @@map("runbook_secrets")
@@ -649,25 +760,25 @@ model RunbookSecret {
 
 // Runbook permissions (RBAC)
 model RunbookPermission {
-  id            String          @id @default(cuid())
-  runbookId     String
-  runbook       Runbook         @relation(fields: [runbookId], references: [id], onDelete: Cascade)
-  
+  id        String  @id @default(cuid())
+  runbookId String
+  runbook   Runbook @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+
   // Permission target
-  userId        String?         // Specific user
-  teamId        String?         // Or entire team
-  
+  userId String? // Specific user
+  teamId String? // Or entire team
+
   // Permissions
-  canView       Boolean         @default(true)
-  canEdit       Boolean         @default(false)
-  canExecute    Boolean         @default(false)
-  canApprove    Boolean         @default(false)
-  canManage     Boolean         @default(false) // Full admin access
-  
+  canView    Boolean @default(true)
+  canEdit    Boolean @default(false)
+  canExecute Boolean @default(false)
+  canApprove Boolean @default(false)
+  canManage  Boolean @default(false) // Full admin access
+
   // Timestamps
-  createdAt     DateTime        @default(now())
-  grantedBy     String
-  
+  createdAt DateTime @default(now())
+  grantedBy String
+
   @@unique([runbookId, userId])
   @@index([runbookId])
   @@map("runbook_permissions")
@@ -675,59 +786,59 @@ model RunbookPermission {
 
 // Webhook integrations for runbooks
 model RunbookWebhook {
-  id            String          @id @default(cuid())
-  runbookId     String
-  runbook       Runbook         @relation(fields: [runbookId], references: [id], onDelete: Cascade)
-  
+  id        String  @id @default(cuid())
+  runbookId String
+  runbook   Runbook @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+
   // Webhook configuration
-  name          String
-  type          IntegrationType
-  url           String?         // Webhook URL (for WEBHOOK, SLACK, DISCORD)
-  
+  name String
+  type IntegrationType
+  url  String? // Webhook URL (for WEBHOOK, SLACK, DISCORD)
+
   // Authentication (encrypted)
-  authConfig    Json?           // API keys, tokens, etc.
-  
+  authConfig Json? // API keys, tokens, etc.
+
   // Trigger configuration
-  triggerOn     String[]        // Events: execution_started, execution_completed, execution_failed, approval_required
-  
+  triggerOn String[] // Events: execution_started, execution_completed, execution_failed, approval_required
+
   // Status
-  isActive      Boolean         @default(true)
-  
+  isActive Boolean @default(true)
+
   // Timestamps
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   lastTriggeredAt DateTime?
-  
+
   @@index([runbookId])
   @@map("runbook_webhooks")
 }
 
 // Audit log for runbook changes
 model RunbookAuditLog {
-  id            String          @id @default(cuid())
-  runbookId     String?
-  executionId   String?
-  
+  id          String  @id @default(cuid())
+  runbookId   String?
+  executionId String?
+
   // Actor
-  userId        String
-  userName      String?
-  
+  userId   String
+  userName String?
+
   // Action details
-  action        String          // created, updated, deleted, executed, approved, rejected
-  resourceType  String          // runbook, execution, secret, schedule
-  resourceId    String
-  
+  action       String // created, updated, deleted, executed, approved, rejected
+  resourceType String // runbook, execution, secret, schedule
+  resourceId   String
+
   // Change details
-  previousValue Json?           // Before state
-  newValue      Json?           // After state
-  
+  previousValue Json? // Before state
+  newValue      Json? // After state
+
   // Context
-  ipAddress     String?
-  userAgent     String?
-  
+  ipAddress String?
+  userAgent String?
+
   // Timing
-  timestamp     DateTime        @default(now())
-  
+  timestamp DateTime @default(now())
+
   @@index([runbookId])
   @@index([userId])
   @@index([timestamp])

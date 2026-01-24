@@ -65,39 +65,58 @@ export class SimpleYjsServer {
     }
   }
 
-  private async loadDocument(sessionId: string): Promise<Y.Doc> {
-    let doc = this.docs.get(sessionId);
+  private async loadDocument(roomId: string): Promise<Y.Doc> {
+    let doc = this.docs.get(roomId);
 
     if (!doc) {
       doc = new Y.Doc();
-      this.docs.set(sessionId, doc);
+      this.docs.set(roomId, doc);
 
       try {
-        // Load existing document from database
-        const session = await this.prisma.collaborativeSession.findUnique({
-          where: { id: sessionId },
-        });
+        // Check if this is a project note room (format: project-note-{projectId})
+        if (roomId.startsWith('project-note-')) {
+          const projectId = roomId.replace('project-note-', '');
+          const note = await this.prisma.projectNote.findUnique({
+            where: { projectId },
+          });
 
-        if (session?.content) {
-          // Apply existing content as Yjs update
-          const content = JSON.parse(session.content);
-          if (content.ops) {
-            // Handle existing content as delta ops
-            const ytext = doc.getText('content');
-            ytext.insert(0, content.ops.map((op: any) => op.insert).join(''));
-          } else if (typeof content === 'string') {
-            // Handle plain text content
-            const ytext = doc.getText('content');
-            ytext.insert(0, content);
+          if (note && note.yjsState) {
+            Y.applyUpdate(doc, note.yjsState);
+            console.log(`📄 Loaded project note for project: ${projectId}`);
+          }
+        } 
+        // Check if this is a project chat room (format: project-chat-{projectId})
+        else if (roomId.startsWith('project-chat-')) {
+          // Chat uses Yjs array for messages, no persistence needed here
+          console.log(`💬 Project chat room initialized: ${roomId}`);
+        }
+        // Otherwise, load collaborative session
+        else {
+          const session = await this.prisma.collaborativeSession.findUnique({
+            where: { id: roomId },
+          });
+
+          if (session?.content) {
+            // Apply existing content as Yjs update
+            const content = JSON.parse(session.content);
+            if (content.ops) {
+              // Handle existing content as delta ops
+              const ytext = doc.getText('content');
+              ytext.insert(0, content.ops.map((op: any) => op.insert).join(''));
+            } else if (typeof content === 'string') {
+              // Handle plain text content
+              const ytext = doc.getText('content');
+              ytext.insert(0, content);
+            }
           }
         }
 
         // Set up auto-save on document changes
         doc.on('update', () => {
-          this.saveDocumentDebounced(sessionId, doc);
+          this.saveDocumentDebounced(roomId, doc);
         });
 
-        console.log(`Document loaded for session: ${sessionId}`);
+        console.log(`Document loaded for room: ${roomId}`);
       } catch (error) {
         console.error('Error loading document:', error);
       }
@@ -108,36 +127,59 @@ export class SimpleYjsServer {
 
   private saveTimeouts = new Map<string, NodeJS.Timeout>();
 
-  private saveDocumentDebounced(sessionId: string, doc: Y.Doc) {
+  private saveDocumentDebounced(roomId: string, doc: Y.Doc) {
     // Clear existing timeout
-    const existingTimeout = this.saveTimeouts.get(sessionId);
+    const existingTimeout = this.saveTimeouts.get(roomId);
     if (existingTimeout) {
       clearTimeout(existingTimeout);
     }
 
     // Set new timeout for debounced save
     const timeout = setTimeout(() => {
-      this.saveDocument(sessionId, doc);
-      this.saveTimeouts.delete(sessionId);
+      this.saveDocument(roomId, doc);
+      this.saveTimeouts.delete(roomId);
     }, 2000); // Save after 2 seconds of inactivity
 
-    this.saveTimeouts.set(sessionId, timeout);
+    this.saveTimeouts.set(roomId, timeout);
   }
 
-  private async saveDocument(sessionId: string, doc: Y.Doc) {
+  private async saveDocument(roomId: string, doc: Y.Doc): Promise<void> {
     try {
-      const ytext = doc.getText('content');
-      const content = ytext.toString();
+      // Save project note
+      if (roomId.startsWith('project-note-')) {
+        const projectId = roomId.replace('project-note-', '');
+        const state = Y.encodeStateAsUpdate(doc);
+        await this.prisma.projectNote.upsert({
+          where: { projectId },
+          update: {
+            yjsState: Buffer.from(state),
+          },
+          create: {
+            projectId,
+            yjsState: Buffer.from(state),
+          },
+        });
+        console.log(`💾 Saved project note for project: ${projectId}`);
+      }
+      // Skip saving for chat rooms (messages are saved via API)
+      else if (roomId.startsWith('project-chat-')) {
+        // Chat messages are persisted via the API, not Yjs state
+        return;
+      }
+      // Save collaborative session (old format)
+      else {
+        const ytext = doc.getText('content');
+        const content = ytext.toString();
 
-      await this.prisma.collaborativeSession.update({
-        where: { id: sessionId },
-        data: {
-          content: JSON.stringify(content),
-          updatedAt: new Date(),
-        },
-      });
-
-      console.log(`Document saved for session: ${sessionId}`);
+        await this.prisma.collaborativeSession.update({
+          where: { id: roomId },
+          data: {
+            content: JSON.stringify(content),
+            updatedAt: new Date(),
+          },
+        });
+        console.log(`💾 Saved document for session: ${roomId}`);
+      }
     } catch (error) {
       console.error('Error saving document:', error);
     }

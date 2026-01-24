@@ -86,6 +86,44 @@ export const requireVerified = async (
 // Export the middleware as requireAuth for clearer naming in routes
 export const requireAuth = authenticateJWT;
 
+// Optional authentication - extracts user if token exists, but doesn't require it
+export const optionalAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // No token provided, continue without user
+      return next();
+    }
+
+    const token = authHeader.split(' ')[1];
+    const payload = await verifyAccessToken(token);
+
+    if (payload) {
+      // Fetch user role from database
+      const user = await prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: { role: true, isVerified: true },
+      });
+
+      if (user) {
+        // Attach user info and role to request
+        req.user = payload;
+        req.userRole = toRole(user.role as string);
+      }
+    }
+
+    next();
+  } catch (error) {
+    // On error, just continue without user (don't block the request)
+    next();
+  }
+};
+
 // Middleware to check user role
 export const requireRole = (roles: Role[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
