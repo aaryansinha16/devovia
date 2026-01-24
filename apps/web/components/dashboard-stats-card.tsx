@@ -1,5 +1,6 @@
 import React from "react";
 import { IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
+import { GlassCard, Text } from "@repo/ui";
 
 interface StatsCardProps {
   title: string;
@@ -20,14 +21,14 @@ export function StatsCard({
   gradient = false,
 }: StatsCardProps) {
   return (
-    <div className="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+    <GlassCard className="group relative overflow-hidden" hover="lift">
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       
       <div className="relative z-10">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <p className="text-slate-600 dark:text-slate-400 text-sm font-medium mb-2">{title}</p>
+            <Text variant="muted" size="sm" weight="medium" className="mb-2">{title}</Text>
             <p className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">{value}</p>
           </div>
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -53,6 +54,6 @@ export function StatsCard({
           </div>
         )}
       </div>
-    </div>
+    </GlassCard>
   );
 }

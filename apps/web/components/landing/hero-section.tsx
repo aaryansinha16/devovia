@@ -135,7 +135,7 @@ const HeroSection: React.FC = () => {
         >
           <Button
             href="#early-access"
-            variant="primary"
+            variant="default"
             size="lg"
             rightIcon={<ArrowRightIcon className="w-5 h-5" />}
             id="hero-cta-primary"

@@ -16,8 +16,9 @@ import {
 import {
   getUserBlogs,
   deleteBlog,
-  BlogPost,
+  type BlogPost,
 } from "../../../lib/services/blog-service";
+import { Container, Heading, Text, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
 
 export default function BlogsDashboardPage() {
   const router = useRouter();
@@ -79,40 +80,38 @@ export default function BlogsDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <BackgroundDecorative variant="subtle" />
+      <Container className="relative z-10">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-10">
           <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">Your Blogs</h1>
-            <p className="text-slate-600 dark:text-slate-300 mt-3 text-base sm:text-lg">
+            <Heading size="h1" variant="gradient" spacing="sm">
+              Your Blogs
+            </Heading>
+            <Text>
               Manage and create your blog content
-            </p>
+            </Text>
           </div>
 
           <div className="flex items-center gap-3">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="py-3 px-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-lg transition-all"
-            >
-              <option value="all">All Posts</option>
-              <option value="published">Published</option>
-              <option value="drafts">Drafts</option>
-            </select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[180px] bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+                <SelectValue placeholder="All Posts" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Posts</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="drafts">Drafts</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <Link
+            <Button
               href="/dashboard/blogs/create"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105"
+              variant="gradient"
+              size="md"
+              leftIcon={<IconPlus size={18} />}
             >
-              <IconPlus size={18} />
-              <span>Create Blog</span>
-            </Link>
+              Create Blog
+            </Button>
           </div>
         </div>
 
@@ -121,17 +120,18 @@ export default function BlogsDashboardPage() {
             <IconLoader2 className="w-8 h-8 animate-spin text-sky-500" />
           </div>
         ) : error ? (
-          <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-500">
+          <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
             <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
-            <button
+            <Button
               onClick={() => window.location.reload()}
-              className="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 underline font-medium"
+              variant="link"
+              size="sm"
             >
-              Try Again
-            </button>
+              Try again
+            </Button>
           </div>
         ) : blogs.length === 0 ? (
-          <div className="text-center py-16 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-700">
+          <div className="text-center py-16 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl shadow-xl">
             <div className="text-7xl mb-6">📝</div>
             <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">
               No blog posts yet
@@ -199,13 +199,14 @@ export default function BlogsDashboardPage() {
                     >
                       <IconExternalLink size={18} />
                     </Link>
-                    <button
+                    <Button
                       onClick={() => handleDelete(blog.id)}
-                      className="p-2.5 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                      variant="icon"
+                      className="hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                       title="Delete"
                     >
                       <IconTrash size={18} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -225,7 +226,7 @@ export default function BlogsDashboardPage() {
             ))}
           </div>
         )}
-      </div>
+      </Container>
     </div>
   );
 }

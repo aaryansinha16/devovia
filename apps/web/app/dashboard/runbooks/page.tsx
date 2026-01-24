@@ -16,6 +16,7 @@ import {
   executeRunbook,
   type Runbook,
 } from "../../../lib/services/runbooks-service";
+import { Container, Heading, Text, Input, EmptyState, GlassCard, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
 
 const statusColors: Record<string, string> = {
   DRAFT: "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
@@ -97,55 +98,52 @@ export default function RunbooksPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <BackgroundDecorative variant="subtle" />
+      <Container className="relative z-10">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-10">
           <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+            <Heading size="h1" variant="gradient" spacing="sm">
               Runbooks
-            </h1>
-            <p className="text-slate-600 dark:text-slate-300 mt-3 text-base sm:text-lg">
+            </Heading>
+            <Text>
               Automate your operational workflows
-            </p>
+            </Text>
           </div>
 
           <div className="flex items-center gap-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="py-3 px-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-lg transition-all"
-            >
-              <option value="all">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="ACTIVE">Active</option>
-              <option value="ARCHIVED">Archived</option>
-              <option value="DEPRECATED">Deprecated</option>
-            </select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px] bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="DRAFT">Draft</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="ARCHIVED">Archived</SelectItem>
+                <SelectItem value="DEPRECATED">Deprecated</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <select
-              value={environmentFilter}
-              onChange={(e) => setEnvironmentFilter(e.target.value)}
-              className="py-3 px-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-lg transition-all"
-            >
-              <option value="all">All Environments</option>
-              <option value="DEVELOPMENT">Development</option>
-              <option value="STAGING">Staging</option>
-              <option value="PRODUCTION">Production</option>
-            </select>
+            <Select value={environmentFilter} onValueChange={setEnvironmentFilter}>
+              <SelectTrigger className="w-[180px] bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+                <SelectValue placeholder="All Environments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Environments</SelectItem>
+                <SelectItem value="DEVELOPMENT">Development</SelectItem>
+                <SelectItem value="STAGING">Staging</SelectItem>
+                <SelectItem value="PRODUCTION">Production</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <button
+            <Button
               onClick={() => router.push("/dashboard/runbooks/create")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 text-white shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105"
+              variant="gradient"
+              size="md"
+              leftIcon={<IconPlus size={18} />}
             >
-              <IconPlus size={18} />
-              <span>Create Runbook</span>
-            </button>
+              Create Runbook
+            </Button>
           </div>
         </div>
 
@@ -154,7 +152,7 @@ export default function RunbooksPage() {
             <IconLoader2 className="w-8 h-8 animate-spin text-sky-500" />
           </div>
         ) : error ? (
-          <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-500">
+          <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
             <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
             <button
               onClick={() => loadRunbooks()}
@@ -164,22 +162,20 @@ export default function RunbooksPage() {
             </button>
           </div>
         ) : filteredRunbooks.length === 0 ? (
-          <div className="text-center py-16 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-700">
-            <div className="text-7xl mb-6">⚡</div>
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">
-              No runbooks yet
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
-              Create your first runbook to automate workflows!
-            </p>
-            <button
-              onClick={() => router.push("/dashboard/runbooks/create")}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30"
-            >
-              <IconPlus size={18} />
-              Create Runbook
-            </button>
-          </div>
+          <EmptyState
+            icon="⚡"
+            title="No runbooks yet"
+            description="Create your first runbook to automate workflows!"
+            action={
+              <button
+                onClick={() => router.push("/dashboard/runbooks/create")}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-sky-500/30"
+              >
+                <IconPlus size={18} />
+                Create Runbook
+              </button>
+            }
+          />
         ) : (
           <div className="grid gap-6">
             {filteredRunbooks.map((runbook) => (
@@ -262,7 +258,7 @@ export default function RunbooksPage() {
             ))}
           </div>
         )}
-      </div>
+      </Container>
     </div>
   );
 }

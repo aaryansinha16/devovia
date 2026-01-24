@@ -8,6 +8,7 @@ import {
   IconCode,
   IconFileText,
 } from "@tabler/icons-react";
+import { GlassCard, Heading } from "@repo/ui";
 
 interface QuickAction {
   title: string;
@@ -50,10 +51,10 @@ const quickActions: QuickAction[] = [
 
 export function DashboardQuickActions() {
   return (
-    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
-      <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent mb-6">
+    <GlassCard padding="lg">
+      <Heading size="h3" variant="gradient" spacing="lg">
         Quick Actions
-      </h3>
+      </Heading>
 
       <div className="space-y-3">
         {quickActions.map((action) => (
@@ -88,6 +89,6 @@ export function DashboardQuickActions() {
           </div>
         </div>
       </div>
-    </div>
+    </GlassCard>
   );
 }

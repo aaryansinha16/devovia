@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { IconHeart, IconHeartFilled, IconShare } from "@tabler/icons-react";
-import { Button } from "@repo/ui/components";
+import { Button } from "@repo/ui";
+import { cn } from "@repo/ui/lib/utils";
+import { HeartBlastAnimation, HeartParticles, FloatingHearts } from "../../../components/heart-blast-animation";
 import {
   likeBlog,
   unlikeBlog,
@@ -23,6 +25,8 @@ export function BlogActionButtons({
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikes);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showBlast, setShowBlast] = useState(false);
   const { isAuthenticated, openAuthModal } = useAuth();
   const { toast } = useToast();
 
@@ -52,6 +56,7 @@ export function BlogActionButtons({
 
     try {
       setIsLoading(true);
+      setIsAnimating(true);
 
       if (isLiked) {
         const { likeCount: updatedCount } = await unlikeBlog(postId);
@@ -61,7 +66,15 @@ export function BlogActionButtons({
         const { likeCount: updatedCount } = await likeBlog(postId);
         setLikeCount(updatedCount);
         setIsLiked(true);
+        // Trigger blast animation only on like (not unlike)
+        setShowBlast(true);
       }
+
+      // Reset animation after a short delay
+      setTimeout(() => {
+        setIsAnimating(false);
+        setShowBlast(false);
+      }, 1000);
     } catch (error) {
       console.error("Error toggling like:", error);
       toast({
@@ -103,30 +116,47 @@ export function BlogActionButtons({
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleLikeToggle}
-        disabled={isLoading}
-        className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-      >
-        {isLiked ? (
-          <IconHeartFilled className="h-5 w-5 text-red-500" />
-        ) : (
-          <IconHeart className="h-5 w-5" />
-        )}
-        <span>{likeCount}</span>
-      </Button>
+    <div className="flex items-center gap-3">
+      <div className="relative">
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={handleLikeToggle}
+          disabled={isLoading}
+          leftIcon={
+            <span className={cn(
+              "inline-block transition-transform duration-300",
+              isAnimating && isLiked && "animate-heart-pop",
+              isAnimating && !isLiked && "animate-[heartBeat_0.6s_ease-in-out]"
+            )}>
+              {isLiked ? (
+                <IconHeartFilled className="h-5 w-5 text-red-500" />
+              ) : (
+                <IconHeart className="h-5 w-5" />
+              )}
+            </span>
+          }
+          className={cn(
+            "transition-all duration-300 relative z-10",
+            isLiked && "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+          )}
+        >
+          {likeCount}
+        </Button>
+        
+        {/* Heart blast animation */}
+        <HeartBlastAnimation isPlaying={showBlast} />
+        <HeartParticles isPlaying={showBlast} />
+        <FloatingHearts isPlaying={showBlast} />
+      </div>
 
       <Button
-        variant="ghost"
-        size="sm"
+        variant="secondary"
+        size="md"
         onClick={handleShare}
-        className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+        leftIcon={<IconShare className="h-5 w-5" />}
       >
-        <IconShare className="h-5 w-5" />
-        <span>Share</span>
+        Share
       </Button>
     </div>
   );
