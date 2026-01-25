@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { successResponse, paginatedResponse, validationError, notFoundError, internalServerError, permissionError, alreadyExistsError } from "../utils/response.util";
+import { normalizePagination, buildPaginationMeta } from "../utils/pagination.util";
 
 const prisma = new PrismaClient();
 
@@ -31,11 +33,11 @@ export const createProject = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.sub;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json(validationError("Unauthorized"));
     }
 
     if (!title || !description) {
-      return res.status(400).json({ error: "Title and description are required" });
+      return res.status(400).json(validationError("Title and description are required"));
     }
 
     const project = await prisma.project.create({
@@ -84,10 +86,10 @@ export const createProject = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.status(201).json({ project });
+    return res.status(201).json(successResponse(project, "Project created successfully"));
   } catch (error) {
     console.error("Error creating project:", error);
-    res.status(500).json({ error: "Failed to create project" });
+    return res.status(500).json(internalServerError(process.env.NODE_ENV === 'development' ? error : undefined));
   }
 };
 
@@ -100,14 +102,17 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
       status,
       visibility,
       techStack,
-      page = "1",
-      limit = "12",
       myProjects,
+      sortBy = "createdAt",
+      sortOrder = "desc",
     } = req.query;
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
-    const skip = (pageNum - 1) * limitNum;
+    // Normalize pagination
+    const { page, limit, offset } = normalizePagination({
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 12,
+      maxLimit: 50
+    });
 
     // Build where clause
     const where: any = {};
@@ -164,12 +169,21 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
       };
     }
 
+    // Build orderBy
+    const orderBy: any = {};
+    const validSortFields = ["createdAt", "updatedAt", "title"];
+    if (validSortFields.includes(sortBy as string)) {
+      orderBy[sortBy as string] = sortOrder === "asc" ? "asc" : "desc";
+    } else {
+      orderBy.createdAt = "desc";
+    }
+
     const [projects, total] = await Promise.all([
       prisma.project.findMany({
         where,
-        skip,
-        take: limitNum,
-        orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limit,
+        orderBy,
         include: {
           user: {
             select: {
@@ -203,18 +217,14 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
       prisma.project.count({ where }),
     ]);
 
-    res.json({
+    return res.json(paginatedResponse(
       projects,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-      },
-    });
+      buildPaginationMeta(page, limit, total),
+      "Projects retrieved successfully"
+    ));
   } catch (error) {
     console.error("Error fetching projects:", error);
-    res.status(500).json({ error: "Failed to fetch projects" });
+    return res.status(500).json(internalServerError(process.env.NODE_ENV === 'development' ? error : undefined));
   }
 };
 
@@ -261,37 +271,37 @@ export const getProjectById = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check visibility permissions
     if (project.visibility === "PRIVATE") {
       // Private projects: only owner and team members can view
       if (!userId) {
-        return res.status(403).json({ error: "Access denied" });
+        return res.status(403).json(validationError("Access denied"));
       }
       const isOwner = project.userId === userId;
       const isMember = project.members.some(m => m.userId === userId);
       if (!isOwner && !isMember) {
-        return res.status(403).json({ error: "Access denied" });
+        return res.status(403).json(validationError("Access denied"));
       }
     } else if (project.visibility === "TEAM_ONLY") {
       // Team only projects: only owner and team members can view
       if (!userId) {
-        return res.status(403).json({ error: "Access denied" });
+        return res.status(403).json(validationError("Access denied"));
       }
       const isOwner = project.userId === userId;
       const isMember = project.members.some(m => m.userId === userId);
       if (!isOwner && !isMember) {
-        return res.status(403).json({ error: "Access denied" });
+        return res.status(403).json(validationError("Access denied"));
       }
     }
     // PUBLIC projects: anyone can view (no check needed)
 
-    res.json({ project });
+    return res.json(successResponse(project, "Project retrieved successfully"));
   } catch (error) {
     console.error("Error fetching project:", error);
-    res.status(500).json({ error: "Failed to fetch project" });
+    return res.status(500).json(internalServerError(process.env.NODE_ENV === 'development' ? error : undefined));
   }
 };
 
@@ -327,7 +337,7 @@ export const updateProject = async (req: AuthRequest, res: Response) => {
     });
 
     if (!existingProject) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found" ));
     }
 
     // Check if user is owner or admin
@@ -337,7 +347,7 @@ export const updateProject = async (req: AuthRequest, res: Response) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: "You don't have permission to update this project" });
+      return res.status(403).json(permissionError("You don't have permission to update this project"));
     }
 
     const project = await prisma.project.update({
@@ -386,10 +396,10 @@ export const updateProject = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.json({ project });
+    res.json(successResponse(project, "Updated project successfully"));
   } catch (error) {
     console.error("Error updating project:", error);
-    res.status(500).json({ error: "Failed to update project" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -409,21 +419,21 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
     });
 
     if (!existingProject) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     if (existingProject.userId !== userId) {
-      return res.status(403).json({ error: "You don't have permission to delete this project" });
+      return res.status(403).json(permissionError("You don't have permission to delete this project"));
     }
 
     await prisma.project.delete({
       where: { id },
     });
 
-    res.json({ message: "Project deleted successfully" });
+    res.json(successResponse({ }, "Project deleted successfully"));
   } catch (error) {
     console.error("Error deleting project:", error);
-    res.status(500).json({ error: "Failed to delete project" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -438,7 +448,7 @@ export const searchUserByEmail = async (req: AuthRequest, res: Response) => {
     }
 
     if (!email || typeof email !== 'string') {
-      return res.status(400).json({ error: "Email is required" });
+      return res.status(400).json(validationError("Email is required"));
     }
 
     const user = await prisma.user.findUnique({
@@ -453,13 +463,13 @@ export const searchUserByEmail = async (req: AuthRequest, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json(notFoundError("User not found"));
     }
 
-    res.json({ user });
+    res.json(successResponse(user, "User found successfully"));
   } catch (error) {
     console.error("Error searching user:", error);
-    res.status(500).json({ error: "Failed to search user" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -483,7 +493,7 @@ export const addProjectMember = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check if user is owner or admin
@@ -493,7 +503,7 @@ export const addProjectMember = async (req: AuthRequest, res: Response) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: "You don't have permission to add members" });
+      return res.status(403).json(permissionError("You don't have permission to add members"));
     }
 
     // Check if member already exists
@@ -507,7 +517,7 @@ export const addProjectMember = async (req: AuthRequest, res: Response) => {
     });
 
     if (existingMember) {
-      return res.status(400).json({ error: "User is already a member of this project" });
+      return res.status(400).json(alreadyExistsError("User is already a member of this project"));
     }
 
     const member = await prisma.projectMember.create({
@@ -528,10 +538,10 @@ export const addProjectMember = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.status(201).json({ member });
+    res.status(201).json(successResponse(member, "Member added successfully"));
   } catch (error) {
     console.error("Error adding project member:", error);
-    res.status(500).json({ error: "Failed to add project member" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -555,12 +565,12 @@ export const updateProjectMember = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Only owner can update member roles
     if (project.userId !== userId) {
-      return res.status(403).json({ error: "Only the project owner can update member roles" });
+      return res.status(403).json(permissionError("Only the project owner can update member roles"));
     }
 
     const member = await prisma.projectMember.update({
@@ -578,10 +588,10 @@ export const updateProjectMember = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.json({ member });
+    res.json(successResponse(member, "Member updated successfully"));
   } catch (error) {
     console.error("Error updating project member:", error);
-    res.status(500).json({ error: "Failed to update project member" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -604,7 +614,7 @@ export const removeProjectMember = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check if user is owner or admin
@@ -614,17 +624,17 @@ export const removeProjectMember = async (req: AuthRequest, res: Response) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: "You don't have permission to remove members" });
+      return res.status(403).json(permissionError("You don't have permission to remove members"));
     }
 
     await prisma.projectMember.delete({
       where: { id: memberId },
     });
 
-    res.json({ message: "Member removed successfully" });
+    res.json(successResponse({ }, "Member removed successfully"));
   } catch (error) {
     console.error("Error removing project member:", error);
-    res.status(500).json({ error: "Failed to remove project member" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -640,7 +650,7 @@ export const addProjectLink = async (req: AuthRequest, res: Response) => {
     }
 
     if (!title || !url || !type) {
-      return res.status(400).json({ error: "Title, URL, and type are required" });
+      return res.status(400).json(validationError("Title, URL, and type are required"));
     }
 
     // Check if project exists and user has permission
@@ -652,7 +662,7 @@ export const addProjectLink = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check if user is owner, admin, or member
@@ -660,7 +670,7 @@ export const addProjectLink = async (req: AuthRequest, res: Response) => {
     const isMember = project.members.some(m => m.userId === userId);
 
     if (!isOwner && !isMember) {
-      return res.status(403).json({ error: "You don't have permission to add links" });
+      return res.status(403).json(permissionError("You don't have permission to add links"));
     }
 
     const link = await prisma.projectLink.create({
@@ -672,10 +682,10 @@ export const addProjectLink = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.status(201).json({ link });
+    res.status(201).json(successResponse(link, "Link added successfully"));
   } catch (error) {
     console.error("Error adding project link:", error);
-    res.status(500).json({ error: "Failed to add project link" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -699,7 +709,7 @@ export const updateProjectLink = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check if user is owner, admin, or member
@@ -709,7 +719,7 @@ export const updateProjectLink = async (req: AuthRequest, res: Response) => {
     );
 
     if (!isOwner && !isAdminOrMember) {
-      return res.status(403).json({ error: "You don't have permission to update links" });
+      return res.status(403).json(permissionError("You don't have permission to update links"));
     }
 
     const link = await prisma.projectLink.update({
@@ -717,10 +727,10 @@ export const updateProjectLink = async (req: AuthRequest, res: Response) => {
       data: { title, url, type },
     });
 
-    res.json({ link });
+    res.json(successResponse(link, "Link updated successfully"));
   } catch (error) {
     console.error("Error updating project link:", error);
-    res.status(500).json({ error: "Failed to update project link" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -743,7 +753,7 @@ export const deleteProjectLink = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check if user is owner or admin
@@ -753,16 +763,16 @@ export const deleteProjectLink = async (req: AuthRequest, res: Response) => {
     );
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: "You don't have permission to delete links" });
+      return res.status(403).json(permissionError("You don't have permission to delete links"));
     }
 
     await prisma.projectLink.delete({
       where: { id: linkId },
     });
 
-    res.json({ message: "Link deleted successfully" });
+    res.json(successResponse({ }, "Link deleted successfully"));
   } catch (error) {
     console.error("Error deleting project link:", error);
-    res.status(500).json({ error: "Failed to delete project link" });
+    res.status(500).json(internalServerError(error));
   }
 };

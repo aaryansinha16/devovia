@@ -17,10 +17,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  IconPlus,
+  IconX,
 } from "@repo/ui";
-import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
-import { API_URL } from "../../../../../lib/api-config";
-import { getTokens } from "../../../../../lib/auth";
 
 export default function EditProjectPage() {
   const params = useParams();
@@ -141,11 +140,7 @@ export default function EditProjectPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (

@@ -1,6 +1,7 @@
 import { Response } from "express";
 import prisma from "../lib/prisma";
 import { AuthRequest } from "./snippet.controller";
+import { internalServerError, notFoundError, permissionError, successResponse } from "../utils/response.util";
 
 // Get or create project note
 export const getProjectNote = async (req: AuthRequest, res: Response) => {
@@ -17,7 +18,7 @@ export const getProjectNote = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check if user has access (owner or member)
@@ -25,7 +26,7 @@ export const getProjectNote = async (req: AuthRequest, res: Response) => {
     const isMember = project.members.some((m) => m.userId === userId);
 
     if (!isOwner && !isMember) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json(permissionError("Access denied"));
     }
 
     // Get or create note
@@ -42,10 +43,10 @@ export const getProjectNote = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    res.json({ note });
+    res.json(successResponse(note, "Project note retrieved successfully"));
   } catch (error) {
     console.error("Error fetching project note:", error);
-    res.status(500).json({ error: "Failed to fetch project note" });
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -69,7 +70,7 @@ export const updateProjectNote = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError("Project not found"));
     }
 
     // Check if user has access (owner or member)
@@ -77,7 +78,7 @@ export const updateProjectNote = async (req: AuthRequest, res: Response) => {
     const isMember = project.members.some((m) => m.userId === userId);
 
     if (!isOwner && !isMember) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json(permissionError("Access denied"));
     }
 
     // Update note
@@ -96,9 +97,9 @@ export const updateProjectNote = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.json({ note });
+    res.json(successResponse(note, "Project note updated successfully"));
   } catch (error) {
     console.error("Error updating project note:", error);
-    res.status(500).json({ error: "Failed to update project note" });
+    res.status(500).json(internalServerError(error));
   }
 };

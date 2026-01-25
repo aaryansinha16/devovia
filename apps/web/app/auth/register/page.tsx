@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerUser, getGitHubLoginUrl } from "../../../lib/auth";
 import { useAuth } from "../../../lib/auth-context";
+import Loader from "../../../components/ui/loader";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
@@ -53,13 +55,17 @@ export default function RegisterPage() {
       });
 
       login(result.tokens);
+      setIsRedirecting(true);
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
-    } finally {
       setIsLoading(false);
     }
   };
+
+  if (isRedirecting) {
+    return <Loader />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

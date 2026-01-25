@@ -8,12 +8,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { loginUser, getGitHubLoginUrl } from "../../../lib/auth";
 import { useAuth } from "../../../lib/auth-context";
+import Loader from "../../../components/ui/loader";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
@@ -25,13 +27,17 @@ export default function LoginPage() {
     try {
       const result = await loginUser({ email, password });
       login(result.tokens);
+      setIsRedirecting(true);
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
       setIsLoading(false);
     }
   };
+
+  if (isRedirecting) {
+    return <Loader />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

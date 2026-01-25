@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ModeratorOrAdmin } from "../../components/role-based";
 import { useAuth } from "../../lib/auth-context";
+import Loader from "../../components/ui/loader";
 
 export default function ModeratorDashboardPage() {
   const { user, isLoading } = useAuth();
@@ -10,11 +11,7 @@ export default function ModeratorDashboardPage() {
 
   // Show loading state while checking authentication
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (

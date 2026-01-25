@@ -3,27 +3,12 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import bcrypt from 'bcrypt';
 import { generateTokens, verifyRefreshToken } from '../utils/jwt.utils';
+import { alreadyExistsError, internalServerError, notFoundError, paginatedResponse, successResponse, validationError } from '../utils/response.util';
+import { buildPaginationMeta, normalizePagination } from '../utils/pagination.util';
 
 // Register a new user
 export const register = async (req: Request, res: Response) => {
   try {
-    console.log('Register endpoint called with:', {
-      email: req.body.email,
-      username: req.body.username,
-    });
-
-    // Check if Prisma client is connected
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      console.log('Database connection is working');
-    } catch (dbError) {
-      console.error('Database connection error:', dbError);
-      return res.status(500).json({
-        message: 'Database connection error',
-        error: dbError instanceof Error ? dbError.message : String(dbError),
-      });
-    }
-
     const { email, username, password, name } = req.body;
 
     // Check if user already exists
@@ -35,21 +20,11 @@ export const register = async (req: Request, res: Response) => {
       });
 
       if (existingUser) {
-        return res.status(409).json({
-          message: 'User already exists',
-          error:
-            existingUser.email === email
-              ? 'Email already in use'
-              : 'Username already taken',
-        });
+        return res.status(409).json(alreadyExistsError(existingUser.email === email ? `Email already in use` : `Username already taken`));
       }
     } catch (findError) {
       console.error('Error checking for existing user:', findError);
-      return res.status(500).json({
-        message: 'Error checking for existing user',
-        error:
-          findError instanceof Error ? findError.message : String(findError),
-      });
+      return res.status(500).json(internalServerError(findError));
     }
 
     // Hash password
@@ -88,20 +63,17 @@ export const register = async (req: Request, res: Response) => {
       );
     }
 
-    return res.status(201).json({
-      message: 'User registered successfully',
-      user: {
+    return res.status(201).json(successResponse({user: {
         id: user.id,
         email: user.email,
         username: user.username,
         name: user.name,
         createdAt: user.createdAt,
       },
-      tokens,
-    });
+      tokens}, "User registered successfully"));
   } catch (error) {
     console.error('Registration error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -109,18 +81,6 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     console.log('Login endpoint called with email:', req.body.email);
-
-    // Check if Prisma client is connected
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      console.log('Database connection is working');
-    } catch (dbError) {
-      console.error('Database connection error:', dbError);
-      return res.status(500).json({
-        message: 'Database connection error',
-        error: dbError instanceof Error ? dbError.message : String(dbError),
-      });
-    }
 
     const { email, password } = req.body;
     let user: any = null;
@@ -143,11 +103,7 @@ export const login = async (req: Request, res: Response) => {
       }
     } catch (findError) {
       console.error('Error finding user:', findError);
-      return res.status(500).json({
-        message: 'Error finding user',
-        error:
-          findError instanceof Error ? findError.message : String(findError),
-      });
+      return res.status(500).json(internalServerError(findError));
     }
 
     try {
@@ -178,27 +134,22 @@ export const login = async (req: Request, res: Response) => {
       }
 
       // Return user data and tokens
-      return res.status(200).json({
-        message: 'Login successful',
+      return res.status(200).json(successResponse({
         user: {
           id: user.id,
           email: user.email,
           username: user.username,
           name: user.name,
         },
-        tokens,
-      });
+        tokens
+      }, "Login successful"));
     } catch (tokenError) {
       console.error('Error generating tokens:', tokenError);
-      return res.status(500).json({
-        message: 'Error during authentication',
-        error:
-          tokenError instanceof Error ? tokenError.message : String(tokenError),
-      });
+      return res.status(500).json(internalServerError(tokenError));
     }
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -210,7 +161,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     // Verify refresh token
     const payload = await verifyRefreshToken(refreshToken);
     if (!payload) {
-      return res.status(401).json({ message: 'Invalid refresh token' });
+      return res.status(401).json(validationError('Invalid refresh token'));
     }
 
     // Check if session exists and is valid
@@ -221,15 +172,12 @@ export const refreshToken = async (req: Request, res: Response) => {
     });
 
     if (!session) {
-      return res.status(401).json({ message: 'Session not found' });
+      return res.status(401).json(notFoundError('Session not found'));
     }
 
     // Check if session is valid (not forcibly logged out)
     if (!session.isValid) {
-      return res.status(401).json({
-        message: 'Session has been revoked',
-        code: 'SESSION_REVOKED',
-      });
+      return res.status(401).json(validationError('Session has been revoked'));
     }
 
     // Generate new tokens
@@ -247,13 +195,10 @@ export const refreshToken = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({
-      message: 'Token refreshed successfully',
-      tokens,
-    });
+    return res.status(200).json(successResponse(tokens, "Token refreshed successfully"));
   } catch (error) {
     console.error('Refresh token error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -274,10 +219,10 @@ export const logout = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ message: 'Logged out successfully' });
+    return res.status(200).json(successResponse({ }, 'Logged out successfully'));
   } catch (error) {
     console.error('Logout error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -298,10 +243,10 @@ export const logoutAll = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .json({ message: 'Logged out from all devices successfully' });
+      .json(successResponse({ }, 'Logged out from all devices successfully'));
   } catch (error) {
     console.error('Logout all error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -309,36 +254,51 @@ export const logoutAll = async (req: Request, res: Response) => {
 export const getSessions = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.sub;
+    const {
+      search,
+      status,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    // Normalize pagination
+    const { page, limit, offset } = normalizePagination({
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 12,
+      maxLimit: 50
+    });
 
     // Get all active sessions
-    const sessions = await prisma.session.findMany({
-      where: {
-        userId,
-        isValid: true, // Use isValid field instead of isActive
-        expiresAt: {
-          gt: new Date(),
+    const [sessions, total] = await Promise.all([
+      prisma.session.findMany({
+        skip: offset,
+        take: limit,
+        where: {
+          userId,
+          isValid: true, // Use isValid field instead of isActive
+          expiresAt: {
+            gt: new Date(),
+          },
         },
-      },
-      select: {
-        id: true,
-        userAgent: true,
-        ipAddress: true,
-        createdAt: true,
-        expiresAt: true,
-        lastActive: true, // Use lastActive field instead of lastUsedAt
-      },
-      orderBy: {
-        lastActive: 'desc', // Use lastActive field instead of lastUsedAt
-      },
-    });
+        select: {
+          id: true,
+          userAgent: true,
+          ipAddress: true,
+          createdAt: true,
+          expiresAt: true,
+          lastActive: true, // Use lastActive field instead of lastUsedAt
+        },
+        orderBy: {
+          lastActive: sortOrder === "asc" ? "asc" : "desc", // Use lastActive field instead of lastUsedAt
+        },
+      }),
+      prisma.session.count()
+    ])
 
-    return res.status(200).json({
-      message: 'Sessions retrieved successfully',
-      sessions,
-    });
+    return res.status(200).json(paginatedResponse(sessions, buildPaginationMeta(page, limit, total), 'Sessions retrieved successfully'));
   } catch (error) {
     console.error('Get sessions error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 

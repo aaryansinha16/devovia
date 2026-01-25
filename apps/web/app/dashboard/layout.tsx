@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../lib/auth-context";
 import { DashboardFloatingDock } from "../../components/dashboard-floating-dock";
 import { DashboardMobileSidebar } from "../../components/dashboard-mobile-sidebar";
+import Loader from "../../components/ui/loader";
 
 export default function DashboardLayout({
   children,
@@ -23,11 +24,7 @@ export default function DashboardLayout({
 
   // Show loading state while checking authentication
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   // If user is not authenticated, don't render anything (will redirect)

@@ -25,6 +25,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { API_URL } from "../../../../lib/api-config";
 import { getTokens } from "../../../../lib/auth";
+import Loader from '../../../../../components/ui/loader';
 
 export default function SnippetDetailPage() {
   const params = useParams();
@@ -128,11 +129,7 @@ export default function SnippetDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!snippet) {

@@ -11,6 +11,9 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { useAuth } from "../../../../../lib/auth-context";
+import { API_URL } from '../../../../../lib/api-config';
+import { getTokens } from '../../../../../lib/auth';
+import Loader from '../../../../../components/ui/loader';
 import {
   getBlogById,
   getUserBlogs,
@@ -260,20 +263,7 @@ export function BlogEditor({ id }: { id: string }) {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-          <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 flex justify-center items-center min-h-[60vh]">
-          <div className="text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-12 shadow-lg">
-            <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-600 dark:text-slate-300">Loading blog post...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (

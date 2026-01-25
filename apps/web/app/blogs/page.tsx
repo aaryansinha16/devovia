@@ -11,6 +11,7 @@ import { formatDate } from "../../lib/utils/date-utils";
 import Footer from "../../components/footer";
 import Navbar from "../../components/navbar";
 import { IconSearch, IconTag, IconClock, IconMessage, IconArrowRight, IconX, IconTrendingUp, IconSparkles } from "@tabler/icons-react";
+import Loader from '../../components/ui/loader';
 
 type BlogsData = Awaited<ReturnType<typeof getAllPublishedBlogs>>;
 
@@ -65,19 +66,7 @@ function BlogsContent() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-        <BackgroundDecorative variant="subtle" />
-        <Container className="relative z-10 py-20">
-          <div className="flex justify-center items-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <Heading size="h2">Loading blogs...</Heading>
-            </div>
-          </div>
-        </Container>
-      </div>
-    );
+    return <Loader />;
   }
 
   // Error state

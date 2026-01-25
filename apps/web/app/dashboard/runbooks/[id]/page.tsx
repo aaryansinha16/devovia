@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { IconArrowLeft, IconPlayerPlay, IconLoader2, IconLayoutGrid, IconList } from "@tabler/icons-react";
+import { IconArrowLeft, IconPlayerPlay, IconLayoutGrid, IconList } from "@tabler/icons-react";
+import Loader from '../../../../components/ui/loader';
 import {
   getRunbook,
   updateRunbook,
@@ -137,11 +138,7 @@ export default function EditRunbookPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (

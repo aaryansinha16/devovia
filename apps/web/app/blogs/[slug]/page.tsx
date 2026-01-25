@@ -13,6 +13,7 @@ import { Container, Heading, Text, GlassCard, BackgroundDecorative, Button } fro
 import { IconArrowLeft, IconClock, IconTag, IconMessage } from "@tabler/icons-react";
 import Footer from "../../../components/footer";
 import Navbar from "../../../components/navbar";
+import Loader from '../../../components/ui/loader';
 
 // Since we're using a client component, we'll use a loading state
 type BlogPost = Awaited<ReturnType<typeof getBlogBySlug>>;
@@ -87,19 +88,7 @@ function BlogPostContent() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-        <BackgroundDecorative variant="subtle" />
-        <Container className="relative z-10 py-20">
-          <div className="flex justify-center items-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <Heading size="h2">Loading blog post...</Heading>
-            </div>
-          </div>
-        </Container>
-      </div>
-    );
+    return <Loader />;
   }
 
   // Error state

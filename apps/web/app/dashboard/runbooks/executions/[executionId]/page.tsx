@@ -11,6 +11,7 @@ import {
 } from "../../../../../lib/services/runbooks-service";
 import { API_URL } from "../../../../../lib/api-config";
 import { Container, Heading, Text, GlassCard, IconButton, BackgroundDecorative } from "@repo/ui";
+import Loader from '../../../../../components/ui/loader';
 
 const statusColors: Record<string, string> = {
   QUEUED: "bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400",
@@ -146,11 +147,7 @@ export default function ExecutionDetailsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center">
-        <IconLoader2 className="w-8 h-8 animate-spin text-sky-500" />
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error || !execution) {

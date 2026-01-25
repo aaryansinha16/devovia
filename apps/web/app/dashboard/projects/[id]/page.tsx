@@ -2,12 +2,28 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "../../../../lib/auth-context";
+import { API_URL } from "../../../../lib/api-config";
+import { getTokens } from "../../../../lib/auth";
+import Loader from "../../../../components/ui/loader";
 import {
+  IconArrowLeft,
+  IconEdit,
+  IconTrash,
+  IconUsers,
+  IconLink,
+  IconPlus,
+  IconX,
+  IconExternalLink,
+  IconFileText,
+  IconMessage,
+} from "@tabler/icons-react";
+import {
+  Button,
   Container,
   Heading,
   Text,
   GlassCard,
-  Button,
   BackgroundDecorative,
   Input,
   Label,
@@ -17,24 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui";
-import {
-  IconArrowLeft,
-  IconEdit,
-  IconTrash,
-  IconLink,
-  IconUsers,
-  IconCalendar,
-  IconClock,
-  IconExternalLink,
-  IconPlus,
-  IconX,
-  IconGitBranch,
-  IconWorld,
-  IconFileText,
-  IconMessage,
-} from "@tabler/icons-react";
-import { API_URL } from "../../../../lib/api-config";
-import { getTokens } from "../../../../lib/auth";
 import ProjectNotes from "./components/project-notes";
 import ProjectChat from "./components/project-chat";
 import { Eye, Link, Users } from "lucide-react";
@@ -291,11 +289,7 @@ export default function ProjectDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!project) {
