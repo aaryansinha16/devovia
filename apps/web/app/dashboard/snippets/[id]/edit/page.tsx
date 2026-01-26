@@ -20,10 +20,10 @@ import {
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import Editor from "@monaco-editor/react";
-import { useAuth } from '../../../../../../lib/auth-context';
-import { API_URL } from '../../../../../../lib/api-config';
-import { getTokens } from '../../../../../../lib/auth';
-import Loader from '../../../../../../components/ui/loader';
+import { useAuth } from '../../../../../lib/auth-context';
+import { API_URL } from '../../../../../lib/api-config';
+import { getTokens } from '../../../../../lib/auth';
+import Loader from '../../../../../components/ui/loader';
 
 export default function EditSnippetPage() {
   const params = useParams();

@@ -17,9 +17,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  IconPlus,
-  IconX,
 } from "@repo/ui";
+import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
+import { API_URL } from "../../../../../lib/api-config";
+import { getTokens } from "../../../../../lib/auth";
+import Loader from "../../../../../components/ui/loader";
 
 export default function EditProjectPage() {
   const params = useParams();

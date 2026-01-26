@@ -3,6 +3,13 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { uploadAvatarToCloudinary } from '../utils/cloudinary.util';
 import { cleanupTempFile } from '../middleware/multer.middleware';
+import {
+  internalServerError,
+  notFoundError,
+  permissionError,
+  successResponse,
+  validationError,
+} from '../utils/response.util';
 
 const prisma = new PrismaClient();
 
@@ -37,13 +44,15 @@ export const getCurrentUserProfile = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json(notFoundError('User not found'));
     }
 
-    return res.status(200).json({ user });
+    return res
+      .status(200)
+      .json(successResponse(user, 'User fetched successfully'));
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -103,15 +112,23 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
     // Validate the data
     if (name && (typeof name !== 'string' || name.length > 100)) {
-      return res.status(400).json({
-        message: 'Name must be a string with maximum length of 100 characters',
-      });
+      return res
+        .status(400)
+        .json(
+          validationError(
+            'Name must be a string with maximum length of 100 characters',
+          ),
+        );
     }
 
     if (bio && (typeof bio !== 'string' || bio.length > 500)) {
-      return res.status(400).json({
-        message: 'Bio must be a string with maximum length of 500 characters',
-      });
+      return res
+        .status(400)
+        .json(
+          validationError(
+            'Bio must be a string with maximum length of 500 characters',
+          ),
+        );
     }
 
     // Update user profile
@@ -140,10 +157,12 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ user: updatedUser });
+    return res
+      .status(200)
+      .json(successResponse(updatedUser, 'User updated successfully'));
   } catch (error) {
     console.error('Error updating user profile:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -161,7 +180,7 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
 
     // Check if file exists (multer adds the file to the request)
     if (!req.file) {
-      return res.status(400).json({ message: 'No image file uploaded' });
+      return res.status(400).json(validationError('No image file uploaded'));
     }
 
     // Upload the file to Cloudinary
@@ -193,23 +212,27 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
         },
       });
 
-      return res.status(200).json({
-        success: true,
-        user: {
-          id: updatedUser.id,
-          username: updatedUser.username,
-          avatar: updatedUser.avatar,
-        },
-      });
+      return res.status(200).json(
+        successResponse(
+          {
+            user: {
+              id: updatedUser.id,
+              username: updatedUser.username,
+              avatar: updatedUser.avatar,
+            },
+          },
+          'Avatar updated successfully',
+        ),
+      );
     } catch (cloudinaryError) {
       console.error('Cloudinary upload error:', cloudinaryError);
       return res
         .status(500)
-        .json({ message: 'Failed to upload image to cloud storage' });
+        .json(internalServerError('Failed to upload image to cloud storage'));
     }
   } catch (error) {
     console.error('Error updating user avatar:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError('Internal server error'));
   }
 };
 
@@ -229,14 +252,18 @@ export const changePassword = async (req: Request, res: Response) => {
     if (!currentPassword || !newPassword) {
       return res
         .status(400)
-        .json({ message: 'Current password and new password are required' });
+        .json(
+          validationError('Current password and new password are required'),
+        );
     }
 
     // Validate new password strength
     if (newPassword.length < 8) {
       return res
         .status(400)
-        .json({ message: 'New password must be at least 8 characters long' });
+        .json(
+          validationError('New password must be at least 8 characters long'),
+        );
     }
 
     // Get user with password
@@ -251,7 +278,7 @@ export const changePassword = async (req: Request, res: Response) => {
     if (!user || !user.password) {
       return res
         .status(404)
-        .json({ message: 'User not found or has no password set' });
+        .json(notFoundError('User not found or has no password set'));
     }
 
     // Verify current password
@@ -261,7 +288,9 @@ export const changePassword = async (req: Request, res: Response) => {
     );
 
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Current password is incorrect' });
+      return res
+        .status(401)
+        .json(permissionError('Current password is incorrect'));
     }
 
     // Hash new password
@@ -275,10 +304,12 @@ export const changePassword = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ message: 'Password updated successfully' });
+    return res
+      .status(200)
+      .json(successResponse({}, 'Password updated successfully'));
   } catch (error) {
     console.error('Error changing password:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError('Internal server error'));
   }
 };
 
@@ -298,7 +329,9 @@ export const deleteAccount = async (req: Request, res: Response) => {
     if (!password) {
       return res
         .status(400)
-        .json({ message: 'Password confirmation required to delete account' });
+        .json(
+          validationError('Password confirmation required to delete account'),
+        );
     }
 
     // Get user with password
@@ -313,14 +346,14 @@ export const deleteAccount = async (req: Request, res: Response) => {
     if (!user || !user.password) {
       return res
         .status(404)
-        .json({ message: 'User not found or has no password set' });
+        .json(notFoundError('User not found or has no password set'));
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Password is incorrect' });
+      return res.status(401).json(permissionError('Password is incorrect'));
     }
 
     // Delete user's sessions
@@ -333,9 +366,11 @@ export const deleteAccount = async (req: Request, res: Response) => {
       where: { id: userId },
     });
 
-    return res.status(200).json({ message: 'Account deleted successfully' });
+    return res
+      .status(200)
+      .json(successResponse({}, 'Account deleted successfully'));
   } catch (error) {
     console.error('Error deleting account:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError('Internal server error'));
   }
 };

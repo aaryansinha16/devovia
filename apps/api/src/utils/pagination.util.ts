@@ -1,4 +1,4 @@
-import { PaginationMeta } from "../types/api.types";
+import { PaginationMeta } from '../types/api.types';
 
 export interface PaginationInput {
   page?: number;
@@ -9,7 +9,7 @@ export interface PaginationInput {
 export function normalizePagination({
   page = 1,
   limit = 20,
-  maxLimit = 100
+  maxLimit = 100,
 }: PaginationInput) {
   const safeLimit = Math.min(Math.max(limit, 1), maxLimit);
   const safePage = Math.max(page, 1);
@@ -19,14 +19,14 @@ export function normalizePagination({
   return {
     page: safePage,
     limit: safeLimit,
-    offset
+    offset,
   };
 }
 
 export function buildPaginationMeta(
   page: number,
   limit: number,
-  total: number
+  total: number,
 ): PaginationMeta {
   const totalPages = Math.ceil(total / limit) || 1;
 
@@ -36,6 +36,6 @@ export function buildPaginationMeta(
     total,
     totalPages,
     hasNext: page < totalPages,
-    hasPrev: page > 1
-  }
+    hasPrev: page > 1,
+  };
 }

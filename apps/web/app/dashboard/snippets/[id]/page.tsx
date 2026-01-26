@@ -25,7 +25,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { API_URL } from "../../../../lib/api-config";
 import { getTokens } from "../../../../lib/auth";
-import Loader from '../../../../../components/ui/loader';
+import Loader from '../../../../components/ui/loader';
 
 export default function SnippetDetailPage() {
   const params = useParams();

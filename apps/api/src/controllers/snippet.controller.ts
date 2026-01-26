@@ -1,5 +1,17 @@
-import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import {
+  buildPaginationMeta,
+  normalizePagination,
+} from '../utils/pagination.util';
+import {
+  internalServerError,
+  notFoundError,
+  paginatedResponse,
+  permissionError,
+  successResponse,
+  validationError,
+} from '../utils/response.util';
 
 const prisma = new PrismaClient();
 
@@ -19,11 +31,13 @@ export const createSnippet = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.sub;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     if (!title || !code || !language) {
-      return res.status(400).json({ error: "Title, code, and language are required" });
+      return res
+        .status(400)
+        .json(validationError('Title, code, and language are required'));
     }
 
     const snippet = await prisma.snippet.create({
@@ -48,10 +62,12 @@ export const createSnippet = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.status(201).json({ snippet });
+    res
+      .status(201)
+      .json(successResponse(snippet, 'Snippet created successfully'));
   } catch (error) {
-    console.error("Error creating snippet:", error);
-    res.status(500).json({ error: "Failed to create snippet" });
+    console.error('Error creating snippet:', error);
+    res.status(500).json(internalServerError('Failed to create snippet'));
   }
 };
 
@@ -59,33 +75,49 @@ export const createSnippet = async (req: AuthRequest, res: Response) => {
 export const getSnippets = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.sub;
-    const { search, language, tag, page = "1", limit = "20" } = req.query;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
-    const skip = (pageNum - 1) * limitNum;
+    // const pageNum = parseInt(page as string);
+    // const limitNum = parseInt(limit as string);
+    // const skip = (pageNum - 1) * limitNum;
+    const {
+      search,
+      language,
+      tag,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
 
-    // Build where clause
+    // Normalize pagination
+    const { page, limit, offset } = normalizePagination({
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 12,
+      maxLimit: 50,
+    });
+
+    // Build the where clause based on query params
     const where: any = {
       userId,
     };
 
+    // Filter by search query
     if (search) {
       where.OR = [
-        { title: { contains: search as string, mode: "insensitive" } },
-        { description: { contains: search as string, mode: "insensitive" } },
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } },
+        { code: { contains: search as string, mode: 'insensitive' } },
+        { language: { contains: search as string, mode: 'insensitive' } },
       ];
     }
 
-    if (language && language !== "all") {
+    if (language && language !== 'all') {
       where.language = language;
     }
 
-    if (tag && tag !== "all") {
+    if (tag && tag !== 'all') {
       where.tags = {
         has: tag as string,
       };
@@ -105,26 +137,24 @@ export const getSnippets = async (req: AuthRequest, res: Response) => {
           },
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
-        skip,
-        take: limitNum,
+        skip: offset,
+        take: limit,
       }),
-      prisma.snippet.count({ where }),
+      prisma.snippet.count({ where: { userId } }),
     ]);
 
-    res.json({
-      snippets,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-      },
-    });
+    res.json(
+      paginatedResponse(
+        snippets,
+        buildPaginationMeta(page, limit, total),
+        'Fetched snippets',
+      ),
+    );
   } catch (error) {
-    console.error("Error fetching snippets:", error);
-    res.status(500).json({ error: "Failed to fetch snippets" });
+    console.error('Error fetching snippets:', error);
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -135,7 +165,7 @@ export const getSnippetById = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.sub;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const snippet = await prisma.snippet.findUnique({
@@ -153,18 +183,18 @@ export const getSnippetById = async (req: AuthRequest, res: Response) => {
     });
 
     if (!snippet) {
-      return res.status(404).json({ error: "Snippet not found" });
+      return res.status(404).json(notFoundError('Snippet not found'));
     }
 
     // Check if user owns the snippet or if it's public
     if (snippet.userId !== userId && !snippet.isPublic) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json(permissionError('Access denied'));
     }
 
-    res.json({ snippet });
+    res.json(successResponse(snippet, 'Snippet fetched successfully'));
   } catch (error) {
-    console.error("Error fetching snippet:", error);
-    res.status(500).json({ error: "Failed to fetch snippet" });
+    console.error('Error fetching snippet:', error);
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -188,17 +218,17 @@ export const getPublicSnippet = async (req: Request, res: Response) => {
     });
 
     if (!snippet) {
-      return res.status(404).json({ error: "Snippet not found" });
+      return res.status(404).json(notFoundError('Snippet not found'));
     }
 
     if (!snippet.isPublic) {
-      return res.status(403).json({ error: "This snippet is private" });
+      return res.status(403).json(permissionError('This snippet is private'));
     }
 
-    res.json({ snippet });
+    res.json(successResponse(snippet, 'Snippet fetched successfully'));
   } catch (error) {
-    console.error("Error fetching public snippet:", error);
-    res.status(500).json({ error: "Failed to fetch snippet" });
+    console.error('Error fetching public snippet:', error);
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -210,7 +240,7 @@ export const updateSnippet = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.sub;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // Check if snippet exists and user owns it
@@ -219,18 +249,19 @@ export const updateSnippet = async (req: AuthRequest, res: Response) => {
     });
 
     if (!existingSnippet) {
-      return res.status(404).json({ error: "Snippet not found" });
+      return res.status(404).json(notFoundError('Snippet not found'));
     }
 
     if (existingSnippet.userId !== userId) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json(permissionError('Access denied'));
     }
 
     const snippet = await prisma.snippet.update({
       where: { id },
       data: {
         title: title || existingSnippet.title,
-        description: description !== undefined ? description : existingSnippet.description,
+        description:
+          description !== undefined ? description : existingSnippet.description,
         code: code || existingSnippet.code,
         language: language || existingSnippet.language,
         tags: tags !== undefined ? tags : existingSnippet.tags,
@@ -248,10 +279,10 @@ export const updateSnippet = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.json({ snippet });
+    res.json(successResponse(snippet, 'Snippet updated successfully'));
   } catch (error) {
-    console.error("Error updating snippet:", error);
-    res.status(500).json({ error: "Failed to update snippet" });
+    console.error('Error updating snippet:', error);
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -262,7 +293,7 @@ export const deleteSnippet = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.sub;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // Check if snippet exists and user owns it
@@ -271,20 +302,20 @@ export const deleteSnippet = async (req: AuthRequest, res: Response) => {
     });
 
     if (!existingSnippet) {
-      return res.status(404).json({ error: "Snippet not found" });
+      return res.status(404).json(notFoundError('Snippet not found'));
     }
 
     if (existingSnippet.userId !== userId) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json(permissionError('Access denied'));
     }
 
     await prisma.snippet.delete({
       where: { id },
     });
 
-    res.json({ message: "Snippet deleted successfully" });
+    res.json(successResponse({}, 'Snippet deleted successfully'));
   } catch (error) {
-    console.error("Error deleting snippet:", error);
-    res.status(500).json({ error: "Failed to delete snippet" });
+    console.error('Error deleting snippet:', error);
+    res.status(500).json(internalServerError(error));
   }
 };

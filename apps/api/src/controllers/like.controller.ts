@@ -1,5 +1,11 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import {
+  alreadyExistsError,
+  internalServerError,
+  notFoundError,
+  successResponse,
+} from '../utils/response.util';
 
 const prisma = new PrismaClient();
 
@@ -17,7 +23,7 @@ export const likeBlogPost = async (req: Request, res: Response) => {
     });
 
     if (!post) {
-      return res.status(404).json({ error: 'Blog post not found' });
+      return res.status(404).json(notFoundError('Blog post not found'));
     }
 
     // Check if user already liked the post
@@ -29,7 +35,9 @@ export const likeBlogPost = async (req: Request, res: Response) => {
     });
 
     if (existingLike) {
-      return res.status(400).json({ error: 'You already liked this post' });
+      return res
+        .status(400)
+        .json(alreadyExistsError('You already liked this post'));
     }
 
     // Create like
@@ -45,13 +53,18 @@ export const likeBlogPost = async (req: Request, res: Response) => {
       where: { postId },
     });
 
-    return res.status(201).json({
-      like,
-      likeCount,
-    });
+    return res.status(201).json(
+      successResponse(
+        {
+          like,
+          likeCount,
+        },
+        'Post liked successfully',
+      ),
+    );
   } catch (error) {
     console.error('Error liking blog post:', error);
-    return res.status(500).json({ error: 'Failed to like post' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -69,7 +82,7 @@ export const unlikeBlogPost = async (req: Request, res: Response) => {
     });
 
     if (!post) {
-      return res.status(404).json({ error: 'Blog post not found' });
+      return res.status(404).json(notFoundError('Blog post not found'));
     }
 
     // Check if user has liked the post
@@ -81,7 +94,9 @@ export const unlikeBlogPost = async (req: Request, res: Response) => {
     });
 
     if (!like) {
-      return res.status(400).json({ error: 'You have not liked this post' });
+      return res
+        .status(400)
+        .json(notFoundError('You have not liked this post'));
     }
 
     // Delete the like
@@ -94,13 +109,17 @@ export const unlikeBlogPost = async (req: Request, res: Response) => {
       where: { postId },
     });
 
-    return res.status(200).json({
-      message: 'Post unliked successfully',
-      likeCount,
-    });
+    return res.status(200).json(
+      successResponse(
+        {
+          likeCount,
+        },
+        'Post unliked successfully',
+      ),
+    );
   } catch (error) {
     console.error('Error unliking blog post:', error);
-    return res.status(500).json({ error: 'Failed to unlike post' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -125,12 +144,17 @@ export const checkUserLike = async (req: Request, res: Response) => {
       where: { postId },
     });
 
-    return res.status(200).json({
-      isLiked: !!like,
-      likeCount,
-    });
+    return res.status(200).json(
+      successResponse(
+        {
+          isLiked: !!like,
+          likeCount,
+        },
+        'Like status checked successfully',
+      ),
+    );
   } catch (error) {
     console.error('Error checking like status:', error);
-    return res.status(500).json({ error: 'Failed to check like status' });
+    return res.status(500).json(internalServerError(error));
   }
 };

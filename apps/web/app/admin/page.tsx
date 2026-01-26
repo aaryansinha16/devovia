@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../lib/auth-context";
-import AdminOnly from "../../components/admin-only";
+import { AdminOnly } from "../../components/role-based";
 import Loader from "../../components/ui/loader";
 import {
   getAllUsers,

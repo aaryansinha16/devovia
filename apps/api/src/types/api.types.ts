@@ -58,9 +58,9 @@ export interface ListQueryParams {
   limit?: number;
   search?: string;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
   startDate?: string;
-  endDate?: string
+  endDate?: string;
 
   // dynamic filters
   [key: string]: any;

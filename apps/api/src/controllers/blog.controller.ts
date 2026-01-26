@@ -6,8 +6,19 @@ import {
   createBlogSchema,
   updateBlogSchema,
 } from '../validators/blog.validator';
-import { buildPaginationMeta, normalizePagination } from '../utils/pagination.util';
-import { alreadyExistsError, internalServerError, notFoundError, paginatedResponse, permissionError, successResponse, validationError } from '../utils/response.util';
+import {
+  buildPaginationMeta,
+  normalizePagination,
+} from '../utils/pagination.util';
+import {
+  alreadyExistsError,
+  internalServerError,
+  notFoundError,
+  paginatedResponse,
+  permissionError,
+  successResponse,
+  validationError,
+} from '../utils/response.util';
 
 const prisma = new PrismaClient();
 
@@ -23,15 +34,15 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
       visibility,
       techStack,
       tag,
-      sortBy = "createdAt",
-      sortOrder = "desc",
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = req.query;
 
     // Normalize pagination
     const { page, limit, offset } = normalizePagination({
       page: parseInt(req.query.page as string) || 1,
       limit: parseInt(req.query.limit as string) || 12,
-      maxLimit: 50
+      maxLimit: 50,
     });
 
     // Build the where clause based on query params
@@ -42,10 +53,10 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
     // Filter by search query
     if (search) {
       where.OR = [
-        { title: { contains: search as string, mode: "insensitive" } },
-        { excerpt: { contains: search as string, mode: "insensitive" } },
-        { content: { contains: search as string, mode: "insensitive" } },
-        { id: { contains: search as string, mode: "insensitive" } },
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { excerpt: { contains: search as string, mode: 'insensitive' } },
+        { content: { contains: search as string, mode: 'insensitive' } },
+        { id: { contains: search as string, mode: 'insensitive' } },
       ];
     }
 
@@ -69,7 +80,7 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
       prisma.post.findMany({
         where,
         orderBy: {
-          createdAt: sortOrder === "asc" ? "asc" : "desc",
+          createdAt: sortOrder === 'asc' ? 'asc' : 'desc',
         },
         skip: offset,
         take: limit,
@@ -103,7 +114,7 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
           },
         },
       }),
-      prisma.post.count({ where })
+      prisma.post.count({ where }),
     ]);
 
     // Format tags array to be just an array of strings
@@ -112,7 +123,15 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
       tags: post.tags.map((tag) => tag.name),
     }));
 
-    return res.status(200).json(paginatedResponse(formattedPosts, buildPaginationMeta(page, limit, total), "Fetched blog posts"));
+    return res
+      .status(200)
+      .json(
+        paginatedResponse(
+          formattedPosts,
+          buildPaginationMeta(page, limit, total),
+          'Fetched blog posts',
+        ),
+      );
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     return res.status(500).json(internalServerError(error));
@@ -135,7 +154,7 @@ export const listAllBlogIds = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json(successResponse(posts, "Fetched blog IDs"));
+    return res.status(200).json(successResponse(posts, 'Fetched blog IDs'));
   } catch (error) {
     console.error('Error listing blog IDs:', error);
     return res.status(500).json(internalServerError(error));
@@ -220,7 +239,9 @@ export const getBlogPostById = async (req: Request, res: Response) => {
         tags: foundPost.tags.map((tag) => tag.name),
       };
 
-      return res.status(200).json(successResponse({post: formattedPost}, "Fetched blog post"));
+      return res
+        .status(200)
+        .json(successResponse({ post: formattedPost }, 'Fetched blog post'));
     } catch (findManyError) {
       console.error('Error in findMany query:', findManyError);
       return res.status(500).json(internalServerError(findManyError));
@@ -297,7 +318,11 @@ export const getBlogPostBySlug = async (req: Request, res: Response) => {
       tags: post.tags.map((tag) => tag.name),
     };
 
-    return res.status(200).json(successResponse({post: formattedPost}, "Fetched blog post by slug"));
+    return res
+      .status(200)
+      .json(
+        successResponse({ post: formattedPost }, 'Fetched blog post by slug'),
+      );
   } catch (error) {
     console.error('Error fetching blog post:', error);
     return res.status(500).json(internalServerError(error));
@@ -317,29 +342,29 @@ export const getUserBlogPosts = async (req: Request, res: Response) => {
       visibility,
       techStack,
       tag,
-      sortBy = "createdAt",
-      sortOrder = "desc",
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = req.query;
 
     // Normalize pagination
     const { page, limit, offset } = normalizePagination({
       page: parseInt(req.query.page as string) || 1,
       limit: parseInt(req.query.limit as string) || 12,
-      maxLimit: 50
+      maxLimit: 50,
     });
 
     // Build the where clause based on query params
     const where: any = {
-      userId
+      userId,
     };
 
     // Filter by search query
     if (search) {
       where.OR = [
-        { title: { contains: search as string, mode: "insensitive" } },
-        { excerpt: { contains: search as string, mode: "insensitive" } },
-        { content: { contains: search as string, mode: "insensitive" } },
-        { id: { contains: search as string, mode: "insensitive" } },
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { excerpt: { contains: search as string, mode: 'insensitive' } },
+        { content: { contains: search as string, mode: 'insensitive' } },
+        { id: { contains: search as string, mode: 'insensitive' } },
       ];
     }
 
@@ -377,7 +402,7 @@ export const getUserBlogPosts = async (req: Request, res: Response) => {
           },
         },
       }),
-      prisma.post.count({ where: { userId } })
+      prisma.post.count({ where: { userId } }),
     ]);
 
     // Format tags to be just an array of strings
@@ -386,11 +411,15 @@ export const getUserBlogPosts = async (req: Request, res: Response) => {
       tags: post.tags.map((tag) => tag.name),
     }));
 
-    return res.status(200).json(paginatedResponse(
-      formattedPosts,
-      buildPaginationMeta(page, limit, total),
-      "User blog posts retrieved successfully"
-    ));
+    return res
+      .status(200)
+      .json(
+        paginatedResponse(
+          formattedPosts,
+          buildPaginationMeta(page, limit, total),
+          'User blog posts retrieved successfully',
+        ),
+      );
   } catch (error) {
     console.error('Error fetching user blog posts:', error);
     return res.status(500).json(internalServerError(error));
@@ -412,7 +441,9 @@ export const createBlogPost = async (req: Request, res: Response) => {
     const validationResult = createBlogSchema.safeParse(req.body);
 
     if (!validationResult.success) {
-      return res.status(400).json(validationError("Validation failed", validationResult));
+      return res
+        .status(400)
+        .json(validationError('Validation failed', validationResult));
     }
 
     const { title, slug, content, excerpt, coverImage, published, tags } =
@@ -424,7 +455,13 @@ export const createBlogPost = async (req: Request, res: Response) => {
     });
 
     if (existingPost) {
-      return res.status(400).json(alreadyExistsError('Slug already exists. Please choose a different slug.'));
+      return res
+        .status(400)
+        .json(
+          alreadyExistsError(
+            'Slug already exists. Please choose a different slug.',
+          ),
+        );
     }
 
     // Start a transaction to handle tags and post creation
@@ -472,7 +509,11 @@ export const createBlogPost = async (req: Request, res: Response) => {
       tags: post.tags.map((tag) => tag.name),
     };
 
-    return res.status(201).json(successResponse({ post: formattedPost }, "Post created successfully"));
+    return res
+      .status(201)
+      .json(
+        successResponse({ post: formattedPost }, 'Post created successfully'),
+      );
   } catch (error) {
     console.error('Error creating blog post:', error);
     return res.status(500).json(internalServerError(error));
@@ -495,7 +536,11 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     const validationResult = updateBlogSchema.safeParse(req.body);
 
     if (!validationResult.success) {
-      return res.status(400).json(validationError("Validation failed", validationResult.error.errors));
+      return res
+        .status(400)
+        .json(
+          validationError('Validation failed', validationResult.error.errors),
+        );
     }
 
     const { title, slug, content, excerpt, coverImage, published, tags } =
@@ -518,7 +563,9 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     }
 
     if (existingPost.userId !== userId) {
-      return res.status(403).json(permissionError('Forbidden: You can only update your own posts'));
+      return res
+        .status(403)
+        .json(permissionError('Forbidden: You can only update your own posts'));
     }
 
     // Check slug uniqueness if slug is updated
@@ -528,7 +575,13 @@ export const updateBlogPost = async (req: Request, res: Response) => {
       });
 
       if (slugExists) {
-        return res.status(400).json(alreadyExistsError('Slug already exists. Please choose a different slug.'));
+        return res
+          .status(400)
+          .json(
+            alreadyExistsError(
+              'Slug already exists. Please choose a different slug.',
+            ),
+          );
       }
     }
 
@@ -588,7 +641,11 @@ export const updateBlogPost = async (req: Request, res: Response) => {
       tags: updatedPost.tags.map((tag) => tag.name),
     };
 
-    return res.status(200).json(successResponse({ post: formattedPost }, "Post updated successfully"));
+    return res
+      .status(200)
+      .json(
+        successResponse({ post: formattedPost }, 'Post updated successfully'),
+      );
   } catch (error) {
     console.error('Error updating blog post:', error);
     return res.status(500).json(internalServerError(error));
@@ -617,7 +674,9 @@ export const deleteBlogPost = async (req: Request, res: Response) => {
     }
 
     if (post.userId !== userId) {
-      return res.status(403).json(permissionError('Forbidden: You can only delete your own posts'));
+      return res
+        .status(403)
+        .json(permissionError('Forbidden: You can only delete your own posts'));
     }
 
     // Delete the post
@@ -625,7 +684,9 @@ export const deleteBlogPost = async (req: Request, res: Response) => {
       where: { id },
     });
 
-    return res.status(200).json(successResponse({ }, "Post deleted successfully"));
+    return res
+      .status(200)
+      .json(successResponse({}, 'Post deleted successfully'));
   } catch (error) {
     console.error('Error deleting blog post:', error);
     return res.status(500).json(internalServerError(error));
@@ -664,13 +725,18 @@ export const uploadBlogImage = async (req: Request, res: Response) => {
       cleanupTempFile(filePath);
 
       // Return the secure URL and other image details
-      return res.status(200).json(successResponse({
-        success: true,
-        imageUrl: uploadResult.secure_url,
-        width: uploadResult.width,
-        height: uploadResult.height,
-        format: uploadResult.format,
-      }, "Image uploaded successfully"));
+      return res.status(200).json(
+        successResponse(
+          {
+            success: true,
+            imageUrl: uploadResult.secure_url,
+            width: uploadResult.width,
+            height: uploadResult.height,
+            format: uploadResult.format,
+          },
+          'Image uploaded successfully',
+        ),
+      );
     } catch (cloudinaryError) {
       console.error('Cloudinary upload error:', cloudinaryError);
       return res

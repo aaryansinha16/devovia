@@ -3,8 +3,18 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import bcrypt from 'bcrypt';
 import { generateTokens, verifyRefreshToken } from '../utils/jwt.utils';
-import { alreadyExistsError, internalServerError, notFoundError, paginatedResponse, successResponse, validationError } from '../utils/response.util';
-import { buildPaginationMeta, normalizePagination } from '../utils/pagination.util';
+import {
+  alreadyExistsError,
+  internalServerError,
+  notFoundError,
+  paginatedResponse,
+  successResponse,
+  validationError,
+} from '../utils/response.util';
+import {
+  buildPaginationMeta,
+  normalizePagination,
+} from '../utils/pagination.util';
 
 // Register a new user
 export const register = async (req: Request, res: Response) => {
@@ -20,7 +30,15 @@ export const register = async (req: Request, res: Response) => {
       });
 
       if (existingUser) {
-        return res.status(409).json(alreadyExistsError(existingUser.email === email ? `Email already in use` : `Username already taken`));
+        return res
+          .status(409)
+          .json(
+            alreadyExistsError(
+              existingUser.email === email
+                ? `Email already in use`
+                : `Username already taken`,
+            ),
+          );
       }
     } catch (findError) {
       console.error('Error checking for existing user:', findError);
@@ -63,14 +81,21 @@ export const register = async (req: Request, res: Response) => {
       );
     }
 
-    return res.status(201).json(successResponse({user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-        createdAt: user.createdAt,
-      },
-      tokens}, "User registered successfully"));
+    return res.status(201).json(
+      successResponse(
+        {
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            name: user.name,
+            createdAt: user.createdAt,
+          },
+          tokens,
+        },
+        'User registered successfully',
+      ),
+    );
   } catch (error) {
     console.error('Registration error:', error);
     return res.status(500).json(internalServerError(error));
@@ -134,15 +159,20 @@ export const login = async (req: Request, res: Response) => {
       }
 
       // Return user data and tokens
-      return res.status(200).json(successResponse({
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          name: user.name,
-        },
-        tokens
-      }, "Login successful"));
+      return res.status(200).json(
+        successResponse(
+          {
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              name: user.name,
+            },
+            tokens,
+          },
+          'Login successful',
+        ),
+      );
     } catch (tokenError) {
       console.error('Error generating tokens:', tokenError);
       return res.status(500).json(internalServerError(tokenError));
@@ -195,7 +225,9 @@ export const refreshToken = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json(successResponse(tokens, "Token refreshed successfully"));
+    return res
+      .status(200)
+      .json(successResponse(tokens, 'Token refreshed successfully'));
   } catch (error) {
     console.error('Refresh token error:', error);
     return res.status(500).json(internalServerError(error));
@@ -219,7 +251,7 @@ export const logout = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json(successResponse({ }, 'Logged out successfully'));
+    return res.status(200).json(successResponse({}, 'Logged out successfully'));
   } catch (error) {
     console.error('Logout error:', error);
     return res.status(500).json(internalServerError(error));
@@ -243,7 +275,7 @@ export const logoutAll = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .json(successResponse({ }, 'Logged out from all devices successfully'));
+      .json(successResponse({}, 'Logged out from all devices successfully'));
   } catch (error) {
     console.error('Logout all error:', error);
     return res.status(500).json(internalServerError(error));
@@ -257,15 +289,15 @@ export const getSessions = async (req: Request, res: Response) => {
     const {
       search,
       status,
-      sortBy = "createdAt",
-      sortOrder = "desc",
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = req.query;
 
     // Normalize pagination
     const { page, limit, offset } = normalizePagination({
       page: parseInt(req.query.page as string) || 1,
       limit: parseInt(req.query.limit as string) || 12,
-      maxLimit: 50
+      maxLimit: 50,
     });
 
     // Get all active sessions
@@ -289,13 +321,21 @@ export const getSessions = async (req: Request, res: Response) => {
           lastActive: true, // Use lastActive field instead of lastUsedAt
         },
         orderBy: {
-          lastActive: sortOrder === "asc" ? "asc" : "desc", // Use lastActive field instead of lastUsedAt
+          lastActive: sortOrder === 'asc' ? 'asc' : 'desc', // Use lastActive field instead of lastUsedAt
         },
       }),
-      prisma.session.count()
-    ])
+      prisma.session.count(),
+    ]);
 
-    return res.status(200).json(paginatedResponse(sessions, buildPaginationMeta(page, limit, total), 'Sessions retrieved successfully'));
+    return res
+      .status(200)
+      .json(
+        paginatedResponse(
+          sessions,
+          buildPaginationMeta(page, limit, total),
+          'Sessions retrieved successfully',
+        ),
+      );
   } catch (error) {
     console.error('Get sessions error:', error);
     return res.status(500).json(internalServerError(error));

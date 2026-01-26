@@ -1,9 +1,16 @@
-import { ApiErrorObject, ApiErrorResponse, ApiMeta, ApiPaginatedResponse, ApiSuccessResponse, PaginationMeta } from "../types/api.types";
+import {
+  ApiErrorObject,
+  ApiErrorResponse,
+  ApiMeta,
+  ApiPaginatedResponse,
+  ApiSuccessResponse,
+  PaginationMeta,
+} from '../types/api.types';
 
 function buildMeta(requestId?: string): ApiMeta {
   return {
     timestamp: new Date().toISOString(),
-    ...(requestId ? { requestId } : {})
+    ...(requestId ? { requestId } : {}),
   };
 }
 
@@ -12,13 +19,13 @@ function buildMeta(requestId?: string): ApiMeta {
 export function successResponse<T>(
   data: T,
   message?: string,
-  requestId?: string
+  requestId?: string,
 ): ApiSuccessResponse<T> {
   return {
     success: true,
     data,
     message,
-    meta: buildMeta(requestId)
+    meta: buildMeta(requestId),
   };
 }
 
@@ -28,14 +35,14 @@ export function paginatedResponse<T>(
   data: T[],
   pagination: PaginationMeta,
   message?: string,
-  requestId?: string
+  requestId?: string,
 ): ApiPaginatedResponse<T> {
   return {
     success: true,
     data,
     pagination,
     message,
-    meta: buildMeta(requestId)
+    meta: buildMeta(requestId),
   };
 }
 
@@ -43,12 +50,12 @@ export function paginatedResponse<T>(
 
 export function errorResponse(
   error: ApiErrorObject,
-  requestId?: string
+  requestId?: string,
 ): ApiErrorResponse {
   return {
     success: false,
     error,
-    meta: buildMeta(requestId)
+    meta: buildMeta(requestId),
   };
 }
 
@@ -57,43 +64,43 @@ export function errorResponse(
 export function validationError(
   message: string,
   details?: unknown,
-  field?: string
+  field?: string,
 ) {
   return errorResponse({
-    code: "VALIDATION_ERROR",
+    code: 'VALIDATION_ERROR',
     message,
     details,
-    field
+    field,
   });
 }
 
-export function alreadyExistsError(
-  message: string
-) {
+export function alreadyExistsError(message: string) {
   return errorResponse({
-    code: "ALREADY_EXISTS",
-    message
+    code: 'ALREADY_EXISTS',
+    message,
   });
 }
 
-export function notFoundError(message = "Resource not found") {
+export function notFoundError(message = 'Resource not found') {
   return errorResponse({
-    code: "NOT_FOUND",
-    message
+    code: 'NOT_FOUND',
+    message,
   });
 }
 
 export function internalServerError(details?: unknown) {
   return errorResponse({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Something went wrong",
-    details
+    code: 'INTERNAL_SERVER_ERROR',
+    message: 'Something went wrong',
+    details,
   });
 }
 
-export function permissionError(message = "You don't have sufficient permissions") {
+export function permissionError(
+  message = "You don't have sufficient permissions",
+) {
   return errorResponse({
-    code: "PERMISSION_ERROR",
-    message
+    code: 'PERMISSION_ERROR',
+    message,
   });
 }
