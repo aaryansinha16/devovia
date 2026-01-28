@@ -11,7 +11,7 @@
     "startCommand": "cd apps/api && pnpm exec prisma migrate deploy && node dist/apps/api/src/index.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10,
-    "healthcheckPath": "/api/hc",
+    "healthcheckPath": "/health",
     "healthcheckTimeout": 100
   },
   "serviceId": "78b2b18b-bb84-41e0-be9f-7ba52648069e"

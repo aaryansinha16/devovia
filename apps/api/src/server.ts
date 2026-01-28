@@ -107,6 +107,19 @@ export function createExpressApp() {
   // Extract and validate session token
   app.use(extractSessionToken);
 
+  // Health check endpoint (must be before other routes for Railway)
+  app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  app.get('/', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      message: 'Devovia API is running',
+      version: '1.0.0'
+    });
+  });
+
   // Serve static files from uploads directory
   app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
