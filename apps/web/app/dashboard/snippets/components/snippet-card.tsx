@@ -16,16 +16,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface SnippetCardProps {
-  snippet: {
-    id: string;
-    title: string;
-    description?: string;
-    code: string;
-    language: string;
-    tags: string[];
-    createdAt: string;
-    isPublic: boolean;
-  };
+  snippet: any; // Accept full Snippet type with all properties
   viewMode: "grid" | "list";
   onDelete: () => void;
   onEdit: () => void;
@@ -98,7 +89,7 @@ export function SnippetCard({ snippet, viewMode, onDelete, onEdit }: SnippetCard
           <span className="px-2 py-1 bg-gradient-to-r from-sky-500/20 to-indigo-500/20 text-sky-700 dark:text-sky-300 rounded text-xs font-medium">
             {getLanguageLabel(snippet.language)}
           </span>
-          {snippet.isPublic && (
+          {snippet.visibility === 'PUBLIC' && (
             <span className="px-2 py-1 bg-green-500/20 text-green-700 dark:text-green-300 rounded text-xs font-medium">
               Public
             </span>
@@ -129,9 +120,9 @@ export function SnippetCard({ snippet, viewMode, onDelete, onEdit }: SnippetCard
         </div>
 
         {/* Tags */}
-        {snippet.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {snippet.tags.slice(0, 3).map((tag) => (
+        {snippet.tags && snippet.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {snippet.tags.map((tag: string) => (
               <span
                 key={tag}
                 className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-xs flex items-center gap-1"

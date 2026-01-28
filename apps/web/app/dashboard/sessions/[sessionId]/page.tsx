@@ -71,6 +71,7 @@ export default function SessionWorkspace({ params }: SessionWorkspaceProps) {
     acquireLock,
     releaseLock,
     saveContent,
+    updateContent,
     createSnapshot,
     generateInviteLink
   } = useSessionStore();
@@ -521,6 +522,7 @@ export default function SessionWorkspace({ params }: SessionWorkspaceProps) {
               onSave={() => saveContent()}
               onContentChange={(content) => {
                 editorContentRef.current = content;
+                updateContent(content);
               }}
               className="h-full"
             />

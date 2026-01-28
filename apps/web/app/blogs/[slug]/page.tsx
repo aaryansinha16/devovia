@@ -14,6 +14,7 @@ import { IconArrowLeft, IconClock, IconTag, IconMessage } from "@tabler/icons-re
 import Footer from "../../../components/footer";
 import Navbar from "../../../components/navbar";
 import Loader from '../../../components/ui/loader';
+import { useBlogBySlug } from "../../../lib/hooks/useBlog";
 
 // Since we're using a client component, we'll use a loading state
 type BlogPost = Awaited<ReturnType<typeof getBlogBySlug>>;
@@ -40,51 +41,11 @@ function BlogPostContent() {
   const params = useParams();
   const slug = params?.slug as string;
 
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  // Fetch post data on client side
-  useEffect(() => {
-    async function fetchPost() {
-      try {
-        if (!slug) {
-          notFound();
-          return;
-        }
-
-        console.log(`Blog page: Fetching blog with slug '${slug}'`);
-        const postData = await getBlogBySlug(slug);
-        console.log(
-          "Blog page: Post data received:",
-          postData ? "success" : "null",
-        );
-
-        if (!postData) {
-          console.error("Blog page: Post data is null or undefined");
-          notFound();
-          return;
-        }
-
-        if (!postData.published) {
-          console.log("Blog page: Post exists but is not published");
-          notFound();
-          return;
-        }
-
-        setPost(postData);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err : new Error("Failed to load blog post"),
-        );
-        console.error("Blog page: Error fetching post:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPost();
-  }, [slug]);
+  const { 
+      data: post,
+      loading,
+      error,
+  } = useBlogBySlug(slug);
 
   // Loading state
   if (loading) {

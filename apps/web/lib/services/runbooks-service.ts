@@ -3,35 +3,13 @@
  * Handles all API calls for the Runbooks feature
  */
 
-import { API_URL } from "../api-config";
-import { getAuthHeaders } from "./auth-service";
-
-async function apiRequest<T>(
-  endpoint: string,
-  options?: {
-    method?: string;
-    body?: string;
-    headers?: Record<string, string>;
-  },
-): Promise<T> {
-  const headers = await getAuthHeaders();
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      ...headers,
-      ...options?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ message: "Request failed" }));
-    throw new Error(error.message || error.error || "Request failed");
-  }
-
-  return response.json();
-}
+import { ApiPaginatedResponse } from '../types/api.types';
+import {
+  apiRequest,
+  apiRequestPaginated,
+  buildQueryString,
+  PaginatedResult,
+} from '../utils/api-client';
 
 // Types
 export interface Runbook {
@@ -56,6 +34,8 @@ export interface Runbook {
   variables?: Record<string, any>;
   timeoutSeconds?: number;
 }
+
+export type RunbookPagination = ApiPaginatedResponse<Runbook>;
 
 export interface RunbookStep {
   id: string;
@@ -178,26 +158,24 @@ export interface Schedule {
 // API Functions
 
 /**
- * List all runbooks
+ * List all runbooks with pagination
  */
 export async function listRunbooks(params?: {
   status?: string;
   environment?: string;
   search?: string;
   page?: number;
-  pageSize?: number;
-}): Promise<Runbook[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.status) searchParams.set("status", params.status);
-  if (params?.environment) searchParams.set("environment", params.environment);
-  if (params?.search) searchParams.set("search", params.search);
-  if (params?.page) searchParams.set("page", params.page.toString());
-  if (params?.pageSize)
-    searchParams.set("pageSize", params.pageSize.toString());
+  limit?: number;
+}): Promise<PaginatedResult<Runbook>> {
+  const query = buildQueryString({
+    status: params?.status,
+    environment: params?.environment,
+    search: params?.search,
+    page: params?.page,
+    limit: params?.limit,
+  });
 
-  const query = searchParams.toString();
-  const response = await apiRequest<{ data: Runbook[]; total: number }>(`/runbooks${query ? `?${query}` : ""}`);
-  return response.data;
+  return apiRequestPaginated<Runbook>(`/runbooks${query}`);
 }
 
 /**
@@ -215,7 +193,7 @@ export async function createRunbook(
 ): Promise<Runbook> {
   return apiRequest<Runbook>("/runbooks", {
     method: "POST",
-    body: JSON.stringify(data),
+    body: data,
   });
 }
 
@@ -228,7 +206,7 @@ export async function updateRunbook(
 ): Promise<Runbook> {
   return apiRequest<Runbook>(`/runbooks/${id}`, {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: data,
   });
 }
 
@@ -250,7 +228,7 @@ export async function executeRunbook(
 ): Promise<RunbookExecution> {
   return apiRequest<RunbookExecution>(`/runbooks/${id}/execute`, {
     method: "POST",
-    body: JSON.stringify(data || {}),
+    body: data || {},
   });
 }
 
@@ -297,7 +275,7 @@ export async function approveApproval(
 ): Promise<void> {
   return apiRequest<void>(`/runbooks/approvals/${approvalId}/approve`, {
     method: "POST",
-    body: JSON.stringify({ comment }),
+    body: { comment },
   });
 }
 
@@ -310,7 +288,7 @@ export async function rejectApproval(
 ): Promise<void> {
   return apiRequest<void>(`/runbooks/approvals/${approvalId}/reject`, {
     method: "POST",
-    body: JSON.stringify({ reason }),
+    body: { reason },
   });
 }
 
@@ -321,12 +299,11 @@ export async function listSecrets(params?: {
   runbookId?: string;
   environment?: string;
 }): Promise<Secret[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.runbookId) searchParams.set("runbookId", params.runbookId);
-  if (params?.environment) searchParams.set("environment", params.environment);
-
-  const query = searchParams.toString();
-  return apiRequest<Secret[]>(`/runbooks/secrets${query ? `?${query}` : ""}`);
+  const query = buildQueryString({
+    runbookId: params?.runbookId,
+    environment: params?.environment,
+  });
+  return apiRequest<Secret[]>(`/runbooks/secrets${query}`);
 }
 
 /**
@@ -342,7 +319,7 @@ export async function createSecret(data: {
 }): Promise<{ id: string; name: string }> {
   return apiRequest<{ id: string; name: string }>("/runbooks/secrets", {
     method: "POST",
-    body: JSON.stringify(data),
+    body: data,
   });
 }
 
@@ -376,7 +353,7 @@ export async function createSchedule(
 ): Promise<Schedule> {
   return apiRequest<Schedule>(`/runbooks/${runbookId}/schedules`, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: data,
   });
 }
 

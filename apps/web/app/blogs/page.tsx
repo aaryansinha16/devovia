@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getAllPublishedBlogs } from "../../lib/services/public-blog-service";
 import { Button, Container, Heading, Text, GlassCard, BackgroundDecorative } from "@repo/ui";
 import ServerPagination from "../../components/server-pagination";
@@ -12,6 +12,8 @@ import Footer from "../../components/footer";
 import Navbar from "../../components/navbar";
 import { IconSearch, IconTag, IconClock, IconMessage, IconArrowRight, IconX, IconTrendingUp, IconSparkles } from "@tabler/icons-react";
 import Loader from '../../components/ui/loader';
+import { useDebouncedValue } from "../../lib/hooks/useDebounce";
+import { usePublishedBlogs } from "../../lib/hooks/useBlog";
 
 type BlogsData = Awaited<ReturnType<typeof getAllPublishedBlogs>>;
 
@@ -34,43 +36,57 @@ function BlogsLoading() {
 
 // Separate the blogs content into its own component that uses useSearchParams
 function BlogsContent() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const updateQueryParam = useCallback(
+    (key: string, value?: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (!value) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+
+      params.set("page", "1"); // reset pagination on new search
+
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
+
   const pageParam = searchParams.get("page") || "1";
   const tagParam = searchParams.get("tag") || undefined;
 
-  const [page, setPage] = useState(parseInt(pageParam));
-  const [blogsData, setBlogsData] = useState<BlogsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const limit = 10;
 
-  // Fetch blogs data with useEffect
-  useEffect(() => {
-    async function fetchBlogs() {
-      try {
-        setLoading(true);
-        const data = await getAllPublishedBlogs(page, limit, tagParam);
-        setBlogsData(data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err : new Error("Failed to load blogs"),
-        );
-        console.error("Failed to load blogs:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
+  const debouncedSearch = useDebouncedValue(searchQuery, 500);
+  const page = useMemo(() => parseInt(pageParam) || 1, [pageParam]);
 
-    fetchBlogs();
-  }, [page, tagParam, limit]);
+  useEffect(() => {
+    if (debouncedSearch !== undefined) {
+      updateQueryParam("search", debouncedSearch || undefined);
+    }
+  }, [debouncedSearch, updateQueryParam]);
+
+  const { 
+    data: posts,
+    pagination,
+    loading,
+    error,
+    refetch
+  } = usePublishedBlogs(page || 1, 12, tagParam, debouncedSearch);
 
   // Loading state
-  if (loading) {
-    return <Loader />;
-  }
+  // if (loading) {
+  //   return <Loader />;
+  // }
 
   // Error state
-  if (error || !blogsData) {
+  if (error || !posts) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
         <BackgroundDecorative variant="subtle" />
@@ -94,8 +110,6 @@ function BlogsContent() {
       </div>
     );
   }
-
-  const { posts, total, hasMore } = blogsData;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
@@ -126,7 +140,7 @@ function BlogsContent() {
                   <IconTrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                   <div>
                     <Text size="sm" variant="muted">Total Posts</Text>
-                    <Text className="font-bold text-lg">{total || 0}</Text>
+                    <Text className="font-bold text-lg">{pagination.total || 0}</Text>
                   </div>
                 </div>
                 {tagParam && (
@@ -149,6 +163,8 @@ function BlogsContent() {
                   <input
                     type="text"
                     placeholder="Search posts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
@@ -158,7 +174,9 @@ function BlogsContent() {
 
           {/* Blog list */}
           <div className="grid gap-6">
-            {posts.length === 0 ? (
+            {
+              loading ? <Loader /> : 
+              posts.length === 0 ? (
               <GlassCard className="text-center py-20">
                 <div className="text-6xl mb-4">📝</div>
                 <Heading size="h3" className="mb-2">No posts found</Heading>
@@ -174,7 +192,7 @@ function BlogsContent() {
             ) : (
               <>
                 {/* Featured post (first post) */}
-                {page === 1 && posts.length > 0 && posts[0] && (
+                {pagination.page === 1 && posts.length > 0 && posts[0] && (
                   <GlassCard className="group hover:shadow-2xl transition-all duration-300 mb-12">
                     <div className="grid md:grid-cols-1 gap-6">
                       {posts[0]?.coverImage && (
@@ -255,7 +273,7 @@ function BlogsContent() {
 
                 {/* Regular posts grid */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {posts.slice(page === 1 ? 1 : 0).map((post) => (
+                  {posts.slice(pagination.page === 1 ? 1 : 0).map((post) => (
                     <GlassCard key={post.id} className="group hover:shadow-2xl transition-all duration-300">
                       {post.coverImage && (
                         <Link href={`/blogs/${post.slug}`} className="block mb-4 rounded-xl overflow-hidden -m-6 mb-6">
@@ -358,12 +376,12 @@ function BlogsContent() {
           </div>
 
           {/* Pagination */}
-          {posts.length > 0 && total > limit && (
+          {posts.length > 0 && pagination.total > limit && (
             <div className="mt-12 flex justify-center">
               <GlassCard padding="sm">
                 <ServerPagination
-                  currentPage={page}
-                  totalPages={Math.ceil(total / limit) || 1}
+                  currentPage={pagination.page}
+                  totalPages={Math.ceil(pagination.totalPages) || 1}
                   basePath="/blogs"
                   queryParams={{ tag: tagParam }}
                 />

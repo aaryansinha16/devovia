@@ -11,12 +11,9 @@ import {
   IconLoader2,
 } from "@tabler/icons-react";
 import Loader from '../../../../components/ui/loader';
-import {
-  getRunbook,
-  updateRunbook,
-  executeRunbook,
-  type RunbookStep,
-} from "../../../../lib/services/runbooks-service";
+import { type RunbookStep } from "../../../../lib/services/runbooks-service";
+import { useRunbookById, useUpdateRunbook, useExecuteRunbook } from "../../../../lib/hooks/useRunbook";
+import { useToast } from "@repo/ui/hooks/use-toast";
 import { Container, Heading, Text, GlassCard, IconButton, Input, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
 
 // Dynamic import to avoid SSR issues with ReactFlow
@@ -49,10 +46,10 @@ export default function EditRunbookPage() {
   const router = useRouter();
   const runbookId = params.id as string;
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [executing, setExecuting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data: runbook, loading, error: loadError } = useRunbookById(runbookId);
+  const { mutate: updateRunbook, loading: saving } = useUpdateRunbook(runbookId);
+  const { mutate: executeRunbook, loading: executing } = useExecuteRunbook(runbookId);
+  const { toast } = useToast();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -65,26 +62,15 @@ export default function EditRunbookPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    loadRunbook();
-  }, [runbookId]);
-
-  async function loadRunbook() {
-    try {
-      setLoading(true);
-      const runbook = await getRunbook(runbookId);
+    if (runbook) {
       setName(runbook.name);
       setDescription(runbook.description || "");
       setStatus(runbook.status);
       setEnvironment(runbook.environment);
       setTags(runbook.tags || []);
       setSteps(runbook.steps || []);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to load runbook";
-      setError(message);
-    } finally {
-      setLoading(false);
     }
-  }
+  }, [runbook]);
 
   function addTag() {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -99,20 +85,17 @@ export default function EditRunbookPage() {
 
   async function handleSave() {
     if (!name.trim()) {
-      setError("Name is required");
+      toast({ title: "Error", description: "Name is required" });
       return;
     }
 
     if (steps.length === 0) {
-      setError("At least one step is required");
+      toast({ title: "Error", description: "At least one step is required" });
       return;
     }
 
     try {
-      setSaving(true);
-      setError(null);
-
-      await updateRunbook(runbookId, {
+      await updateRunbook({
         name: name.trim(),
         description: description.trim() || undefined,
         status,
@@ -121,30 +104,37 @@ export default function EditRunbookPage() {
         steps,
       });
 
+      toast({ title: "Success!", description: "Runbook updated successfully" });
       router.push("/dashboard/runbooks");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to update runbook";
-      setError(message);
-    } finally {
-      setSaving(false);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to update runbook" });
     }
   }
 
   async function handleExecute() {
     try {
-      setExecuting(true);
-      const execution = await executeRunbook(runbookId);
+      const execution = await executeRunbook({});
+      toast({ title: "Success!", description: "Runbook execution started" });
       router.push(`/dashboard/runbooks/executions/${execution.id}`);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to execute runbook";
-      setError(message);
-    } finally {
-      setExecuting(false);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to execute runbook" });
     }
   }
 
   if (loading) {
     return <Loader />;
+  }
+
+  if (loadError || !runbook) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <Heading size="h2" className="mb-4">Error loading runbook</Heading>
+          <Text className="text-slate-400 mb-6">{loadError?.message || "Runbook not found"}</Text>
+          <Button onClick={() => router.push("/dashboard/runbooks")}>Back to Runbooks</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -190,9 +180,9 @@ export default function EditRunbookPage() {
           </div>
         </div>
 
-        {error && (
+        {loadError && (
           <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/20 rounded-xl shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-red-600 dark:text-red-400">{loadError}</p>
           </div>
         )}
 

@@ -19,11 +19,14 @@ import {
   SelectValue,
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
-import { API_URL } from "../../../../lib/api-config";
-import { getTokens } from "../../../../lib/auth";
+import { useCreateProject } from "../../../../lib/hooks/useProject";
+import { useToast } from "@repo/ui/hooks/use-toast";
 
 export default function CreateProjectPage() {
   const router = useRouter();
+  const { mutate: createProject, loading } = useCreateProject();
+  const { toast } = useToast();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
@@ -35,7 +38,6 @@ export default function CreateProjectPage() {
   const [visibility, setVisibility] = useState("PRIVATE");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleAddTech = () => {
     if (techInput.trim() && !techStack.includes(techInput.trim())) {
@@ -50,47 +52,33 @@ export default function CreateProjectPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        alert("Please log in to create projects");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/projects`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          repoUrl: repoUrl || null,
-          demoUrl: demoUrl || null,
-          thumbnail: thumbnail || null,
-          techStack,
-          status,
-          visibility,
-          startDate: startDate || null,
-          endDate: endDate || null,
-        }),
+      const project = await createProject({
+        title,
+        description,
+        githubUrl: repoUrl || undefined,
+        liveUrl: demoUrl || undefined,
+        thumbnail: thumbnail || undefined,
+        techStack,
+        status,
+        visibility,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        router.push(`/dashboard/projects/${data.project.id}`);
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to create project");
-      }
-    } catch (error) {
+      toast({
+        title: "Success!",
+        description: "Project created successfully",
+      });
+
+      router.push(`/dashboard/projects/${project.id}`);
+    } catch (error: any) {
       console.error("Error creating project:", error);
-      alert("Failed to create project");
-    } finally {
-      setLoading(false);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create project",
+      });
     }
   };
 

@@ -26,7 +26,7 @@ export default function CreateBlogPage() {
 
     try {
       // Create the blog post
-      const { post } = await createBlog(blogData);
+      await createBlog(blogData);
 
       // Redirect to the blogs list
       router.push("/dashboard/blogs");

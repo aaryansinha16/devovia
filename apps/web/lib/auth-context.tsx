@@ -69,8 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               });
               
               if (response.ok) {
-                const data = await response.json();
-                setUser(data.user);
+                const {data} = await response.json();
+                setUser(data);
               } else {
                 // Fallback to token data if profile fetch fails
                 const user = getUserFromToken(storedTokens.accessToken);

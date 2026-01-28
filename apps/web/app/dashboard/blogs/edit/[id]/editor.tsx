@@ -82,14 +82,12 @@ export function BlogEditor({ id }: { id: string }) {
 
         try {
           // Try to fetch the blog post from the API using its ID
-          console.log("Trying to fetch blog by ID:", id);
-          const response = await getBlogById(id);
-          post = response.post;
+          post = await getBlogById(id);
         } catch (idError) {
           console.log("Failed to fetch by ID, trying to fetch by slug");
           // If ID fetch fails, try to fetch the user's blogs and find the one with matching ID
           const userBlogsResponse = await getUserBlogs();
-          post = userBlogsResponse.posts.find((p) => p.id === id);
+          post = userBlogsResponse.data.find((p) => p.id === id);
         }
 
         if (post) {

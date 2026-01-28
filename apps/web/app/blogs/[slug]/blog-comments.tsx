@@ -11,11 +11,8 @@ import {
   getBlogComments,
   addBlogComment,
   deleteBlogComment,
-  CommentResponse,
+  Comment,
 } from "../../../lib/services/public-blog-service";
-
-// We can use the types from our service
-type Comment = CommentResponse["comments"][0];
 
 interface BlogCommentsProps {
   postId: string;
@@ -37,9 +34,9 @@ export function BlogComments({ postId }: BlogCommentsProps) {
       try {
         setIsLoading(true);
         const response = await getBlogComments(postId, currentPage, 10);
-        setComments(response.comments);
-        setTotalPages(response.totalPages);
-        setTotalComments(response.total);
+        setComments(response.data);
+        setTotalPages(response.pagination.totalPages);
+        setTotalComments(response.pagination.total);
       } catch (error) {
         console.error("Failed to load comments:", error);
       } finally {

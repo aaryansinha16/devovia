@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Container,
@@ -33,53 +33,27 @@ import {
 } from "@tabler/icons-react";
 import { SnippetCard } from "./components/snippet-card";
 import { useAuth } from "../../../lib/auth-context";
-import { API_URL } from "../../../lib/api-config";
-import { getTokens } from "../../../lib/auth";
+import { useSnippets, useDeleteSnippet } from "../../../lib/hooks/useSnippet";
+import { useDebouncedValue } from "../../../lib/hooks/useDebounce";
+import Loader from "../../../components/ui/loader";
 
 export default function SnippetsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [snippets, setSnippets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [selectedTag, setSelectedTag] = useState<string>("all");
 
-  useEffect(() => {
-    fetchSnippets();
-  }, [searchQuery, selectedLanguage, selectedTag]);
+  const debouncedSearch = useDebouncedValue(searchQuery, 500);
 
-  const fetchSnippets = async () => {
-    try {
-      setLoading(true);
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        setSnippets([]);
-        setLoading(false);
-        return;
-      }
+  const filters = useMemo(() => ({
+    search: debouncedSearch || undefined,
+    language: selectedLanguage !== "all" ? selectedLanguage : undefined,
+    tag: selectedTag !== "all" ? selectedTag : undefined,
+  }), [debouncedSearch, selectedLanguage, selectedTag]);
 
-      const params = new URLSearchParams();
-      if (searchQuery) params.append("search", searchQuery);
-      if (selectedLanguage !== "all") params.append("language", selectedLanguage);
-      if (selectedTag !== "all") params.append("tag", selectedTag);
-
-      const response = await fetch(`${API_URL}/snippets?${params.toString()}`, {
-        headers: {
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSnippets(data.snippets || []);
-      }
-    } catch (error) {
-      console.error("Error fetching snippets:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: snippets = [], loading, error, refetch } = useSnippets(1, 100, filters);
 
   const handleCreateSnippet = () => {
     router.push("/dashboard/snippets/create");
@@ -89,21 +63,19 @@ export default function SnippetsPage() {
     if (!confirm("Are you sure you want to delete this snippet?")) return;
 
     try {
-      const tokens = getTokens();
-      if (!tokens?.accessToken) return;
-
-      const response = await fetch(`${API_URL}/snippets/${id}`, {
-        method: "DELETE",
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/snippets/${id}`, {
+        method: 'DELETE',
         headers: {
-          "Authorization": `Bearer ${tokens.accessToken}`,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
-      if (response.ok) {
-        fetchSnippets();
-      }
+      if (!response.ok) throw new Error('Failed to delete snippet');
+      
+      refetch();
     } catch (error) {
       console.error("Error deleting snippet:", error);
+      alert("Failed to delete snippet");
     }
   };
 
@@ -191,9 +163,17 @@ export default function SnippetsPage() {
 
         {/* Snippets Grid/List */}
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
+          <Loader />
+        ) : error ? (
+          <GlassCard className="text-center py-20">
+            <IconCode className="w-16 h-16 mx-auto mb-4 text-red-400" />
+            <Heading size="h3" className="mb-2">
+              Error loading snippets
+            </Heading>
+            <Text variant="muted" className="mb-6">
+              {error.message}
+            </Text>
+          </GlassCard>
         ) : snippets.length === 0 ? (
           <GlassCard className="text-center py-20">
             <IconCode className="w-16 h-16 mx-auto mb-4 text-slate-400" />

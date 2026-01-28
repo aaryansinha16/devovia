@@ -35,8 +35,8 @@ export default function BlogsDashboardPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getUserBlogs();
-        setBlogs(data.posts);
+        const result = await getUserBlogs();
+        setBlogs(result.data);
       } catch (err) {
         console.error("Failed to load blogs:", err);
         setError("Failed to load your blog posts. Please try again.");

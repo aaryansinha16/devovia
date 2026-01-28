@@ -61,12 +61,14 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
 
         if (response.ok) {
           const data = await response.json();
+          // Handle standardized API response format
+          const messagesData = data.success ? data.data : data.messages || [];
           // Convert API messages to chat format
-          const apiMessages = data.messages.map((msg: any) => ({
+          const apiMessages = messagesData.map((msg: any) => ({
             id: msg.id,
             userId: msg.userId,
-            userName: msg.user.name || msg.user.username || 'Anonymous',
-            userAvatar: msg.user.avatar,
+            userName: msg.user?.name || msg.user?.username || 'Anonymous',
+            userAvatar: msg.user?.avatar,
             userColor: generateUserColor(msg.userId),
             content: msg.content,
             timestamp: new Date(msg.createdAt).getTime(),
