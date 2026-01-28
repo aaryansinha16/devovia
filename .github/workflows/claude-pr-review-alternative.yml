@@ -1,0 +1,155 @@
+name: Claude PR Review (Alternative)
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude-review:
+    if: |
+      (github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude'))
+    
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Get PR diff
+        id: pr-diff
+        run: |
+          gh pr diff ${{ github.event.pull_request.number || github.event.issue.number }} > pr-diff.txt
+          echo "Diff saved to pr-diff.txt"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Read context files
+        id: context
+        run: |
+          if [ -f ".github/CLAUDE_CONTEXT.md" ]; then
+            echo "CONTEXT_EXISTS=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create review script
+        run: |
+          cat > review.js << 'EOF'
+          const Anthropic = require('@anthropic-ai/sdk');
+          const fs = require('fs');
+          const { execSync } = require('child_process');
+
+          const anthropic = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY,
+          });
+
+          async function reviewPR() {
+            try {
+              // Read PR diff
+              const diff = fs.readFileSync('pr-diff.txt', 'utf-8');
+              
+              // Read context if exists
+              let context = '';
+              if (fs.existsSync('.github/CLAUDE_CONTEXT.md')) {
+                context = fs.readFileSync('.github/CLAUDE_CONTEXT.md', 'utf-8');
+              }
+              
+              // Read templates if exists
+              let templates = '';
+              if (fs.existsSync('.github/claude-review-templates.md')) {
+                templates = fs.readFileSync('.github/claude-review-templates.md', 'utf-8');
+              }
+
+              const prompt = `You are reviewing a Pull Request for the Devovia project.
+
+          PROJECT CONTEXT:
+          ${context}
+
+          REVIEW TEMPLATES:
+          ${templates}
+
+          PR DIFF:
+          \`\`\`diff
+          ${diff}
+          \`\`\`
+
+          Please review this PR and provide:
+          1. A summary of changes
+          2. Key issues found (security, type safety, API standardization, code quality)
+          3. Specific suggestions for improvement
+          4. Any critical issues that must be addressed
+
+          Focus on:
+          - API response standardization
+          - TypeScript type safety
+          - Security issues
+          - Code quality and maintainability
+          - Performance concerns
+
+          Format your response as a clear, actionable review comment.`;
+
+              console.log('Sending request to Claude API...');
+              
+              const message = await anthropic.messages.create({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 4096,
+                messages: [{
+                  role: 'user',
+                  content: prompt
+                }]
+              });
+
+              const review = message.content[0].text;
+              
+              // Save review to file
+              fs.writeFileSync('review-comment.txt', review);
+              
+              console.log('Review generated successfully');
+              console.log('---');
+              console.log(review);
+              
+            } catch (error) {
+              console.error('Error:', error.message);
+              process.exit(1);
+            }
+          }
+
+          reviewPR();
+          EOF
+      
+      - name: Install Anthropic SDK
+        run: npm install @anthropic-ai/sdk
+      
+      - name: Generate review with Claude
+        run: node review.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      
+      - name: Post review comment
+        run: |
+          gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} --body-file review-comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload review as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-review
+          path: |
+            review-comment.txt
+            pr-diff.txt
