@@ -34,7 +34,7 @@ import snippetRoutes from './routes/snippet.routes';
 import projectRoutes from './routes/project.routes';
 import projectNotesRoutes from './routes/project-notes.routes';
 import projectChatRoutes from './routes/project-chat.routes';
-import docsRoutes from './routes/docs.routes';
+// import docsRoutes from './routes/docs.routes'; // Temporarily disabled - ESM module issue
 
 // Import WebSocket collaboration server
 import CollaborationServer from './websocket/collaboration-server';
@@ -113,10 +113,10 @@ export function createExpressApp() {
   });
 
   app.get('/', (req, res) => {
-    res.status(200).json({ 
-      status: 'ok', 
+    res.status(200).json({
+      status: 'ok',
       message: 'Devovia API is running',
-      version: '1.0.0'
+      version: '1.0.0',
     });
   });
 
@@ -147,7 +147,7 @@ export function createExpressApp() {
   app.use('/api/projects', projectRoutes);
   app.use('/api/project-notes', projectNotesRoutes);
   app.use('/api/project-chat', projectChatRoutes);
-  app.use('/api/docs', docsRoutes);
+  // app.use('/api/docs', docsRoutes); // Temporarily disabled - ESM module issue
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {
