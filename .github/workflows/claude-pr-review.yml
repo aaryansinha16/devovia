@@ -1,0 +1,209 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  pull_request_review_comment:
+    types: [created]
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude-review:
+    # Skip draft PRs unless they have the 'claude' label
+    if: |
+      (github.event_name == 'pull_request' && (!github.event.pull_request.draft || contains(github.event.pull_request.labels.*.name, 'claude'))) ||
+      (github.event_name == 'pull_request_review_comment') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude'))
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - name: Claude Code Action
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          track_progress: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+
+            You are reviewing code for the Devovia project, a comprehensive developer collaboration platform.
+
+            ## Project Context
+            - **Tech Stack**: Next.js 15 (frontend), Node.js/Express (backend), PostgreSQL (Prisma), TypeScript, TailwindCSS
+            - **Package Manager**: pnpm (always use pnpm, never npm or yarn)
+            - **Architecture**: Monorepo with Turborepo, API standardization with unified response format
+            - **Development Approach**: Type-safe development with comprehensive error handling
+
+            ## Review Focus Areas
+
+            ### 1. API Response Standardization (CRITICAL)
+            - Verify all API endpoints return standardized format: `{ success, data, pagination?, message?, meta? }`
+            - Check error responses follow format: `{ success: false, error: { code, message, details? }, meta? }`
+            - Ensure pagination uses: `{ page, limit, total, totalPages, hasNext, hasPrev }`
+            - Validate services use response utilities from `utils/response.util.ts`
+            - Check frontend uses type-safe extractors from `lib/utils/api-adapter.ts`
+
+            ### 2. Type Safety & TypeScript (CRITICAL)
+            - Ensure all new code has proper TypeScript types (no `any` unless absolutely necessary)
+            - Verify API responses use centralized types from `lib/types/api.types.ts`
+            - Check Prisma schema changes include proper types and relations
+            - Validate React components have proper prop types
+            - Ensure hooks have correct generic type parameters
+
+            ### 3. Security & Authentication
+            - Verify protected routes use proper authentication middleware
+            - Check API endpoints validate user permissions
+            - Ensure sensitive data is not exposed in responses
+            - Validate input sanitization and validation (Zod schemas)
+            - Check for SQL injection prevention (Prisma handles this, but validate raw queries)
+
+            ### 4. Code Quality & Maintainability
+            - Follow SOLID design principles
+            - Ensure DRY (Don't Repeat Yourself) compliance
+            - Check for clear, self-documenting code with meaningful names
+            - Verify consistent patterns with existing codebase
+            - Validate proper error handling (try-catch, error boundaries)
+
+            ### 5. Testing & Quality Assurance
+            - Verify tests exist for new functionality
+            - Check test coverage for business logic
+            - Ensure API endpoints have integration tests
+            - Validate error cases are tested
+            - Check for proper mocking in tests
+
+            ### 6. Performance & Best Practices
+            - Efficient database queries (avoid N+1 queries)
+            - Proper React component optimization (useMemo, useCallback when needed)
+            - Check for memory leaks (cleanup in useEffect)
+            - Validate proper loading states and error handling in UI
+            - Ensure pagination is implemented for large datasets
+
+            ### 7. Monorepo Structure
+            - Changes in `apps/web` should not affect `apps/api` unnecessarily
+            - Shared code should be in `packages/` directory
+            - Verify proper imports (no circular dependencies)
+            - Check Turborepo cache configuration if build scripts change
+
+            ## Review Instructions - CRITICAL FOR PROPER GITHUB INTEGRATION
+
+            **IMPORTANT**: Create proper GitHub review comments that can be resolved, NOT generic completion messages.
+
+            ### How to Create Effective Review Comments:
+
+            1. **Use Inline Comments for Specific Issues**:
+               - Use `mcp__github_inline_comment__create_inline_comment` for line-specific feedback
+               - Target specific files and line numbers where issues exist
+               - Each comment should address ONE specific issue
+               - Make comments actionable and specific
+
+            2. **Create Resolvable Conversations**:
+               - Each inline comment creates a "conversation" that can be resolved
+               - Focus on specific code improvements, not general observations
+               - Provide clear, actionable feedback that the author can address
+
+            3. **Use Suggested Changes When Appropriate**:
+               - For simple fixes, provide exact code suggestions
+               - Use markdown code blocks with the language specified
+               - Show the corrected code, not just describe the problem
+
+            4. **Comment Structure**:
+               ```
+               **Issue**: [Brief description of the problem]
+
+               **Suggestion**: [Specific recommendation]
+
+               **Example**: [Code example if applicable]
+
+               **Reason**: [Why this change improves the code]
+               ```
+
+            5. **Summary Comments**:
+               - Use `gh pr comment` only for overall PR feedback or when @claude is mentioned
+               - Summarize key findings and provide general guidance
+               - Reference the inline comments for specific issues
+
+            ### What NOT to Do:
+            - ❌ Don't post generic "I'll analyze this and get back to you" messages
+            - ❌ Don't create vague comments without specific line references
+            - ❌ Don't post completion status updates
+            - ❌ Don't create comments that aren't actionable
+
+            ### Example Good Review Comment:
+            ```
+            **Issue**: API response not using standardized format
+
+            **Suggestion**: Use the `successResponse` utility from response.util.ts
+
+            **Example**:
+            ```typescript
+            // Instead of:
+            res.json({ posts: data, total: count })
+
+            // Use:
+            import { paginatedResponse } from '../utils/response.util'
+            res.json(paginatedResponse(data, pagination, 'Posts retrieved successfully'))
+            ```
+
+            **Reason**: This ensures consistent API responses across the application and proper type safety on the frontend.
+            ```
+
+            ## Common Issues to Watch For
+            - API responses not using standardized format
+            - Missing TypeScript types or using `any`
+            - Frontend not using type-safe API extractors
+            - Missing error handling (try-catch blocks)
+            - No loading/error states in React components
+            - Database queries without pagination
+            - Missing input validation (Zod schemas)
+            - Hardcoded values instead of environment variables
+            - Console.logs left in production code
+            - Missing null checks or optional chaining
+
+            ## Review Comment Templates
+
+            Use structured templates for consistent feedback:
+
+            - 🔒 **Security Issues**: Authentication, authorization, data exposure
+            - 📊 **API Standardization**: Response format, error handling, pagination
+            - 🎯 **Type Safety**: TypeScript types, type guards, generics
+            - 🏗️ **Code Quality**: SOLID principles, DRY violations, architecture
+            - 🧪 **Testing**: Missing tests, test coverage, edge cases
+            - ⚡ **Performance**: Database queries, React optimization, bundle size
+            - 📦 **Package Management**: pnpm usage, dependency management
+
+            ## Review Workflow
+
+            1. **Start with `gh pr diff`** to understand the changes
+            2. **Create inline comments** for each specific issue found
+            3. **Use structured templates** for consistent feedback format
+            4. **Focus on resolvable issues** - each comment should be actionable
+            5. **End with summary comment** only if needed for overall guidance
+
+            ## Success Criteria
+
+            Your review is successful when:
+            - ✅ Each comment addresses a specific, fixable issue
+            - ✅ Comments are attached to relevant code lines
+            - ✅ Feedback follows the structured template format
+            - ✅ Suggestions include code examples where helpful
+            - ✅ Comments can be marked as "resolved" when addressed
+            - ✅ No generic completion messages are posted
+
+            Remember: Create specific, actionable review comments that help improve the code, not generic status updates.
+
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh issue comment:*),Read,Bash(find:*),Bash(grep:*)"
