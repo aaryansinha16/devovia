@@ -1,5 +1,16 @@
 import { Request, Response } from 'express';
 import prisma, { Role, toRole } from '../lib/prisma';
+import {
+  buildPaginationMeta,
+  normalizePagination,
+} from '../utils/pagination.util';
+import {
+  internalServerError,
+  notFoundError,
+  paginatedResponse,
+  successResponse,
+  validationError,
+} from '../utils/response.util';
 
 /**
  * Get all users with their roles
@@ -7,24 +18,57 @@ import prisma, { Role, toRole } from '../lib/prisma';
  */
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        name: true,
-        avatar: true,
-        role: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const userId = req.user?.sub;
+    const {
+      search,
+      status,
+      visibility,
+      techStack,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    // Normalize pagination
+    const { page, limit, offset } = normalizePagination({
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 12,
+      maxLimit: 50,
     });
 
-    return res.status(200).json({ users });
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          createdAt: sortOrder === 'asc' ? 'asc' : 'desc',
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+          avatar: true,
+          role: true,
+          isVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.user.count({}),
+    ]);
+
+    return res
+      .status(200)
+      .json(
+        paginatedResponse(
+          users,
+          buildPaginationMeta(page, limit, total),
+          'Users retrieved successfully',
+        ),
+      );
   } catch (error) {
     console.error('Error fetching users:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -39,10 +83,11 @@ export const updateUserRole = async (req: Request, res: Response) => {
 
     // Validate role
     if (!role || !Object.values(Role).includes(role as Role)) {
-      return res.status(400).json({
-        message: 'Invalid role provided',
-        validRoles: Object.values(Role),
-      });
+      return res.status(400).json(
+        validationError('Invalid roles provided', {
+          validRoles: Object.values(Role),
+        }),
+      );
     }
 
     // Check if user exists
@@ -52,7 +97,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
     });
 
     if (!userExists) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json(notFoundError('User not found'));
     }
 
     // Update user role
@@ -67,13 +112,12 @@ export const updateUserRole = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({
-      message: 'User role updated successfully',
-      user: updatedUser,
-    });
+    return res
+      .status(200)
+      .json(successResponse(updatedUser, 'User role updated successfully'));
   } catch (error) {
     console.error('Error updating user role:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError('Internal server error'));
   }
 };
 
@@ -88,7 +132,9 @@ export const updateUserVerification = async (req: Request, res: Response) => {
 
     // Validate isVerified
     if (typeof isVerified !== 'boolean') {
-      return res.status(400).json({ message: 'isVerified must be a boolean' });
+      return res
+        .status(400)
+        .json(validationError('isVerified must be a boolean'));
     }
 
     // Check if user exists
@@ -98,7 +144,7 @@ export const updateUserVerification = async (req: Request, res: Response) => {
     });
 
     if (!userExists) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json(notFoundError('User not found'));
     }
 
     // Update user verification status
@@ -113,12 +159,16 @@ export const updateUserVerification = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({
-      message: `User ${isVerified ? 'verified' : 'unverified'} successfully`,
-      user: updatedUser,
-    });
+    return res
+      .status(200)
+      .json(
+        successResponse(
+          updatedUser,
+          `User ${isVerified ? 'verified' : 'unverified'} successfully`,
+        ),
+      );
   } catch (error) {
     console.error('Error updating user verification:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json(internalServerError('Internal server error'));
   }
 };

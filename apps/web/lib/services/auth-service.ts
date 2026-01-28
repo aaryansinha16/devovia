@@ -1,6 +1,20 @@
 import { API_URL, DEFAULT_HEADERS } from "../api-config";
 
 /**
+ * Get tokens from localStorage
+ */
+export function getTokens(): { accessToken: string; refreshToken: string } | null {
+  if (typeof window === "undefined") return null;
+  
+  const accessToken = localStorage.getItem("accessToken") || "";
+  const refreshToken = localStorage.getItem("refreshToken") || "";
+  
+  if (!accessToken) return null;
+  
+  return { accessToken, refreshToken };
+}
+
+/**
  * Get authentication headers for API requests
  * Uses the access token stored in localStorage if available
  */

@@ -20,12 +20,19 @@ import {
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import Editor from "@monaco-editor/react";
-import { API_URL } from "../../../../../lib/api-config";
-import { getTokens } from "../../../../../lib/auth";
+import { useSnippetById, useUpdateSnippet } from '../../../../../lib/hooks/useSnippet';
+import { useToast } from '@repo/ui/hooks/use-toast';
+import Loader from '../../../../../components/ui/loader';
 
 export default function EditSnippetPage() {
   const params = useParams();
   const router = useRouter();
+  const snippetId = params.id as string;
+
+  const { data: snippet, loading, error } = useSnippetById(snippetId);
+  const { mutate: updateSnippet, loading: saving } = useUpdateSnippet(snippetId);
+  const { toast } = useToast();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
@@ -33,86 +40,43 @@ export default function EditSnippetPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (params.id) {
-      fetchSnippet();
+    if (snippet) {
+      setTitle(snippet.title);
+      setDescription(snippet.description || "");
+      setCode(snippet.code);
+      setLanguage(snippet.language);
+      setTags(snippet.tags || []);
+      setIsPublic(snippet.visibility === 'PUBLIC');
     }
-  }, [params.id]);
-
-  const fetchSnippet = async () => {
-    try {
-      setLoading(true);
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        router.push("/dashboard/snippets");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/snippets/${params.id}`, {
-        headers: {
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const snippet = data.snippet;
-        setTitle(snippet.title);
-        setDescription(snippet.description || "");
-        setCode(snippet.code);
-        setLanguage(snippet.language);
-        setTags(snippet.tags || []);
-        setIsPublic(snippet.isPublic);
-      } else {
-        router.push("/dashboard/snippets");
-      }
-    } catch (error) {
-      console.error("Error fetching snippet:", error);
-      router.push("/dashboard/snippets");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [snippet]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
 
     try {
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        alert("Please log in to update snippets");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/snippets/${params.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          code,
-          language,
-          tags,
-          isPublic,
-        }),
+      await updateSnippet({
+        title,
+        description,
+        code,
+        language,
+        tags,
+        visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
       });
 
-      if (response.ok) {
-        router.push(`/dashboard/snippets/${params.id}`);
-      } else {
-        alert("Failed to update snippet");
-      }
-    } catch (error) {
+      toast({
+        title: "Success!",
+        description: "Snippet updated successfully",
+      });
+
+      router.push(`/dashboard/snippets/${snippetId}`);
+    } catch (error: any) {
       console.error("Error updating snippet:", error);
-      alert("An error occurred");
-    } finally {
-      setSaving(false);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update snippet",
+      });
     }
   };
 
@@ -128,9 +92,17 @@ export default function EditSnippetPage() {
   };
 
   if (loading) {
+    return <Loader />;
+  }
+
+  if (error || !snippet) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="text-center">
+          <Heading size="h2" className="mb-4">Error loading snippet</Heading>
+          <Text className="text-slate-400 mb-6">{error?.message || "Snippet not found"}</Text>
+          <Button onClick={() => router.push("/dashboard/snippets")}>Back to Snippets</Button>
+        </div>
       </div>
     );
   }

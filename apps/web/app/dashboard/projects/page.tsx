@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Container,
@@ -26,53 +26,28 @@ import {
   IconCalendar,
   IconClock,
 } from "@tabler/icons-react";
-import { API_URL } from "../../../lib/api-config";
-import { getTokens } from "../../../lib/auth";
+import { useProjects } from "../../../lib/hooks/useProject";
+import { useDebouncedValue } from "../../../lib/hooks/useDebounce";
+import Loader from "../../../components/ui/loader";
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedVisibility, setSelectedVisibility] = useState<string>("all");
   const [myProjectsOnly, setMyProjectsOnly] = useState(false);
 
-  useEffect(() => {
-    fetchProjects();
-  }, [searchQuery, selectedStatus, selectedVisibility, myProjectsOnly]);
+  const debouncedSearch = useDebouncedValue(searchQuery, 500);
 
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const tokens = getTokens();
-      
-      const params = new URLSearchParams();
-      if (searchQuery) params.append("search", searchQuery);
-      if (selectedStatus !== "all") params.append("status", selectedStatus);
-      if (selectedVisibility !== "all") params.append("visibility", selectedVisibility);
-      if (myProjectsOnly) params.append("myProjects", "true");
+  const filters = useMemo(() => ({
+    search: debouncedSearch || undefined,
+    status: selectedStatus !== "all" ? selectedStatus : undefined,
+    visibility: selectedVisibility !== "all" ? selectedVisibility : undefined,
+    myProjects: myProjectsOnly || undefined,
+  }), [debouncedSearch, selectedStatus, selectedVisibility, myProjectsOnly]);
 
-      const headers: any = {};
-      if (tokens?.accessToken) {
-        headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-      }
-
-      const response = await fetch(`${API_URL}/projects?${params.toString()}`, {
-        headers,
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data.projects || []);
-      }
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: projects = [], loading, error } = useProjects(1, 100, filters);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -201,9 +176,17 @@ export default function ProjectsPage() {
 
         {/* Projects Grid/List */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
-          </div>
+          <Loader />
+        ) : error ? (
+          <GlassCard className="p-12 text-center">
+            <IconRocket className="w-16 h-16 mx-auto mb-4 text-red-400" />
+            <Heading size="h3" className="mb-2">
+              Error loading projects
+            </Heading>
+            <Text className="text-slate-400 mb-6">
+              {error.message}
+            </Text>
+          </GlassCard>
         ) : projects.length === 0 ? (
           <GlassCard className="p-12 text-center">
             <IconRocket className="w-16 h-16 mx-auto mb-4 text-slate-400" />

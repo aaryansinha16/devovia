@@ -7,6 +7,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "../../../lib/auth-context";
 import Link from "next/link";
+import Loader from "../../../components/ui/loader";
 
 // Component that uses searchParams wrapped in Suspense
 function OAuthCallbackContent() {
@@ -126,21 +127,7 @@ function OAuthCallbackContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-xl shadow-lg">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">
-            Authenticating...
-          </h1>
-          <div className="flex justify-center my-6">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-          <p className="text-muted-foreground">
-            Please wait while we complete your authentication.
-          </p>
-        </div>
-      </div>
-    </div>
+    <Loader />
   );
 }
 

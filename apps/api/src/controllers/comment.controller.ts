@@ -1,5 +1,16 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import {
+  buildPaginationMeta,
+  normalizePagination,
+} from '../utils/pagination.util';
+import {
+  internalServerError,
+  notFoundError,
+  paginatedResponse,
+  permissionError,
+  successResponse,
+} from '../utils/response.util';
 
 const prisma = new PrismaClient();
 
@@ -9,9 +20,34 @@ const prisma = new PrismaClient();
 export const getBlogComments = async (req: Request, res: Response) => {
   try {
     const { postId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const skip = (page - 1) * limit;
+    const {
+      search,
+      status,
+      visibility,
+      techStack,
+      tag,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    // Normalize pagination
+    const { page, limit, offset } = normalizePagination({
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 12,
+      maxLimit: 50,
+    });
+
+    // Build the where clause based on query params
+    const where: any = {
+      postId,
+    };
+
+    // Filter by search query
+    if (search) {
+      where.OR = [
+        { content: { contains: search as string, mode: 'insensitive' } },
+      ];
+    }
 
     // Verify post exists
     const post = await prisma.post.findUnique({
@@ -19,45 +55,46 @@ export const getBlogComments = async (req: Request, res: Response) => {
     });
 
     if (!post) {
-      return res.status(404).json({ error: 'Blog post not found' });
+      return res.status(404).json(notFoundError('Blog post not found'));
     }
 
-    // Get total count for pagination
-    const totalCount = await prisma.comment.count({
-      where: { postId },
-    });
-
     // Get comments with user info
-    const comments = await prisma.comment.findMany({
-      where: { postId },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      skip,
-      take: limit,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
+    const [comments, total] = await Promise.all([
+      prisma.comment.findMany({
+        where,
+        orderBy: {
+          createdAt: sortOrder === 'asc' ? 'asc' : 'desc',
+        },
+        skip: offset,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.comment.count({
+        where: { postId },
+      }),
+    ]);
 
-    return res.status(200).json({
-      comments,
-      total: totalCount,
-      page,
-      limit,
-      totalPages: Math.ceil(totalCount / limit),
-      hasMore: page * limit < totalCount,
-    });
+    return res
+      .status(200)
+      .json(
+        paginatedResponse(
+          comments,
+          buildPaginationMeta(page, limit, total),
+          'Fetched blog comments',
+        ),
+      );
   } catch (error) {
     console.error('Error getting blog comments:', error);
-    return res.status(500).json({ error: 'Failed to get comments' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -76,7 +113,7 @@ export const addComment = async (req: Request, res: Response) => {
     });
 
     if (!post) {
-      return res.status(404).json({ error: 'Blog post not found' });
+      return res.status(404).json(notFoundError('Blog post not found'));
     }
 
     // Create comment
@@ -98,10 +135,12 @@ export const addComment = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(201).json({ comment });
+    return res
+      .status(201)
+      .json(successResponse(comment, 'Comment created successfully'));
   } catch (error) {
     console.error('Error adding comment:', error);
-    return res.status(500).json({ error: 'Failed to add comment' });
+    return res.status(500).json(internalServerError(error));
   }
 };
 
@@ -119,7 +158,7 @@ export const deleteComment = async (req: Request, res: Response) => {
     });
 
     if (!comment) {
-      return res.status(404).json({ error: 'Comment not found' });
+      return res.status(404).json(notFoundError('Comment not found'));
     }
 
     // Check if user is the comment author or an admin
@@ -131,7 +170,7 @@ export const deleteComment = async (req: Request, res: Response) => {
     if (comment.userId !== userId && user?.role !== 'ADMIN') {
       return res
         .status(403)
-        .json({ error: 'Not authorized to delete this comment' });
+        .json(permissionError('Not authorized to delete this comment'));
     }
 
     // Delete comment
@@ -139,9 +178,11 @@ export const deleteComment = async (req: Request, res: Response) => {
       where: { id: commentId },
     });
 
-    return res.status(200).json({ message: 'Comment deleted successfully' });
+    return res
+      .status(200)
+      .json(successResponse({}, 'Comment deleted successfully'));
   } catch (error) {
     console.error('Error deleting comment:', error);
-    return res.status(500).json({ error: 'Failed to delete comment' });
+    return res.status(500).json(internalServerError(error));
   }
 };

@@ -84,7 +84,7 @@ export class SimpleYjsServer {
             Y.applyUpdate(doc, note.yjsState);
             console.log(`📄 Loaded project note for project: ${projectId}`);
           }
-        } 
+        }
         // Check if this is a project chat room (format: project-chat-{projectId})
         else if (roomId.startsWith('project-chat-')) {
           // Chat uses Yjs array for messages, no persistence needed here

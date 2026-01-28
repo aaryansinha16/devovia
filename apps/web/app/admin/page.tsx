@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { AdminOnly } from "../../components/role-based";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../lib/auth-context";
+import { AdminOnly } from "../../components/role-based";
+import Loader from "../../components/ui/loader";
 import {
   getAllUsers,
   updateUserRole,
@@ -111,11 +112,7 @@ export default function AdminDashboardPage() {
 
   // Redirect to login if not authenticated is handled by the AdminOnly component
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (

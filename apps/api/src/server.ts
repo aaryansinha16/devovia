@@ -34,6 +34,7 @@ import snippetRoutes from './routes/snippet.routes';
 import projectRoutes from './routes/project.routes';
 import projectNotesRoutes from './routes/project-notes.routes';
 import projectChatRoutes from './routes/project-chat.routes';
+import docsRoutes from './routes/docs.routes';
 
 // Import WebSocket collaboration server
 import CollaborationServer from './websocket/collaboration-server';
@@ -133,6 +134,7 @@ export function createExpressApp() {
   app.use('/api/projects', projectRoutes);
   app.use('/api/project-notes', projectNotesRoutes);
   app.use('/api/project-chat', projectChatRoutes);
+  app.use('/api/docs', docsRoutes);
 
   // Health check endpoint - must work regardless of database connection
   app.get('/api/hc', (req, res) => {

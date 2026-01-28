@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   IconPlus,
@@ -10,13 +10,11 @@ import {
   IconLoader2,
   IconCalendar,
 } from "@tabler/icons-react";
-import {
-  listRunbooks,
-  deleteRunbook,
-  executeRunbook,
-  type Runbook,
-} from "../../../lib/services/runbooks-service";
+import { type Runbook, deleteRunbook, executeRunbook } from "../../../lib/services/runbooks-service";
+import { useRunbooks } from "../../../lib/hooks/useRunbook";
+import { useToast } from "@repo/ui/hooks/use-toast";
 import { Container, Heading, Text, Input, EmptyState, GlassCard, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
+import Loader from "../../../components/ui/loader";
 
 const statusColors: Record<string, string> = {
   DRAFT: "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
@@ -33,46 +31,37 @@ const environmentColors: Record<string, string> = {
 
 export default function RunbooksPage() {
   const router = useRouter();
-  const [runbooks, setRunbooks] = useState<Runbook[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState("all");
   const [environmentFilter, setEnvironmentFilter] = useState("all");
-  const [executing, setExecuting] = useState<string | null>(null);
+  const [executingId, setExecutingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadRunbooks();
-  }, [statusFilter, environmentFilter]);
+  const params = useMemo(() => ({
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    environment: environmentFilter !== "all" ? environmentFilter : undefined,
+  }), [statusFilter, environmentFilter]);
 
-  async function loadRunbooks() {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await listRunbooks({
-        status: statusFilter !== "all" ? statusFilter : undefined,
-        environment: environmentFilter !== "all" ? environmentFilter : undefined,
-      });
-      setRunbooks(data);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to load runbooks";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data: runbooks = [], loading, error, refetch } = useRunbooks(params);
 
   async function handleExecute(runbook: Runbook) {
-    if (executing) return;
+    debugger;
+    if (executingId) return;
 
     try {
-      setExecuting(runbook.id);
-      const execution = await executeRunbook(runbook.id);
+      setExecutingId(runbook.id);
+      const execution = await executeRunbook(runbook.id, {});
+      // toast({
+      //   title: "Success!",
+      //   description: "Runbook execution started",
+      // });
       router.push(`/dashboard/runbooks/executions/${execution.id}`);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to execute runbook";
-      setError(message);
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to execute runbook",
+      });
     } finally {
-      setExecuting(null);
+      setExecutingId(null);
     }
   }
 
@@ -83,18 +72,18 @@ export default function RunbooksPage() {
 
     try {
       await deleteRunbook(runbook.id);
-      setRunbooks(runbooks.filter((r) => r.id !== runbook.id));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to delete runbook";
-      setError(message);
+      toast({
+        title: "Success!",
+        description: "Runbook deleted successfully",
+      });
+      refetch();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to delete runbook",
+      });
     }
   }
-
-  const filteredRunbooks = runbooks.filter((runbook) => {
-    if (statusFilter !== "all" && runbook.status !== statusFilter) return false;
-    if (environmentFilter !== "all" && runbook.environment !== environmentFilter) return false;
-    return true;
-  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
@@ -148,20 +137,18 @@ export default function RunbooksPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <IconLoader2 className="w-8 h-8 animate-spin text-sky-500" />
-          </div>
+          <Loader />
         ) : error ? (
           <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
-            <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
+            <p className="text-red-600 dark:text-red-400 mb-3">{error.message}</p>
             <button
-              onClick={() => loadRunbooks()}
+              onClick={() => refetch()}
               className="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 underline font-medium"
             >
               Try Again
             </button>
           </div>
-        ) : filteredRunbooks.length === 0 ? (
+        ) : runbooks.length === 0 ? (
           <EmptyState
             icon="⚡"
             title="No runbooks yet"
@@ -178,7 +165,7 @@ export default function RunbooksPage() {
           />
         ) : (
           <div className="grid gap-6">
-            {filteredRunbooks.map((runbook) => (
+            {runbooks.map((runbook) => (
               <div
                 key={runbook.id}
                 className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
@@ -215,11 +202,11 @@ export default function RunbooksPage() {
                   <div className="flex items-center gap-2 ml-4">
                     <button
                       onClick={() => handleExecute(runbook)}
-                      disabled={executing === runbook.id || runbook.status !== "ACTIVE"}
+                      disabled={executingId === runbook.id || runbook.status !== "ACTIVE"}
                       className="p-2.5 text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Execute"
                     >
-                      {executing === runbook.id ? (
+                      {executingId === runbook.id ? (
                         <IconLoader2 size={18} className="animate-spin" />
                       ) : (
                         <IconPlayerPlay size={18} />

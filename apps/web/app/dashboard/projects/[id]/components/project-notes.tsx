@@ -50,12 +50,10 @@ function EditorComponent({
       
       states.forEach((state, clientId) => {
         if (clientId !== provider.awareness.clientID && state.mouseCursor) {
-          console.log('Received mouse cursor from client', clientId, state.mouseCursor);
           newCursors.set(clientId, state.mouseCursor);
         }
       });
       
-      console.log('Total mouse cursors:', newCursors.size);
       setCursors(newCursors);
     };
 
@@ -70,11 +68,8 @@ function EditorComponent({
   // Track mouse movements and broadcast via awareness
   useEffect(() => {
     if (!provider || !containerEl) {
-      console.log('Mouse tracking: provider or containerEl not ready', { provider: !!provider, containerEl: !!containerEl });
       return;
     }
-
-    console.log('Setting up mouse tracking on container');
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = containerEl.getBoundingClientRect();
@@ -171,9 +166,7 @@ function EditorComponent({
       <EditorContent editor={editor} />
       
       {/* Render other users' cursors */}
-      {Array.from(cursors.entries()).map(([clientId, cursor]) => {
-        console.log('Rendering cursor for client', clientId, 'at', cursor.x, cursor.y);
-        return (
+      {Array.from(cursors.entries()).map(([clientId, cursor]) => (
           <div
             key={clientId}
             style={{
@@ -219,8 +212,7 @@ function EditorComponent({
             {cursor.name}
           </div>
         </div>
-        );
-      })}
+      ))}
     </div>
   );
 }

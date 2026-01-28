@@ -1,5 +1,7 @@
 // Import apiClient only in client components
 import { apiClient } from "../api-client";
+import { ApiPaginatedResponse, ApiResponse, PaginationMeta } from "../types/api.types";
+import { extractData, extractPaginatedData } from "../utils/api-adapter";
 
 // API URL for server components
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
@@ -27,13 +29,7 @@ export interface BlogPost {
   };
 }
 
-export interface BlogPagination {
-  posts: BlogPost[];
-  total: number;
-  page: number;
-  limit: number;
-  hasMore: boolean;
-}
+export type BlogPagination = ApiPaginatedResponse<BlogPost>;
 
 /**
  * Helper function for fetching data that works on both server and client
@@ -103,13 +99,16 @@ export async function getAllPublishedBlogs(
   page: number = 1,
   limit: number = 10,
   tag?: string,
+  search?: string,
 ): Promise<BlogPagination> {
   try {
     let url = `/blogs?page=${page}&limit=${limit}`;
     if (tag) {
       url += `&tag=${encodeURIComponent(tag)}`;
     }
-
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
     return await fetchFromApi(url);
   } catch (error) {
     console.error("Error fetching blogs:", error);
@@ -122,17 +121,8 @@ export async function getAllPublishedBlogs(
  */
 export async function getBlogBySlug(slug: string): Promise<BlogPost> {
   try {
-    console.log(`Attempting to fetch blog with slug: ${slug}`);
-    const response = await fetchFromApi(`/blogs/slug/${slug}`);
-    console.log("Blog fetch response:", response);
-
-    // The API returns { post: BlogPost }, but we need to return just the post
-    if (response && response.post) {
-      return response.post;
-    }
-
-    // If we get here, the API response is not in the expected format
-    throw new Error(`Invalid API response format for slug: ${slug}`);
+    const response: ApiResponse<{ post: BlogPost }> = await fetchFromApi(`/blogs/slug/${slug}`);
+    return extractData(response).post;
   } catch (error) {
     console.error(`Error fetching blog with slug ${slug}:`, error);
     throw error;
@@ -144,7 +134,8 @@ export async function getBlogBySlug(slug: string): Promise<BlogPost> {
  */
 export async function likeBlog(postId: string): Promise<{ likeCount: number }> {
   try {
-    return await fetchFromApi(`/blogs/${postId}/like`, { method: "POST" });
+    const response: ApiResponse<{ like: any; likeCount: number }> = await fetchFromApi(`/blogs/${postId}/like`, { method: "POST" });
+    return { likeCount: extractData(response).likeCount };
   } catch (error) {
     console.error(`Error liking blog ${postId}:`, error);
     throw error;
@@ -158,7 +149,8 @@ export async function unlikeBlog(
   postId: string,
 ): Promise<{ likeCount: number }> {
   try {
-    return await fetchFromApi(`/blogs/${postId}/like`, { method: "DELETE" });
+    const response: ApiResponse<{ likeCount: number }> = await fetchFromApi(`/blogs/${postId}/like`, { method: "DELETE" });
+    return extractData(response);
   } catch (error) {
     console.error(`Error unliking blog ${postId}:`, error);
     throw error;
@@ -170,9 +162,14 @@ export async function unlikeBlog(
  */
 export async function checkUserLike(
   postId: string,
+  isAuthenticated: boolean
 ): Promise<{ isLiked: boolean; likeCount: number }> {
+  if (!isAuthenticated) {
+    return { isLiked: false, likeCount: 0 };
+  }
   try {
-    return await fetchFromApi(`/blogs/${postId}/like`);
+    const response: ApiResponse<{ isLiked: boolean; likeCount: number }> = await fetchFromApi(`/blogs/${postId}/like`);
+    return extractData(response);
   } catch (error) {
     console.error(`Error checking like status for blog ${postId}:`, error);
     // Return default values if there's an error (e.g. user is not authenticated)
@@ -183,24 +180,19 @@ export async function checkUserLike(
 /**
  * Get all comments for a blog post
  */
-export interface CommentResponse {
-  comments: Array<{
+export interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: {
     id: string;
-    content: string;
-    createdAt: string;
-    user: {
-      id: string;
-      name: string;
-      username: string;
-      avatar?: string;
-    };
-  }>;
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasMore: boolean;
+    name: string;
+    username: string;
+    avatar?: string;
+  };
 }
+
+export type CommentResponse = ApiPaginatedResponse<Comment>;
 
 export async function getBlogComments(
   postId: string,
@@ -223,12 +215,13 @@ export async function getBlogComments(
 export async function addBlogComment(
   postId: string,
   content: string,
-): Promise<any> {
+): Promise<Comment> {
   try {
-    return await fetchFromApi(`/blogs/${postId}/comments`, {
+    const response: ApiResponse<Comment> = await fetchFromApi(`/blogs/${postId}/comments`, {
       method: "POST",
       body: { content },
     });
+    return extractData(response);
   } catch (error) {
     console.error(`Error adding comment to blog ${postId}:`, error);
     throw error;

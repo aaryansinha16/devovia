@@ -12,6 +12,7 @@ import {
 } from "../../../lib/services/public-blog-service";
 import { useAuth } from "../../../lib/auth-context";
 import { useToast } from "@repo/ui/hooks/use-toast";
+import { useBlogLike } from "../../../lib/hooks/useBlog";
 
 interface BlogActionButtonsProps {
   postId: string;
@@ -22,31 +23,12 @@ export function BlogActionButtons({
   postId,
   initialLikes,
 }: BlogActionButtonsProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(initialLikes);
-  const [isLoading, setIsLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showBlast, setShowBlast] = useState(false);
   const { isAuthenticated, openAuthModal } = useAuth();
   const { toast } = useToast();
 
-  // Check if user has already liked the post when component mounts
-  useEffect(() => {
-    if (isAuthenticated) {
-      const checkLikeStatus = async () => {
-        try {
-          const { isLiked: userHasLiked, likeCount: currentLikeCount } =
-            await checkUserLike(postId);
-          setIsLiked(userHasLiked);
-          setLikeCount(currentLikeCount);
-        } catch (error) {
-          console.error("Error checking like status:", error);
-        }
-      };
-
-      checkLikeStatus();
-    }
-  }, [postId, isAuthenticated]);
+  const { isLiked, likeCount, loading, like, unlike } = useBlogLike(postId, isAuthenticated);
 
   const handleLikeToggle = async () => {
     if (!isAuthenticated) {
@@ -54,27 +36,15 @@ export function BlogActionButtons({
       return;
     }
 
+    setIsAnimating(true);
+    
     try {
-      setIsLoading(true);
-      setIsAnimating(true);
-
       if (isLiked) {
-        const { likeCount: updatedCount } = await unlikeBlog(postId);
-        setLikeCount(updatedCount);
-        setIsLiked(false);
+        await unlike();
       } else {
-        const { likeCount: updatedCount } = await likeBlog(postId);
-        setLikeCount(updatedCount);
-        setIsLiked(true);
-        // Trigger blast animation only on like (not unlike)
+        await like();
         setShowBlast(true);
       }
-
-      // Reset animation after a short delay
-      setTimeout(() => {
-        setIsAnimating(false);
-        setShowBlast(false);
-      }, 1000);
     } catch (error) {
       console.error("Error toggling like:", error);
       toast({
@@ -82,9 +52,12 @@ export function BlogActionButtons({
         description: "Could not process your like. Please try again.",
         type: "error",
       });
-    } finally {
-      setIsLoading(false);
     }
+
+    setTimeout(() => {
+      setIsAnimating(false);
+      setShowBlast(false);
+    }, 1000);
   };
 
   const handleShare = async () => {
@@ -122,7 +95,7 @@ export function BlogActionButtons({
           variant="secondary"
           size="md"
           onClick={handleLikeToggle}
-          disabled={isLoading}
+          disabled={loading}
           leftIcon={
             <span className={cn(
               "inline-block transition-transform duration-300",
@@ -144,7 +117,6 @@ export function BlogActionButtons({
           {likeCount}
         </Button>
         
-        {/* Heart blast animation */}
         <HeartBlastAnimation isPlaying={showBlast} />
         <HeartParticles isPlaying={showBlast} />
         <FloatingHearts isPlaying={showBlast} />

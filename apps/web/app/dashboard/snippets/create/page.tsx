@@ -20,11 +20,14 @@ import {
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import Editor from "@monaco-editor/react";
-import { API_URL } from "../../../../lib/api-config";
-import { getTokens } from "../../../../lib/auth";
+import { useCreateSnippet } from "../../../../lib/hooks/useSnippet";
+import { useToast } from "@repo/ui/hooks/use-toast";
 
 export default function CreateSnippetPage() {
   const router = useRouter();
+  const { mutate: createSnippet, loading } = useCreateSnippet();
+  const { toast } = useToast();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
@@ -32,45 +35,32 @@ export default function CreateSnippetPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        alert("Please log in to create snippets");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/snippets`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          code,
-          language,
-          tags,
-          isPublic,
-        }),
+      const snippet = await createSnippet({
+        title,
+        description,
+        code,
+        language,
+        tags,
+        visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
       });
 
-      if (response.ok) {
-        router.push("/dashboard/snippets");
-      } else {
-        alert("Failed to create snippet");
-      }
-    } catch (error) {
+      toast({
+        title: "Success!",
+        description: "Snippet created successfully",
+      });
+
+      router.push(`/dashboard/snippets/${snippet.id}`);
+    } catch (error: any) {
       console.error("Error creating snippet:", error);
-      alert("An error occurred");
-    } finally {
-      setLoading(false);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create snippet",
+      });
     }
   };
 

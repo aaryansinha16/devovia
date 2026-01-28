@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Container,
@@ -20,54 +20,28 @@ import {
   IconCalendar,
   IconCheck,
   IconUser,
+  IconWorld,
+  IconLock,
 } from "@tabler/icons-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { API_URL } from "../../../../lib/api-config";
-import { getTokens } from "../../../../lib/auth";
+import { useSnippetById, useDeleteSnippet } from "../../../../lib/hooks/useSnippet";
+import { useToast } from "@repo/ui/hooks/use-toast";
+import Loader from '../../../../components/ui/loader';
 
 export default function SnippetDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [snippet, setSnippet] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const snippetId = params.id as string;
+
+  const { data: snippet, loading, error } = useSnippetById(snippetId);
+  const { mutate: deleteSnippet, loading: deleting } = useDeleteSnippet(snippetId);
+  const { toast } = useToast();
+
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchSnippet();
-    }
-  }, [params.id]);
-
-  const fetchSnippet = async () => {
-    try {
-      setLoading(true);
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        router.push("/dashboard/snippets");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/snippets/${params.id}`, {
-        headers: {
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSnippet(data.snippet);
-      } else {
-        router.push("/dashboard/snippets");
-      }
-    } catch (error) {
-      console.error("Error fetching snippet:", error);
-      router.push("/dashboard/snippets");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCopy = async () => {
+    if (!snippet) return;
     try {
       await navigator.clipboard.writeText(snippet.code);
       setCopied(true);
@@ -78,6 +52,7 @@ export default function SnippetDetailPage() {
   };
 
   const handleShare = async () => {
+    if (!snippet) return;
     const shareUrl = `${window.location.origin}/snippets/${snippet.id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -91,21 +66,18 @@ export default function SnippetDetailPage() {
     if (!confirm("Are you sure you want to delete this snippet?")) return;
 
     try {
-      const tokens = getTokens();
-      if (!tokens?.accessToken) return;
-
-      const response = await fetch(`${API_URL}/snippets/${params.id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
+      await deleteSnippet();
+      toast({
+        title: "Success!",
+        description: "Snippet deleted successfully",
       });
-
-      if (response.ok) {
-        router.push("/dashboard/snippets");
-      }
-    } catch (error) {
+      router.push("/dashboard/snippets");
+    } catch (error: any) {
       console.error("Error deleting snippet:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete snippet",
+      });
     }
   };
 
@@ -128,15 +100,19 @@ export default function SnippetDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
-  if (!snippet) {
-    return null;
+  if (error || !snippet) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <Heading size="h2" className="mb-4">Error loading snippet</Heading>
+          <Text className="text-slate-400 mb-6">{error?.message || "Snippet not found"}</Text>
+          <Button onClick={() => router.push("/dashboard/snippets")}>Back to Snippets</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -178,7 +154,6 @@ export default function SnippetDetailPage() {
                 {copied ? "Copied!" : "Copy"}
               </Button>
               <Button
-                variant="secondary"
                 size="md"
                 leftIcon={<IconShare className="w-5 h-5" />}
                 onClick={handleShare}
@@ -186,7 +161,24 @@ export default function SnippetDetailPage() {
                 Share
               </Button>
               <Button
-                variant="secondary"
+                size="md"
+                leftIcon={
+                  snippet.visibility === 'PUBLIC' ? (
+                    <>
+                      <IconWorld className="w-4 h-4" />
+                      Public
+                    </>
+                  ) : (
+                    <>
+                      <IconLock className="w-4 h-4" />
+                      Private
+                    </>
+                  )
+                }
+              >
+                Visibility
+              </Button>
+              <Button
                 size="md"
                 leftIcon={<IconEdit className="w-5 h-5" />}
                 onClick={() => router.push(`/dashboard/snippets/${snippet.id}/edit`)}
@@ -212,7 +204,7 @@ export default function SnippetDetailPage() {
               <IconUser className="w-5 h-5 text-slate-500" />
               <Text size="sm">
                 <span className="text-slate-500">By:</span>{" "}
-                <span className="font-medium">{snippet.user?.name || snippet.user?.username}</span>
+                Created by {snippet.owner?.name || 'Unknown'}
               </Text>
             </div>
             <div className="flex items-center gap-2">
@@ -220,15 +212,15 @@ export default function SnippetDetailPage() {
               <Text size="sm">
                 <span className="text-slate-500">Created:</span>{" "}
                 <span className="font-medium">
-                  {new Date(snippet.createdAt).toLocaleDateString()}
+                  {snippet ? new Date(snippet.createdAt).toLocaleDateString() : ''}
                 </span>
               </Text>
             </div>
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 bg-gradient-to-r from-sky-500/20 to-indigo-500/20 text-sky-700 dark:text-sky-300 rounded-lg text-sm font-medium">
-                {getLanguageLabel(snippet.language)}
+                {snippet ? getLanguageLabel(snippet.language) : ''}
               </span>
-              {snippet.isPublic && (
+              {snippet && snippet.visibility === 'PUBLIC' && (
                 <span className="px-3 py-1 bg-green-500/20 text-green-700 dark:text-green-300 rounded-lg text-sm font-medium">
                   Public
                 </span>

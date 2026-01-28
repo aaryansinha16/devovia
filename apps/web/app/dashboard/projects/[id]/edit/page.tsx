@@ -19,12 +19,19 @@ import {
   SelectValue,
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
-import { API_URL } from "../../../../../lib/api-config";
-import { getTokens } from "../../../../../lib/auth";
+import { useProjectById, useUpdateProject } from "../../../../../lib/hooks/useProject";
+import { useToast } from "@repo/ui/hooks/use-toast";
+import Loader from "../../../../../components/ui/loader";
 
 export default function EditProjectPage() {
   const params = useParams();
   const router = useRouter();
+  const projectId = params.id as string;
+
+  const { data: project, loading, error } = useProjectById(projectId);
+  const { mutate: updateProject, loading: saving } = useUpdateProject(projectId);
+  const { toast } = useToast();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
@@ -36,53 +43,21 @@ export default function EditProjectPage() {
   const [visibility, setVisibility] = useState("PRIVATE");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (params.id) {
-      fetchProject();
+    if (project) {
+      setTitle(project.title);
+      setDescription(project.description || "");
+      setRepoUrl(project.githubUrl || "");
+      setDemoUrl(project.liveUrl || "");
+      setThumbnail(project.thumbnail || "");
+      setTechStack(project.techStack || []);
+      setStatus(project.status);
+      setVisibility(project.visibility);
+      setStartDate((project.startDate ? project.startDate.split("T")[0] : "") || "");
+      setEndDate((project.endDate ? project.endDate.split("T")[0] : "") || "");
     }
-  }, [params.id]);
-
-  const fetchProject = async () => {
-    try {
-      setLoading(true);
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        router.push("/dashboard/projects");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/projects/${params.id}`, {
-        headers: {
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const project = data.project;
-        setTitle(project.title);
-        setDescription(project.description);
-        setRepoUrl(project.repoUrl || "");
-        setDemoUrl(project.demoUrl || "");
-        setThumbnail(project.thumbnail || "");
-        setTechStack(project.techStack || []);
-        setStatus(project.status);
-        setVisibility(project.visibility);
-        setStartDate(project.startDate ? project.startDate.split("T")[0] : "");
-        setEndDate(project.endDate ? project.endDate.split("T")[0] : "");
-      } else {
-        router.push("/dashboard/projects");
-      }
-    } catch (error) {
-      console.error("Error fetching project:", error);
-      router.push("/dashboard/projects");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [project]);
 
   const handleAddTech = () => {
     if (techInput.trim() && !techStack.includes(techInput.trim())) {
@@ -97,53 +72,48 @@ export default function EditProjectPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
 
     try {
-      const tokens = getTokens();
-      if (!tokens?.accessToken) {
-        alert("Please log in to update projects");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/projects/${params.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${tokens.accessToken}`,
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          repoUrl: repoUrl || null,
-          demoUrl: demoUrl || null,
-          thumbnail: thumbnail || null,
-          techStack,
-          status,
-          visibility,
-          startDate: startDate || null,
-          endDate: endDate || null,
-        }),
+      await updateProject({
+        title,
+        description,
+        githubUrl: repoUrl || undefined,
+        liveUrl: demoUrl || undefined,
+        thumbnail: thumbnail || undefined,
+        techStack,
+        status,
+        visibility,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       });
 
-      if (response.ok) {
-        router.push(`/dashboard/projects/${params.id}`);
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to update project");
-      }
-    } catch (error) {
+      toast({
+        title: "Success!",
+        description: "Project updated successfully",
+      });
+
+      router.push(`/dashboard/projects/${projectId}`);
+    } catch (error: any) {
       console.error("Error updating project:", error);
-      alert("Failed to update project");
-    } finally {
-      setSaving(false);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update project",
+      });
     }
   };
 
   if (loading) {
+    return <Loader />;
+  }
+
+  if (error || !project) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+        <div className="text-center">
+          <Heading size="h2" className="mb-4">Error loading project</Heading>
+          <Text className="text-slate-400 mb-6">{error?.message || "Project not found"}</Text>
+          <Button onClick={() => router.push("/dashboard/projects")}>Back to Projects</Button>
+        </div>
       </div>
     );
   }

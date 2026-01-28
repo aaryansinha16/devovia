@@ -21,6 +21,9 @@ import {
   GitBranch
 } from 'lucide-react';
 import { useAuth } from '../../../../lib/auth-context';
+import { API_URL } from '../../../../lib/api-config';
+import { getTokens } from '../../../../lib/auth';
+import Loader from '../../../../components/ui/loader';
 import { useSessionStore } from '../../../../lib/stores/session-store';
 import { formatDate } from '../../../../lib/utils/date-utils';
 import { CollaborativeEditor } from '../../../../components/collaborative-editor';
@@ -68,6 +71,7 @@ export default function SessionWorkspace({ params }: SessionWorkspaceProps) {
     acquireLock,
     releaseLock,
     saveContent,
+    updateContent,
     createSnapshot,
     generateInviteLink
   } = useSessionStore();
@@ -227,20 +231,7 @@ export default function SessionWorkspace({ params }: SessionWorkspaceProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 flex items-center justify-center relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-          <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
-        </div>
-        
-        <div className="text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-12 shadow-2xl">
-          <div className="w-12 h-12 border-3 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-300 text-lg">Loading session...</p>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error) {
@@ -531,6 +522,7 @@ export default function SessionWorkspace({ params }: SessionWorkspaceProps) {
               onSave={() => saveContent()}
               onContentChange={(content) => {
                 editorContentRef.current = content;
+                updateContent(content);
               }}
               className="h-full"
             />

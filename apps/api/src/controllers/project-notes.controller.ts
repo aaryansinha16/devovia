@@ -1,6 +1,12 @@
-import { Response } from "express";
-import prisma from "../lib/prisma";
-import { AuthRequest } from "./snippet.controller";
+import { Response } from 'express';
+import prisma from '../lib/prisma';
+import { AuthRequest } from './snippet.controller';
+import {
+  internalServerError,
+  notFoundError,
+  permissionError,
+  successResponse,
+} from '../utils/response.util';
 
 // Get or create project note
 export const getProjectNote = async (req: AuthRequest, res: Response) => {
@@ -17,7 +23,7 @@ export const getProjectNote = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError('Project not found'));
     }
 
     // Check if user has access (owner or member)
@@ -25,7 +31,7 @@ export const getProjectNote = async (req: AuthRequest, res: Response) => {
     const isMember = project.members.some((m) => m.userId === userId);
 
     if (!isOwner && !isMember) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json(permissionError('Access denied'));
     }
 
     // Get or create note
@@ -37,15 +43,15 @@ export const getProjectNote = async (req: AuthRequest, res: Response) => {
       note = await prisma.projectNote.create({
         data: {
           projectId,
-          title: "Project Notes",
+          title: 'Project Notes',
         },
       });
     }
 
-    res.json({ note });
+    res.json(successResponse(note, 'Project note retrieved successfully'));
   } catch (error) {
-    console.error("Error fetching project note:", error);
-    res.status(500).json({ error: "Failed to fetch project note" });
+    console.error('Error fetching project note:', error);
+    res.status(500).json(internalServerError(error));
   }
 };
 
@@ -57,7 +63,7 @@ export const updateProjectNote = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.sub;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // Verify user has access to the project
@@ -69,7 +75,7 @@ export const updateProjectNote = async (req: AuthRequest, res: Response) => {
     });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json(notFoundError('Project not found'));
     }
 
     // Check if user has access (owner or member)
@@ -77,28 +83,28 @@ export const updateProjectNote = async (req: AuthRequest, res: Response) => {
     const isMember = project.members.some((m) => m.userId === userId);
 
     if (!isOwner && !isMember) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json(permissionError('Access denied'));
     }
 
     // Update note
     const note = await prisma.projectNote.upsert({
       where: { projectId },
       update: {
-        yjsState: yjsState ? Buffer.from(yjsState, "base64") : undefined,
+        yjsState: yjsState ? Buffer.from(yjsState, 'base64') : undefined,
         content,
         title: title || undefined,
       },
       create: {
         projectId,
-        title: title || "Project Notes",
-        yjsState: yjsState ? Buffer.from(yjsState, "base64") : undefined,
+        title: title || 'Project Notes',
+        yjsState: yjsState ? Buffer.from(yjsState, 'base64') : undefined,
         content,
       },
     });
 
-    res.json({ note });
+    res.json(successResponse(note, 'Project note updated successfully'));
   } catch (error) {
-    console.error("Error updating project note:", error);
-    res.status(500).json({ error: "Failed to update project note" });
+    console.error('Error updating project note:', error);
+    res.status(500).json(internalServerError(error));
   }
 };

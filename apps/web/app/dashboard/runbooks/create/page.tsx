@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { IconArrowLeft, IconLayoutGrid, IconList } from "@tabler/icons-react";
-import { createRunbook, type RunbookStep } from "../../../../lib/services/runbooks-service";
+import { type RunbookStep } from "../../../../lib/services/runbooks-service";
+import { useCreateRunbook } from "../../../../lib/hooks/useRunbook";
+import { useToast } from "@repo/ui/hooks/use-toast";
 import { Container, Heading, Text, GlassCard, IconButton, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
 import { FansyInput, FansyLabel } from "@repo/ui/components";
 
@@ -34,8 +36,9 @@ const FormBasedEditor = dynamic(
 
 export default function CreateRunbookPage() {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { mutate: createRunbook, loading: saving } = useCreateRunbook();
+  const { toast } = useToast();
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [environment, setEnvironment] = useState<"DEVELOPMENT" | "STAGING" | "PRODUCTION">("DEVELOPMENT");
@@ -58,29 +61,25 @@ export default function CreateRunbookPage() {
 
   async function handleSave() {
     if (!name.trim()) {
-      setError("Name is required");
+      toast({ title: "Error", description: "Name is required" });
       return;
     }
     if (steps.length === 0) {
-      setError("At least one step is required");
+      toast({ title: "Error", description: "At least one step is required" });
       return;
     }
     try {
-      setSaving(true);
-      setError(null);
-      await createRunbook({
+      const runbook = await createRunbook({
         name: name.trim(),
         description: description.trim() || undefined,
         environment,
         tags,
         steps,
       });
-      router.push("/dashboard/runbooks");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to create runbook";
-      setError(message);
-    } finally {
-      setSaving(false);
+      toast({ title: "Success!", description: "Runbook created successfully" });
+      router.push(`/dashboard/runbooks/${runbook.id}`);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to create runbook" });
     }
   }
 
@@ -116,11 +115,7 @@ export default function CreateRunbookPage() {
             </Button>
           </div>
         </div>
-        {error && (
-          <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/20 rounded-xl shadow-lg shadow-red-200/50 dark:shadow-red-900/50">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        )}
+        {/* Error handling now via toast */}
         <GlassCard className="mb-6">
           <Heading size="h2" spacing="default">Basic Information</Heading>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
