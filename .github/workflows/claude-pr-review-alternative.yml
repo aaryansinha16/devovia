@@ -74,39 +74,138 @@ jobs:
                 templates = fs.readFileSync('.github/claude-review-templates.md', 'utf-8');
               }
 
-              const prompt = `You are reviewing a Pull Request for the Devovia project.
+              const prompt = `REPO: ${process.env.GITHUB_REPOSITORY}
+          PR NUMBER: ${process.env.PR_NUMBER}
 
-          PROJECT CONTEXT:
-          ${context}
+          You are reviewing code for the Devovia project, a comprehensive developer collaboration platform.
 
-          REVIEW TEMPLATES:
-          ${templates}
+          ## Project Context
+          - **Tech Stack**: Next.js 15 (frontend), Node.js/Express (backend), PostgreSQL (Prisma), TypeScript, TailwindCSS
+          - **Package Manager**: pnpm (always use pnpm, never npm or yarn)
+          - **Architecture**: Monorepo with Turborepo, API standardization with unified response format
+          - **Development Approach**: Type-safe development with comprehensive error handling
 
-          PR DIFF:
+          ## Review Focus Areas
+
+          ### 1. API Response Standardization (CRITICAL)
+          - Verify all API endpoints return standardized format: \`{ success, data, pagination?, message?, meta? }\`
+          - Check error responses follow format: \`{ success: false, error: { code, message, details? }, meta? }\`
+          - Ensure pagination uses: \`{ page, limit, total, totalPages, hasNext, hasPrev }\`
+          - Validate services use response utilities from \`utils/response.util.ts\`
+          - Check frontend uses type-safe extractors from \`lib/utils/api-adapter.ts\`
+
+          ### 2. Type Safety & TypeScript (CRITICAL)
+          - Ensure all new code has proper TypeScript types (no \`any\` unless absolutely necessary)
+          - Verify API responses use centralized types from \`lib/types/api.types.ts\`
+          - Check Prisma schema changes include proper types and relations
+          - Validate React components have proper prop types
+          - Ensure hooks have correct generic type parameters
+
+          ### 3. Security & Authentication
+          - Verify protected routes use proper authentication middleware
+          - Check API endpoints validate user permissions
+          - Ensure sensitive data is not exposed in responses
+          - Validate input sanitization and validation (Zod schemas)
+          - Check for SQL injection prevention (Prisma handles this, but validate raw queries)
+
+          ### 4. Code Quality & Maintainability
+          - Follow SOLID design principles
+          - Ensure DRY (Don't Repeat Yourself) compliance
+          - Check for clear, self-documenting code with meaningful names
+          - Verify consistent patterns with existing codebase
+          - Validate proper error handling (try-catch, error boundaries)
+
+          ### 5. Testing & Quality Assurance
+          - Verify tests exist for new functionality
+          - Check test coverage for business logic
+          - Ensure API endpoints have integration tests
+          - Validate error cases are tested
+          - Check for proper mocking in tests
+
+          ### 6. Performance & Best Practices
+          - Efficient database queries (avoid N+1 queries)
+          - Proper React component optimization (useMemo, useCallback when needed)
+          - Check for memory leaks (cleanup in useEffect)
+          - Validate proper loading states and error handling in UI
+          - Ensure pagination is implemented for large datasets
+
+          ### 7. Monorepo Structure
+          - Changes in \`apps/web\` should not affect \`apps/api\` unnecessarily
+          - Shared code should be in \`packages/\` directory
+          - Verify proper imports (no circular dependencies)
+          - Check Turborepo cache configuration if build scripts change
+
+          ## Common Issues to Watch For
+          - API responses not using standardized format
+          - Missing TypeScript types or using \`any\`
+          - Frontend not using type-safe API extractors
+          - Missing error handling (try-catch blocks)
+          - No loading/error states in React components
+          - Database queries without pagination
+          - Missing input validation (Zod schemas)
+          - Hardcoded values instead of environment variables
+          - Console.logs left in production code
+          - Missing null checks or optional chaining
+
+          ## Review Comment Structure
+
+          For each issue found, use this format:
+
+          **Issue**: [Brief description of the problem]
+
+          **Suggestion**: [Specific recommendation]
+
+          **Example**: [Code example if applicable]
+
+          **Reason**: [Why this change improves the code]
+
+          ## Review Categories
+
+          Use these categories for consistent feedback:
+
+          - 🔒 **Security Issues**: Authentication, authorization, data exposure
+          - 📊 **API Standardization**: Response format, error handling, pagination
+          - 🎯 **Type Safety**: TypeScript types, type guards, generics
+          - 🏗️ **Code Quality**: SOLID principles, DRY violations, architecture
+          - 🧪 **Testing**: Missing tests, test coverage, edge cases
+          - ⚡ **Performance**: Database queries, React optimization, bundle size
+          - 📦 **Package Management**: pnpm usage, dependency management
+
+          ## Additional Context
+
+          ${context ? '### Detailed Project Context\\n' + context : ''}
+
+          ${templates ? '### Review Templates\\n' + templates : ''}
+
+          ## PR DIFF
+
           \`\`\`diff
           ${diff}
           \`\`\`
 
-          Please review this PR and provide:
-          1. A summary of changes
-          2. Key issues found (security, type safety, API standardization, code quality)
-          3. Specific suggestions for improvement
-          4. Any critical issues that must be addressed
+          ## Your Task
 
-          Focus on:
-          - API response standardization
-          - TypeScript type safety
-          - Security issues
-          - Code quality and maintainability
-          - Performance concerns
+          Review this PR thoroughly and provide:
 
-          Format your response as a clear, actionable review comment.`;
+          1. **Summary of Changes**: Brief overview of what this PR does
+          2. **Critical Issues**: Any security, type safety, or API standardization issues (MUST be fixed)
+          3. **Important Issues**: Code quality, testing, or performance concerns (SHOULD be fixed)
+          4. **Suggestions**: Minor improvements or best practices (NICE to have)
+          5. **Positive Feedback**: What was done well
+
+          For each issue:
+          - Be specific about the file and line numbers
+          - Provide concrete code examples
+          - Explain WHY the change is needed
+          - Categorize with appropriate emoji (🔒📊🎯🏗️🧪⚡📦)
+
+          Format your response as a clear, structured review comment that can be posted directly to the PR.`;
 
               console.log('Sending request to Claude API...');
               
               const message = await anthropic.messages.create({
                 model: 'claude-sonnet-4-20250514',
-                max_tokens: 4096,
+                max_tokens: 8192,
                 messages: [{
                   role: 'user',
                   content: prompt
@@ -138,6 +237,8 @@ jobs:
         run: node review.js
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
       
       - name: Post review comment
         run: |
