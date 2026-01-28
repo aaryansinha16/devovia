@@ -1,0 +1,256 @@
+name: Claude PR Review (Alternative)
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude-review:
+    if: |
+      (github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude'))
+    
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Get PR diff
+        id: pr-diff
+        run: |
+          gh pr diff ${{ github.event.pull_request.number || github.event.issue.number }} > pr-diff.txt
+          echo "Diff saved to pr-diff.txt"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Read context files
+        id: context
+        run: |
+          if [ -f ".github/CLAUDE_CONTEXT.md" ]; then
+            echo "CONTEXT_EXISTS=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create review script
+        run: |
+          cat > review.js << 'EOF'
+          const Anthropic = require('@anthropic-ai/sdk');
+          const fs = require('fs');
+          const { execSync } = require('child_process');
+
+          const anthropic = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY,
+          });
+
+          async function reviewPR() {
+            try {
+              // Read PR diff
+              const diff = fs.readFileSync('pr-diff.txt', 'utf-8');
+              
+              // Read context if exists
+              let context = '';
+              if (fs.existsSync('.github/CLAUDE_CONTEXT.md')) {
+                context = fs.readFileSync('.github/CLAUDE_CONTEXT.md', 'utf-8');
+              }
+              
+              // Read templates if exists
+              let templates = '';
+              if (fs.existsSync('.github/claude-review-templates.md')) {
+                templates = fs.readFileSync('.github/claude-review-templates.md', 'utf-8');
+              }
+
+              const prompt = `REPO: ${process.env.GITHUB_REPOSITORY}
+          PR NUMBER: ${process.env.PR_NUMBER}
+
+          You are reviewing code for the Devovia project, a comprehensive developer collaboration platform.
+
+          ## Project Context
+          - **Tech Stack**: Next.js 15 (frontend), Node.js/Express (backend), PostgreSQL (Prisma), TypeScript, TailwindCSS
+          - **Package Manager**: pnpm (always use pnpm, never npm or yarn)
+          - **Architecture**: Monorepo with Turborepo, API standardization with unified response format
+          - **Development Approach**: Type-safe development with comprehensive error handling
+
+          ## Review Focus Areas
+
+          ### 1. API Response Standardization (CRITICAL)
+          - Verify all API endpoints return standardized format: \`{ success, data, pagination?, message?, meta? }\`
+          - Check error responses follow format: \`{ success: false, error: { code, message, details? }, meta? }\`
+          - Ensure pagination uses: \`{ page, limit, total, totalPages, hasNext, hasPrev }\`
+          - Validate services use response utilities from \`utils/response.util.ts\`
+          - Check frontend uses type-safe extractors from \`lib/utils/api-adapter.ts\`
+
+          ### 2. Type Safety & TypeScript (CRITICAL)
+          - Ensure all new code has proper TypeScript types (no \`any\` unless absolutely necessary)
+          - Verify API responses use centralized types from \`lib/types/api.types.ts\`
+          - Check Prisma schema changes include proper types and relations
+          - Validate React components have proper prop types
+          - Ensure hooks have correct generic type parameters
+
+          ### 3. Security & Authentication
+          - Verify protected routes use proper authentication middleware
+          - Check API endpoints validate user permissions
+          - Ensure sensitive data is not exposed in responses
+          - Validate input sanitization and validation (Zod schemas)
+          - Check for SQL injection prevention (Prisma handles this, but validate raw queries)
+
+          ### 4. Code Quality & Maintainability
+          - Follow SOLID design principles
+          - Ensure DRY (Don't Repeat Yourself) compliance
+          - Check for clear, self-documenting code with meaningful names
+          - Verify consistent patterns with existing codebase
+          - Validate proper error handling (try-catch, error boundaries)
+
+          ### 5. Testing & Quality Assurance
+          - Verify tests exist for new functionality
+          - Check test coverage for business logic
+          - Ensure API endpoints have integration tests
+          - Validate error cases are tested
+          - Check for proper mocking in tests
+
+          ### 6. Performance & Best Practices
+          - Efficient database queries (avoid N+1 queries)
+          - Proper React component optimization (useMemo, useCallback when needed)
+          - Check for memory leaks (cleanup in useEffect)
+          - Validate proper loading states and error handling in UI
+          - Ensure pagination is implemented for large datasets
+
+          ### 7. Monorepo Structure
+          - Changes in \`apps/web\` should not affect \`apps/api\` unnecessarily
+          - Shared code should be in \`packages/\` directory
+          - Verify proper imports (no circular dependencies)
+          - Check Turborepo cache configuration if build scripts change
+
+          ## Common Issues to Watch For
+          - API responses not using standardized format
+          - Missing TypeScript types or using \`any\`
+          - Frontend not using type-safe API extractors
+          - Missing error handling (try-catch blocks)
+          - No loading/error states in React components
+          - Database queries without pagination
+          - Missing input validation (Zod schemas)
+          - Hardcoded values instead of environment variables
+          - Console.logs left in production code
+          - Missing null checks or optional chaining
+
+          ## Review Comment Structure
+
+          For each issue found, use this format:
+
+          **Issue**: [Brief description of the problem]
+
+          **Suggestion**: [Specific recommendation]
+
+          **Example**: [Code example if applicable]
+
+          **Reason**: [Why this change improves the code]
+
+          ## Review Categories
+
+          Use these categories for consistent feedback:
+
+          - 🔒 **Security Issues**: Authentication, authorization, data exposure
+          - 📊 **API Standardization**: Response format, error handling, pagination
+          - 🎯 **Type Safety**: TypeScript types, type guards, generics
+          - 🏗️ **Code Quality**: SOLID principles, DRY violations, architecture
+          - 🧪 **Testing**: Missing tests, test coverage, edge cases
+          - ⚡ **Performance**: Database queries, React optimization, bundle size
+          - 📦 **Package Management**: pnpm usage, dependency management
+
+          ## Additional Context
+
+          ${context ? '### Detailed Project Context\\n' + context : ''}
+
+          ${templates ? '### Review Templates\\n' + templates : ''}
+
+          ## PR DIFF
+
+          \`\`\`diff
+          ${diff}
+          \`\`\`
+
+          ## Your Task
+
+          Review this PR thoroughly and provide:
+
+          1. **Summary of Changes**: Brief overview of what this PR does
+          2. **Critical Issues**: Any security, type safety, or API standardization issues (MUST be fixed)
+          3. **Important Issues**: Code quality, testing, or performance concerns (SHOULD be fixed)
+          4. **Suggestions**: Minor improvements or best practices (NICE to have)
+          5. **Positive Feedback**: What was done well
+
+          For each issue:
+          - Be specific about the file and line numbers
+          - Provide concrete code examples
+          - Explain WHY the change is needed
+          - Categorize with appropriate emoji (🔒📊🎯🏗️🧪⚡📦)
+
+          Format your response as a clear, structured review comment that can be posted directly to the PR.`;
+
+              console.log('Sending request to Claude API...');
+              
+              const message = await anthropic.messages.create({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 8192,
+                messages: [{
+                  role: 'user',
+                  content: prompt
+                }]
+              });
+
+              const review = message.content[0].text;
+              
+              // Save review to file
+              fs.writeFileSync('review-comment.txt', review);
+              
+              console.log('Review generated successfully');
+              console.log('---');
+              console.log(review);
+              
+            } catch (error) {
+              console.error('Error:', error.message);
+              process.exit(1);
+            }
+          }
+
+          reviewPR();
+          EOF
+      
+      - name: Install Anthropic SDK
+        run: npm install @anthropic-ai/sdk
+      
+      - name: Generate review with Claude
+        run: node review.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+      
+      - name: Post review comment
+        run: |
+          gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} --body-file review-comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload review as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-review
+          path: |
+            review-comment.txt
+            pr-diff.txt

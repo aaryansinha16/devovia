@@ -1,0 +1,56 @@
+name: Claude PR Review (DISABLED - SDK Bug)
+
+# Disabled due to SDK crash - use claude-pr-review-alternative.yml instead
+on:
+  workflow_dispatch: # Manual trigger only
+  # pull_request:
+  #   types: [opened, synchronize, ready_for_review, reopened]
+  # pull_request_review_comment:
+  #   types: [created]
+  # issue_comment:
+  #   types: [created]
+
+jobs:
+  claude-review:
+    # Skip draft PRs unless they have the 'claude' label
+    if: |
+      (github.event_name == 'pull_request' && (!github.event.pull_request.draft || contains(github.event.pull_request.labels.*.name, 'claude'))) ||
+      (github.event_name == 'pull_request_review_comment') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude'))
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - name: Claude Code Action
+        uses: anthropics/claude-code-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review this PR for the Devovia project (Next.js 15 + Express + PostgreSQL monorepo).
+            
+            Read the project context from `.github/CLAUDE_CONTEXT.md` for detailed guidelines.
+            
+            Focus on:
+            1. API response standardization (check `.github/CLAUDE_CONTEXT.md`)
+            2. TypeScript type safety
+            3. Security issues (authentication, validation)
+            4. Code quality and maintainability
+            5. Performance issues
+            
+            Create inline comments on specific lines using the GitHub inline comment tool.
+            Use the templates from `.github/claude-review-templates.md` for consistent feedback.
+            
+            Start by running `gh pr diff` to see the changes, then create specific inline comments for issues found.
