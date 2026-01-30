@@ -42,6 +42,7 @@ export const createConnectionSchema = z.object({
   platform: platformEnum,
   platformName: z.string().min(1).max(100),
   accessToken: z.string().min(10).max(500),
+  webhookSecret: z.string().min(10).max(500).optional(),
   platformUserId: z.string().optional(),
   platformUsername: z.string().optional(),
   platformTeamId: z.string().optional(),

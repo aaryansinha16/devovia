@@ -12,14 +12,18 @@ import {
   errorResponse,
   notFoundError,
   permissionError,
+  unauthorizedError,
+  badRequestError,
 } from '../utils/response.util';
+import { encrypt, decrypt } from '../utils/encryption.util';
+import { getUserIdOrFail } from '../middleware/require-user.middleware';
 import { buildPaginationMeta } from '../utils/pagination.util';
 import { aiDeploymentGuardian } from '../services/ai-deployment-guardian.service';
 import { platformIntegrationService } from '../services/platform-integration.service';
 import { websocketLogsService } from '../services/websocket-logs.service';
 
-// Type alias for prisma client with deployment models (will be available after migration)
-const db = prisma as any;
+// Use prisma directly - types are generated after migrations
+const db = prisma;
 
 // Type definitions for request bodies
 type CreateConnectionRequest = {
@@ -89,10 +93,8 @@ type DeploymentEnvironment = 'PRODUCTION' | 'PREVIEW' | 'STAGING' | 'DEVELOPMENT
  */
 export async function listConnections(req: Request, res: Response) {
   try {
-    const userId = req.user?.sub;
-    if (!userId) {
-      return res.status(401).json(errorResponse({ code: 'UNAUTHORIZED', message: 'Authentication required' }));
-    }
+    const userId = getUserIdOrFail(req, res);
+    if (!userId) return;
 
     const connections = await db.platformConnection.findMany({
       where: { userId },
@@ -123,7 +125,6 @@ export async function listConnections(req: Request, res: Response) {
 
     res.json(successResponse(sanitizedConnections, 'Connections retrieved successfully'));
   } catch (error: any) {
-    console.error('Error listing connections:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -133,10 +134,8 @@ export async function listConnections(req: Request, res: Response) {
  */
 export async function createConnection(req: Request, res: Response) {
   try {
-    const userId = req.user?.sub;
-    if (!userId) {
-      return res.status(401).json(errorResponse({ code: 'UNAUTHORIZED', message: 'Authentication required' }));
-    }
+    const userId = getUserIdOrFail(req, res);
+    if (!userId) return;
 
     const data: CreateConnectionRequest = req.body;
 
@@ -151,9 +150,8 @@ export async function createConnection(req: Request, res: Response) {
 
     if (existing) {
       return res.status(400).json(
-        errorResponse({
+        badRequestError('A connection to this platform already exists', {
           code: 'CONNECTION_EXISTS',
-          message: 'A connection to this platform already exists',
         })
       );
     }
@@ -163,8 +161,9 @@ export async function createConnection(req: Request, res: Response) {
         userId,
         platform: data.platform,
         platformName: data.platformName,
-        accessToken: data.accessToken, // TODO: Encrypt this
-        refreshToken: data.refreshToken,
+        accessToken: encrypt(data.accessToken),
+        refreshToken: data.refreshToken ? encrypt(data.refreshToken) : undefined,
+        webhookSecret: data.webhookSecret ? encrypt(data.webhookSecret) : undefined,
         tokenExpiry: data.tokenExpiry,
         platformUserId: data.platformUserId,
         platformUsername: data.platformUsername,
@@ -187,7 +186,6 @@ export async function createConnection(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error creating connection:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -238,7 +236,6 @@ export async function getConnection(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error getting connection:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -267,7 +264,6 @@ export async function deleteConnection(req: Request, res: Response) {
 
     res.json(successResponse(null, 'Connection deleted successfully'));
   } catch (error: any) {
-    console.error('Error deleting connection:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -365,7 +361,6 @@ export async function listSites(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error listing sites:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -425,7 +420,6 @@ export async function createSite(req: Request, res: Response) {
 
     res.status(201).json(successResponse(site, 'Site created successfully'));
   } catch (error: any) {
-    console.error('Error creating site:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -471,7 +465,6 @@ export async function getSite(req: Request, res: Response) {
 
     res.json(successResponse(site, 'Site retrieved successfully'));
   } catch (error: any) {
-    console.error('Error getting site:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -515,7 +508,6 @@ export async function updateSite(req: Request, res: Response) {
 
     res.json(successResponse(updated, 'Site updated successfully'));
   } catch (error: any) {
-    console.error('Error updating site:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -547,7 +539,6 @@ export async function deleteSite(req: Request, res: Response) {
 
     res.json(successResponse(null, 'Site deleted successfully'));
   } catch (error: any) {
-    console.error('Error deleting site:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -620,7 +611,6 @@ export async function listDeployments(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error listing deployments:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -674,7 +664,6 @@ export async function getDeployment(req: Request, res: Response) {
 
     res.json(successResponse(deployment, 'Deployment retrieved successfully'));
   } catch (error: any) {
-    console.error('Error getting deployment:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -741,7 +730,6 @@ export async function createDeployment(req: Request, res: Response) {
 
     res.status(201).json(successResponse(deployment, 'Deployment created successfully'));
   } catch (error: any) {
-    console.error('Error creating deployment:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -779,7 +767,6 @@ export async function updateDeployment(req: Request, res: Response) {
 
     res.json(successResponse(updated, 'Deployment updated successfully'));
   } catch (error: any) {
-    console.error('Error updating deployment:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -916,7 +903,6 @@ export async function getDashboardStats(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error getting dashboard stats:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -984,7 +970,6 @@ export async function getDeploymentActivity(req: Request, res: Response) {
 
     res.json(successResponse(activity, 'Deployment activity retrieved successfully'));
   } catch (error: any) {
-    console.error('Error getting deployment activity:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1064,7 +1049,6 @@ export async function createDeploymentSession(req: Request, res: Response) {
 
     res.status(201).json(successResponse(session, 'Deployment session created successfully'));
   } catch (error: any) {
-    console.error('Error creating deployment session:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1121,7 +1105,6 @@ export async function getDeploymentSession(req: Request, res: Response) {
 
     res.json(successResponse(session, 'Deployment session retrieved successfully'));
   } catch (error: any) {
-    console.error('Error getting deployment session:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1171,7 +1154,6 @@ export async function getDeploymentLogs(req: Request, res: Response) {
 
     res.json(successResponse(logs, 'Deployment logs retrieved successfully'));
   } catch (error: any) {
-    console.error('Error getting deployment logs:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1226,7 +1208,6 @@ export async function addDeploymentLog(req: Request, res: Response) {
 
     res.status(201).json(successResponse(log, 'Log entry added successfully'));
   } catch (error: any) {
-    console.error('Error adding deployment log:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1329,7 +1310,6 @@ export async function rollbackDeployment(req: Request, res: Response) {
 
     res.json(successResponse(rollbackDeployment, 'Rollback initiated successfully'));
   } catch (error: any) {
-    console.error('Error rolling back deployment:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1370,7 +1350,6 @@ export async function getDeploymentRunbooks(req: Request, res: Response) {
 
     res.json(successResponse(runbooks, 'Deployment runbooks retrieved successfully'));
   } catch (error: any) {
-    console.error('Error getting deployment runbooks:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1440,7 +1419,6 @@ export async function linkRunbookToDeployment(req: Request, res: Response) {
 
     res.status(201).json(successResponse(link, 'Runbook linked to deployment successfully'));
   } catch (error: any) {
-    console.error('Error linking runbook to deployment:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1536,7 +1514,6 @@ export async function executeDeploymentRunbook(req: Request, res: Response) {
 
     res.json(successResponse({ link, execution }, 'Runbook execution started'));
   } catch (error: any) {
-    console.error('Error executing deployment runbook:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1574,7 +1551,6 @@ export async function unlinkRunbookFromDeployment(req: Request, res: Response) {
 
     res.json(successResponse(null, 'Runbook unlinked from deployment successfully'));
   } catch (error: any) {
-    console.error('Error unlinking runbook from deployment:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1662,7 +1638,6 @@ export async function triggerDeployment(req: Request, res: Response) {
       );
     }
   } catch (error: any) {
-    console.error('Error triggering deployment:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -1702,7 +1677,6 @@ export async function analyzeDeploymentRisk(req: Request, res: Response) {
 
     res.json(successResponse(analysis, 'Deployment risk analysis completed'));
   } catch (error: any) {
-    console.error('Error analyzing deployment risk:', error);
     res.status(500).json(internalServerError(error));
   }
 }

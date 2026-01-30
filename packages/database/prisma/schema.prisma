@@ -902,6 +902,7 @@ model PlatformConnection {
   accessToken  String  @db.Text
   refreshToken String? @db.Text
   tokenExpiry  DateTime?
+  webhookSecret String? @db.Text // Encrypted webhook secret for signature verification
 
   // Platform-specific data
   platformUserId   String? // User ID on the platform

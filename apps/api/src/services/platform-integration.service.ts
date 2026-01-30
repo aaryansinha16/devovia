@@ -5,6 +5,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import prisma from '../lib/prisma';
+import { decrypt } from '../utils/encryption.util';
 
 const db = prisma as any;
 
@@ -92,9 +93,10 @@ export class PlatformIntegrationService {
   ): Promise<{ success: boolean; platformDeploymentId?: string; error?: string }> {
     try {
       const config = PLATFORM_CONFIGS.VERCEL;
+      const decryptedToken = decrypt(site.connection.accessToken);
       const client = axios.create({
         baseURL: config.baseUrl,
-        headers: config.headers(site.connection.accessToken),
+        headers: config.headers(decryptedToken),
       });
 
       // Check if we already have a deploy hook for this site
@@ -200,9 +202,10 @@ export class PlatformIntegrationService {
   ): Promise<{ success: boolean; platformDeploymentId?: string; error?: string }> {
     try {
       const config = PLATFORM_CONFIGS.NETLIFY;
+      const decryptedToken = decrypt(site.connection.accessToken);
       const client = axios.create({
         baseURL: config.baseUrl,
-        headers: config.headers(site.connection.accessToken),
+        headers: config.headers(decryptedToken),
       });
 
       // Trigger build hook or create deployment
@@ -233,9 +236,10 @@ export class PlatformIntegrationService {
   ): Promise<{ success: boolean; platformDeploymentId?: string; error?: string }> {
     try {
       const config = PLATFORM_CONFIGS.RAILWAY;
+      const decryptedToken = decrypt(site.connection.accessToken);
       const client = axios.create({
         baseURL: config.baseUrl,
-        headers: config.headers(site.connection.accessToken),
+        headers: config.headers(decryptedToken),
       });
 
       // Railway uses GraphQL
@@ -279,9 +283,10 @@ export class PlatformIntegrationService {
   ): Promise<{ success: boolean; platformDeploymentId?: string; error?: string }> {
     try {
       const config = PLATFORM_CONFIGS.RENDER;
+      const decryptedToken = decrypt(site.connection.accessToken);
       const client = axios.create({
         baseURL: config.baseUrl,
-        headers: config.headers(site.connection.accessToken),
+        headers: config.headers(decryptedToken),
       });
 
       // Trigger manual deploy
@@ -344,9 +349,10 @@ export class PlatformIntegrationService {
 
   private async getVercelDeploymentStatus(deployment: any): Promise<{ status: string; url?: string }> {
     const config = PLATFORM_CONFIGS.VERCEL;
+    const decryptedToken = decrypt(deployment.site.connection.accessToken);
     const client = axios.create({
       baseURL: config.baseUrl,
-      headers: config.headers(deployment.site.connection.accessToken),
+      headers: config.headers(decryptedToken),
     });
 
     const response = await client.get(`/v13/deployments/${deployment.platformDeploymentId}`);
@@ -368,9 +374,10 @@ export class PlatformIntegrationService {
 
   private async getNetlifyDeploymentStatus(deployment: any): Promise<{ status: string; url?: string }> {
     const config = PLATFORM_CONFIGS.NETLIFY;
+    const decryptedToken = decrypt(deployment.site.connection.accessToken);
     const client = axios.create({
       baseURL: config.baseUrl,
-      headers: config.headers(deployment.site.connection.accessToken),
+      headers: config.headers(decryptedToken),
     });
 
     const response = await client.get(`/deploys/${deployment.platformDeploymentId}`);
@@ -393,9 +400,10 @@ export class PlatformIntegrationService {
   private async getRailwayDeploymentStatus(deployment: any): Promise<{ status: string; url?: string }> {
     // Railway GraphQL query for deployment status
     const config = PLATFORM_CONFIGS.RAILWAY;
+    const decryptedToken = decrypt(deployment.site.connection.accessToken);
     const client = axios.create({
       baseURL: config.baseUrl,
-      headers: config.headers(deployment.site.connection.accessToken),
+      headers: config.headers(decryptedToken),
     });
 
     const query = `
@@ -431,9 +439,10 @@ export class PlatformIntegrationService {
 
   private async getRenderDeploymentStatus(deployment: any): Promise<{ status: string; url?: string }> {
     const config = PLATFORM_CONFIGS.RENDER;
+    const decryptedToken = decrypt(deployment.site.connection.accessToken);
     const client = axios.create({
       baseURL: config.baseUrl,
-      headers: config.headers(deployment.site.connection.accessToken),
+      headers: config.headers(decryptedToken),
     });
 
     const response = await client.get(`/deploys/${deployment.platformDeploymentId}`);

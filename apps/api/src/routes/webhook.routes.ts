@@ -18,11 +18,11 @@ const router = Router();
 // ============================================================================
 
 /**
- * @route   POST /api/webhooks/github
+ * @route   POST /api/webhooks/github/:connectionId?
  * @desc    Handle GitHub webhook events (push, deployment, deployment_status, etc.)
- * @access  Public (verified by signature)
+ * @access  Public (verified by signature if connectionId provided)
  */
-router.post('/github', webhookRateLimiter, handleGitHubWebhook);
+router.post('/github/:connectionId?', webhookRateLimiter, handleGitHubWebhook);
 
 // ============================================================================
 // VERCEL WEBHOOKS

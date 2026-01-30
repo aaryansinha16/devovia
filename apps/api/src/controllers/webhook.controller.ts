@@ -10,10 +10,12 @@ import {
   successResponse,
   errorResponse,
   internalServerError,
+  unauthorizedError,
+  badRequestError,
 } from '../utils/response.util';
+import { decrypt } from '../utils/encryption.util';
 
-// Type alias for prisma client with deployment models
-const db = prisma as any;
+const db = prisma;
 
 // ============================================================================
 // GITHUB WEBHOOKS
@@ -37,21 +39,39 @@ export async function handleGitHubWebhook(req: Request, res: Response) {
     const event = req.headers['x-github-event'] as string;
     const signature = req.headers['x-hub-signature-256'] as string;
     const deliveryId = req.headers['x-github-delivery'] as string;
+    const connectionId = req.params.connectionId;
 
-    console.log(`[GitHub Webhook] Event: ${event}, Delivery: ${deliveryId}`);
-
-    // Get the raw body for signature verification
     const rawBody = JSON.stringify(req.body);
-
-    // For now, we'll process without signature verification
-    // In production, you'd verify against a stored webhook secret per connection
-    // if (signature && webhookSecret) {
-    //   if (!verifyGitHubSignature(rawBody, signature, webhookSecret)) {
-    //     return res.status(401).json(errorResponse({ code: 'INVALID_SIGNATURE', message: 'Invalid webhook signature' }));
-    //   }
-    // }
-
     const payload = req.body;
+
+    // Verify webhook signature if connection ID is provided
+    if (connectionId) {
+      const connection = await db.platformConnection.findUnique({
+        where: { id: connectionId },
+        select: { webhookSecret: true },
+      });
+
+      if (!connection?.webhookSecret) {
+        return res.status(400).json(
+          badRequestError('Webhook secret not configured for this connection', {
+            code: 'NO_WEBHOOK_SECRET',
+          })
+        );
+      }
+
+      if (!signature) {
+        return res.status(401).json(
+          unauthorizedError('Webhook signature required')
+        );
+      }
+
+      const webhookSecret = decrypt(connection.webhookSecret);
+      if (!verifyGitHubSignature(rawBody, signature, webhookSecret)) {
+        return res.status(401).json(
+          unauthorizedError('Invalid webhook signature')
+        );
+      }
+    }
 
     switch (event) {
       case 'push':
@@ -70,15 +90,13 @@ export async function handleGitHubWebhook(req: Request, res: Response) {
         await handleGitHubWorkflowRun(payload);
         break;
       case 'ping':
-        // GitHub sends a ping event when webhook is first configured
         return res.json(successResponse({ pong: true }, 'Webhook configured successfully'));
       default:
-        console.log(`[GitHub Webhook] Unhandled event: ${event}`);
+        break;
     }
 
     res.json(successResponse({ received: true, event }, 'Webhook processed'));
   } catch (error: any) {
-    console.error('[GitHub Webhook] Error:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -90,8 +108,6 @@ async function handleGitHubPush(payload: any) {
   const { repository, ref, commits, pusher, head_commit } = payload;
   const branch = ref?.replace('refs/heads/', '');
   const repoFullName = repository?.full_name;
-
-  console.log(`[GitHub Push] ${repoFullName}:${branch} - ${commits?.length || 0} commits`);
 
   // Find matching deployment sites
   const sites = await db.deploymentSite.findMany({

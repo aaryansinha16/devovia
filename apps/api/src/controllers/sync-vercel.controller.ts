@@ -9,22 +9,25 @@ import {
   internalServerError,
   successResponse,
   errorResponse,
+  unauthorizedError,
+  notFoundError,
+  badRequestError,
 } from '../utils/response.util';
+import { decrypt } from '../utils/encryption.util';
+import { getUserIdOrFail } from '../middleware/require-user.middleware';
 
-const db = prisma as any;
+const db = prisma;
 
 /**
  * Sync sites from Vercel
  */
 export async function syncVercelSites(req: Request, res: Response) {
   try {
-    const userId = req.user?.sub;
+    const userId = getUserIdOrFail(req, res);
+    if (!userId) return;
+    
     const { connectionId } = req.params;
-    const limit = parseInt(req.query.limit as string) || 100; // Default to 100 sites
-
-    if (!userId) {
-      return res.status(401).json(errorResponse({ code: 'UNAUTHORIZED', message: 'Authentication required' }));
-    }
+    const limit = parseInt(req.query.limit as string) || 100;
 
     // Get the connection
     const connection = await db.platformConnection.findFirst({
@@ -36,21 +39,23 @@ export async function syncVercelSites(req: Request, res: Response) {
     });
 
     if (!connection) {
-      return res.status(404).json(errorResponse({ code: 'NOT_FOUND', message: 'Vercel connection not found' }));
+      return res.status(404).json(notFoundError('Vercel connection not found'));
     }
+
+    // Decrypt token before use
+    const decryptedToken = decrypt(connection.accessToken);
 
     // Fetch projects from Vercel API with limit
     const vercelResponse = await fetch(`https://api.vercel.com/v9/projects?limit=${limit}`, {
       headers: {
-        Authorization: `Bearer ${connection.accessToken}`,
+        Authorization: `Bearer ${decryptedToken}`,
       },
     });
 
     if (!vercelResponse.ok) {
       return res.status(400).json(
-        errorResponse({
+        badRequestError('Failed to fetch projects from Vercel', {
           code: 'VERCEL_API_ERROR',
-          message: 'Failed to fetch projects from Vercel',
         })
       );
     }
@@ -123,7 +128,6 @@ export async function syncVercelSites(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error syncing Vercel sites:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -133,13 +137,11 @@ export async function syncVercelSites(req: Request, res: Response) {
  */
 export async function syncVercelDeployments(req: Request, res: Response) {
   try {
-    const userId = req.user?.sub;
+    const userId = getUserIdOrFail(req, res);
+    if (!userId) return;
+    
     const { siteId } = req.params;
     const { limit = 20 } = req.query;
-
-    if (!userId) {
-      return res.status(401).json(errorResponse({ code: 'UNAUTHORIZED', message: 'Authentication required' }));
-    }
 
     // Get the site with connection
     const site = await db.deploymentSite.findFirst({
@@ -153,33 +155,34 @@ export async function syncVercelDeployments(req: Request, res: Response) {
     });
 
     if (!site) {
-      return res.status(404).json(errorResponse({ code: 'NOT_FOUND', message: 'Site not found' }));
+      return res.status(404).json(notFoundError('Site not found'));
     }
 
     if (site.connection.platform !== 'VERCEL') {
       return res.status(400).json(
-        errorResponse({
+        badRequestError('This endpoint only supports Vercel sites', {
           code: 'INVALID_PLATFORM',
-          message: 'This endpoint only supports Vercel sites',
         })
       );
     }
+
+    // Decrypt token before use
+    const decryptedToken = decrypt(site.connection.accessToken);
 
     // Fetch deployments from Vercel API
     const vercelResponse = await fetch(
       `https://api.vercel.com/v6/deployments?projectId=${site.platformSiteId}&limit=${limit}`,
       {
         headers: {
-          Authorization: `Bearer ${site.connection.accessToken}`,
+          Authorization: `Bearer ${decryptedToken}`,
         },
       }
     );
 
     if (!vercelResponse.ok) {
       return res.status(400).json(
-        errorResponse({
+        badRequestError('Failed to fetch deployments from Vercel', {
           code: 'VERCEL_API_ERROR',
-          message: 'Failed to fetch deployments from Vercel',
         })
       );
     }
@@ -243,7 +246,6 @@ export async function syncVercelDeployments(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error syncing Vercel deployments:', error);
     res.status(500).json(internalServerError(error));
   }
 }
@@ -266,32 +268,29 @@ export async function syncDeploymentLogs(req: Request, res: Response) {
     });
 
     if (!deployment || !deployment.site?.connection) {
-      return res.status(404).json(
-        errorResponse({
-          code: 'NOT_FOUND',
-          message: 'Deployment or connection not found',
-        })
-      );
+      return res.status(404).json(notFoundError('Deployment or connection not found'));
     }
 
     const { site } = deployment;
     const { connection } = site;
+
+    // Decrypt token before use
+    const decryptedToken = decrypt(connection.accessToken);
 
     // Fetch logs from Vercel
     const vercelResponse = await fetch(
       `https://api.vercel.com/v2/deployments/${deployment.platformDeploymentId}/events`,
       {
         headers: {
-          Authorization: `Bearer ${connection.accessToken}`,
+          Authorization: `Bearer ${decryptedToken}`,
         },
       }
     );
 
     if (!vercelResponse.ok) {
       return res.status(500).json(
-        errorResponse({
+        badRequestError('Failed to fetch logs from Vercel', {
           code: 'VERCEL_API_ERROR',
-          message: 'Failed to fetch logs from Vercel',
         })
       );
     }
@@ -340,7 +339,6 @@ export async function syncDeploymentLogs(req: Request, res: Response) {
       )
     );
   } catch (error: any) {
-    console.error('Error syncing Vercel logs:', error);
     res.status(500).json(internalServerError(error));
   }
 }
