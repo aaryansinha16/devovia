@@ -8,6 +8,7 @@ import type { Server } from 'http';
 interface DecodedToken {
   userId: string;
   email: string;
+  sub?: string;
   iat?: number;
   exp?: number;
 }
@@ -55,7 +56,7 @@ export class SimpleYjsServer {
       }
 
       const decoded = jwt.verify(token, this.jwtSecret) as DecodedToken;
-      console.log('✅ Token verified successfully for user:', decoded.email);
+      console.log('✅ Token verified successfully for user:', decoded.sub);
       return decoded;
     } catch (error: any) {
       console.error('JWT verification failed:', error.message);

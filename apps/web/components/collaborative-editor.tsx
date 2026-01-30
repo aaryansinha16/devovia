@@ -95,7 +95,7 @@ export function CollaborativeEditor({
     
     setIsConnected(false)
     setParticipants([])
-  }, [sessionId])
+  }, []) // Remove sessionId from dependencies - it's only used for logging
 
   // Initialize Yjs collaboration when editor is ready
   useEffect(() => {
@@ -417,7 +417,8 @@ export function CollaborativeEditor({
       }
       cleanup()
     }
-  }, [isEditorReady, sessionId, token, user, monacoLanguage, onSave, cleanup])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditorReady, sessionId, token, user?.id, monacoLanguage])
 
   // Handle editor mount
   const handleEditorDidMount: OnMount = (editor, monaco) => {

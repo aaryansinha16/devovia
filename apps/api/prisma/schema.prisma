@@ -125,6 +125,7 @@ model Project {
   tags           Tag[]            @relation("ProjectTags")
   ProjectNote    ProjectNote?
   ProjectMessage ProjectMessage[]
+  deploymentSites DeploymentSite[]
 
   @@index([userId])
   @@index([status])
@@ -843,4 +844,343 @@ model RunbookAuditLog {
   @@index([userId])
   @@index([timestamp])
   @@map("runbook_audit_logs")
+}
+
+// ============================================================================
+// DEPLOYMENTS MODELS
+// ============================================================================
+
+// Enums for Deployments
+enum DeploymentPlatform {
+  VERCEL
+  NETLIFY
+  RAILWAY
+  RENDER
+  FLY_IO
+  AWS_AMPLIFY
+  CLOUDFLARE_PAGES
+  GITHUB_PAGES
+  HEROKU
+  DIGITAL_OCEAN
+  CUSTOM
+}
+
+enum DeploymentStatus {
+  QUEUED
+  BUILDING
+  DEPLOYING
+  READY
+  ERROR
+  CANCELLED
+  ROLLBACK
+}
+
+enum DeploymentEnvironment {
+  PRODUCTION
+  PREVIEW
+  STAGING
+  DEVELOPMENT
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  PENDING
+  ERROR
+}
+
+// Platform connections (OAuth tokens, API keys)
+model PlatformConnection {
+  id     String @id @default(cuid())
+  userId String
+
+  // Platform details
+  platform     DeploymentPlatform
+  platformName String // Display name (e.g., "My Vercel Account")
+
+  // Authentication (encrypted)
+  accessToken  String  @db.Text
+  refreshToken String? @db.Text
+  tokenExpiry  DateTime?
+
+  // Platform-specific data
+  platformUserId   String? // User ID on the platform
+  platformUsername String? // Username on the platform
+  platformTeamId   String? // Team/org ID if applicable
+  platformTeamName String?
+
+  // Connection status
+  status       ConnectionStatus @default(PENDING)
+  lastSyncedAt DateTime?
+  errorMessage String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  deploymentSites DeploymentSite[]
+
+  @@unique([userId, platform, platformTeamId])
+  @@index([userId])
+  @@index([platform])
+  @@map("platform_connections")
+}
+
+// Deployment sites/projects from connected platforms
+model DeploymentSite {
+  id           String             @id @default(cuid())
+  connectionId String
+  connection   PlatformConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  // Site identification
+  platformSiteId String // ID on the platform (e.g., Vercel project ID)
+  name           String // Site/project name
+  slug           String? // URL slug
+
+  // Repository connection
+  repoProvider String? // github, gitlab, bitbucket
+  repoOwner    String?
+  repoName     String?
+  repoBranch   String? @default("main")
+  repoUrl      String?
+
+  // URLs
+  productionUrl String?
+  previewUrl    String?
+  customDomains String[] // Custom domains
+
+  // Framework detection
+  framework     String? // next, react, vue, etc.
+  buildCommand  String?
+  outputDir     String?
+  installCommand String?
+
+  // Link to Devovia Project
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  // Settings
+  autoDeployEnabled Boolean @default(true)
+  notifyOnDeploy    Boolean @default(true)
+
+  // Timestamps
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastDeployAt DateTime?
+
+  // Relations
+  deployments Deployment[]
+
+  @@unique([connectionId, platformSiteId])
+  @@index([connectionId])
+  @@index([projectId])
+  @@map("deployment_sites")
+}
+
+// Individual deployments
+model Deployment {
+  id     String         @id @default(cuid())
+  siteId String
+  site   DeploymentSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  // Platform deployment ID
+  platformDeploymentId String
+  platformBuildId      String?
+
+  // Deployment info
+  status      DeploymentStatus      @default(QUEUED)
+  environment DeploymentEnvironment @default(PREVIEW)
+
+  // Git info
+  gitCommitSha     String?
+  gitCommitMessage String?
+  gitBranch        String?
+  gitAuthor        String?
+  gitAuthorAvatar  String?
+
+  // URLs
+  deploymentUrl String?
+  inspectUrl    String? // Platform's deployment inspect URL
+
+  // Build info
+  buildDuration Int? // Duration in seconds
+  buildLogs     String? @db.Text
+
+  // AI Analysis
+  riskScore       Int?    // 0-100 risk score from AI
+  riskFactors     Json?   // Array of risk factors
+  aiSummary       String? @db.Text // AI-generated deployment summary
+  aiSuggestions   Json?   // AI suggestions for safer deployment
+
+  // Rollback info
+  isRollback       Boolean @default(false)
+  rollbackFromId   String? // ID of deployment this rolled back from
+  canRollback      Boolean @default(true)
+
+  // Collaboration
+  sessionId        String? // Link to collaborative session
+
+  // Error handling
+  errorMessage String? @db.Text
+  errorCode    String?
+
+  // Triggered by
+  triggeredBy     String? // User ID or "webhook" or "auto"
+  triggeredByName String?
+  triggerType     String  @default("push") // push, manual, rollback, webhook
+
+  // Timing
+  queuedAt   DateTime  @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  events DeploymentEvent[]
+  logs   DeploymentLog[]
+  runbooks DeploymentRunbook[]
+
+  @@unique([siteId, platformDeploymentId])
+  @@index([siteId])
+  @@index([status])
+  @@index([environment])
+  @@index([createdAt])
+  @@map("deployments")
+}
+
+// Deployment events/logs
+model DeploymentEvent {
+  id           String     @id @default(cuid())
+  deploymentId String
+  deployment   Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  // Event details
+  type      String // build_started, build_completed, deploy_started, deploy_completed, error, etc.
+  message   String
+  metadata  Json? // Additional event data
+
+  // Timing
+  timestamp DateTime @default(now())
+
+  @@index([deploymentId, timestamp])
+  @@map("deployment_events")
+}
+
+// Structured deployment logs (separate from events for detailed build/deploy logs)
+model DeploymentLog {
+  id           String     @id @default(cuid())
+  deploymentId String
+  deployment   Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  // Log details
+  level     String   // info, warn, error, debug
+  message   String   @db.Text
+  source    String?  // build, deploy, runtime, etc.
+  
+  // Structured data
+  metadata  Json?    // Additional structured data
+  
+  // For error logs
+  stackTrace String? @db.Text
+  
+  // Timing
+  timestamp DateTime @default(now())
+  sequence  Int      @default(0) // For ordering logs within same timestamp
+
+  @@index([deploymentId, timestamp])
+  @@index([deploymentId, level])
+  @@map("deployment_logs")
+}
+
+// Deployment-Runbook link for pre/post deployment workflows
+model DeploymentRunbook {
+  id           String @id @default(cuid())
+  deploymentId String
+  deployment   Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+  runbookId    String
+  
+  // Workflow phase
+  phase        String // pre_deploy, deploy, post_deploy
+  order        Int    @default(0) // Execution order within phase
+  
+  // Execution tracking
+  executionId  String? // Link to RunbookExecution when executed
+  status       String  @default("pending") // pending, running, completed, failed, skipped
+  
+  // Timing
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  
+  // Error handling
+  errorMessage String? @db.Text
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([deploymentId, runbookId, phase])
+  @@index([deploymentId])
+  @@index([runbookId])
+  @@map("deployment_runbooks")
+}
+
+// Environment variables for deployment sites
+model DeploymentEnvVar {
+  id     String @id @default(cuid())
+  siteId String
+
+  // Variable details
+  key         String
+  value       String  @db.Text // Encrypted
+  isSecret    Boolean @default(false)
+  environment DeploymentEnvironment? // Null = all environments
+
+  // Sync status
+  syncedToPlatform Boolean   @default(false)
+  lastSyncedAt     DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([siteId, key, environment])
+  @@index([siteId])
+  @@map("deployment_env_vars")
+}
+
+// Deployment notifications
+model DeploymentNotification {
+  id     String @id @default(cuid())
+  userId String
+
+  // Notification settings
+  siteId      String? // Null = all sites
+  environment DeploymentEnvironment? // Null = all environments
+
+  // Channels
+  notifyEmail   Boolean @default(true)
+  notifyInApp   Boolean @default(true)
+  notifySlack   Boolean @default(false)
+  slackWebhook  String?
+  notifyDiscord Boolean @default(false)
+  discordWebhook String?
+
+  // Events to notify
+  onBuildStart    Boolean @default(false)
+  onBuildSuccess  Boolean @default(true)
+  onBuildFailure  Boolean @default(true)
+  onDeploySuccess Boolean @default(true)
+  onDeployFailure Boolean @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, siteId])
+  @@index([userId])
+  @@map("deployment_notifications")
 }
