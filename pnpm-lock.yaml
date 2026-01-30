@@ -90,6 +90,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+      express-rate-limit:
+        specifier: ^8.2.1
+        version: 8.2.1(express@5.1.0)
       express-session:
         specifier: ^1.18.1
         version: 1.18.1
@@ -7035,6 +7038,16 @@ packages:
       jest-util: 29.7.0
     dev: true
 
+  /express-rate-limit@8.2.1(express@5.1.0):
+    resolution: {integrity: sha512-PCZEIEIxqwhzw4KF0n7QF4QqruVTcF73O5kFKUnGOyjbCCgizBBiFaYpd/fnBLUMPw/BWw9OsiN7GgrNYr7j6g==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      express: '>= 4.11'
+    dependencies:
+      express: 5.1.0
+      ip-address: 10.0.1
+    dev: false
+
   /express-session@1.18.1:
     resolution: {integrity: sha512-a5mtTqEaZvBCL9A9aqkrtfz+3SMDhOVUnjafjo+s7A9Txkq+SVX2DLvSp1Zrv4uCXa3lMSK3viWnh9Gg07PBUA==}
     engines: {node: '>= 0.8.0'}
@@ -7821,6 +7834,11 @@ packages:
       hasown: 2.0.2
       side-channel: 1.1.0
     dev: true
+
+  /ip-address@10.0.1:
+    resolution: {integrity: sha512-NWv9YLW4PoW2B7xtzaS3NCot75m6nK7Icdv0o3lfMceJVRfSoQwqD4wEH5rLwoKJwUiZ/rfpiVBhnaF0FK4HoA==}
+    engines: {node: '>= 12'}
+    dev: false
 
   /ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
