@@ -5,6 +5,16 @@
 
 import { Router } from 'express';
 import { authenticateJWT } from '../middleware/auth.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
+import { syncRateLimiter, aiRateLimiter } from '../middleware/rate-limit.middleware';
+import {
+  createConnectionSchema,
+  updateConnectionSchema,
+  createSiteSchema,
+  updateSiteSchema,
+  createDeploymentSchema,
+  updateDeploymentSchema,
+} from '../validators/deployment.validator';
 import {
   // Connections
   listConnections,
@@ -87,7 +97,7 @@ router.get('/connections', listConnections);
  * @desc Create a new platform connection
  * @access Private
  */
-router.post('/connections', createConnection);
+router.post('/connections', validateRequest(createConnectionSchema), createConnection);
 
 /**
  * @route GET /api/deployments/connections/:id
@@ -108,7 +118,7 @@ router.delete('/connections/:id', deleteConnection);
  * @desc Sync sites from Vercel
  * @access Private
  */
-router.post('/connections/:connectionId/sync-sites', syncVercelSites);
+router.post('/connections/:connectionId/sync-sites', syncRateLimiter, syncVercelSites);
 
 // ============================================================================
 // DEPLOYMENT SITE ROUTES
@@ -126,7 +136,7 @@ router.get('/sites', listSites);
  * @desc Create a new deployment site
  * @access Private
  */
-router.post('/sites', createSite);
+router.post('/sites', validateRequest(createSiteSchema), createSite);
 
 /**
  * @route GET /api/deployments/sites/:id
@@ -140,7 +150,7 @@ router.get('/sites/:id', getSite);
  * @desc Update a deployment site
  * @access Private
  */
-router.put('/sites/:id', updateSite);
+router.put('/sites/:id', validateRequest(updateSiteSchema), updateSite);
 
 /**
  * @route DELETE /api/deployments/sites/:id
@@ -161,7 +171,7 @@ router.post('/sites/:id/deploy', triggerDeployment);
  * @desc Sync deployments from Vercel for a site
  * @access Private
  */
-router.post('/sites/:siteId/sync-deployments', syncVercelDeployments);
+router.post('/sites/:siteId/sync-deployments', syncRateLimiter, syncVercelDeployments);
 
 // ============================================================================
 // DEPLOYMENT ROUTES
@@ -179,7 +189,7 @@ router.get('/', listDeployments);
  * @desc Create a new deployment record
  * @access Private
  */
-router.post('/', createDeployment);
+router.post('/', validateRequest(createDeploymentSchema), createDeployment);
 
 /**
  * @route GET /api/deployments/:id
@@ -193,7 +203,7 @@ router.get('/:id', getDeployment);
  * @desc Update a deployment status
  * @access Private
  */
-router.put('/:id', updateDeployment);
+router.put('/:id', validateRequest(updateDeploymentSchema), updateDeployment);
 
 /**
  * @route GET /api/deployments/:id/logs
@@ -214,7 +224,7 @@ router.post('/:id/logs', addDeploymentLog);
  * @desc Sync logs from Vercel for a deployment
  * @access Private
  */
-router.post('/:id/sync-logs', syncDeploymentLogs);
+router.post('/:id/sync-logs', syncRateLimiter, syncDeploymentLogs);
 
 /**
  * @route POST /api/deployments/:id/rollback
@@ -270,6 +280,6 @@ router.delete('/:id/runbooks/:runbookLinkId', unlinkRunbookFromDeployment);
  * @desc Analyze deployment for risk factors using AI
  * @access Private
  */
-router.post('/:id/analyze', analyzeDeploymentRisk);
+router.post('/:id/analyze', aiRateLimiter, analyzeDeploymentRisk);
 
 export default router;

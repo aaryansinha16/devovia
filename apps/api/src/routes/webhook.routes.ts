@@ -9,6 +9,7 @@ import {
   handleVercelWebhook,
   handleNetlifyWebhook,
 } from '../controllers/webhook.controller';
+import { webhookRateLimiter } from '../middleware/rate-limit.middleware';
 
 const router = Router();
 
@@ -21,7 +22,7 @@ const router = Router();
  * @desc    Handle GitHub webhook events (push, deployment, deployment_status, etc.)
  * @access  Public (verified by signature)
  */
-router.post('/github', handleGitHubWebhook);
+router.post('/github', webhookRateLimiter, handleGitHubWebhook);
 
 // ============================================================================
 // VERCEL WEBHOOKS
@@ -32,7 +33,7 @@ router.post('/github', handleGitHubWebhook);
  * @desc    Handle Vercel deployment webhook events
  * @access  Public (verified by signature)
  */
-router.post('/vercel', handleVercelWebhook);
+router.post('/vercel', webhookRateLimiter, handleVercelWebhook);
 
 // ============================================================================
 // NETLIFY WEBHOOKS
@@ -43,6 +44,6 @@ router.post('/vercel', handleVercelWebhook);
  * @desc    Handle Netlify deployment webhook events
  * @access  Public (verified by signature)
  */
-router.post('/netlify', handleNetlifyWebhook);
+router.post('/netlify', webhookRateLimiter, handleNetlifyWebhook);
 
 export default router;

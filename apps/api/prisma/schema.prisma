@@ -1049,6 +1049,9 @@ model Deployment {
   @@index([status])
   @@index([environment])
   @@index([createdAt])
+  @@index([siteId, status, createdAt]) // For filtered lists
+  @@index([status, environment, createdAt]) // For dashboard queries
+  @@index([triggeredBy, createdAt]) // For user activity
   @@map("deployments")
 }
 
