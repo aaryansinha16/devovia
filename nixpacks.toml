@@ -17,4 +17,4 @@ cmds = [
 ]
 
 [start]
-cmd = "cd apps/api && (pnpm exec prisma migrate deploy || echo 'Migration warning - continuing anyway') && node dist/apps/api/src/railway.js"
+cmd = "cd apps/api && pnpm exec prisma migrate resolve --rolled-back 20260131_add_webhook_secret 2>/dev/null; pnpm exec prisma migrate deploy 2>/dev/null; node dist/apps/api/src/railway.js"
