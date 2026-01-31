@@ -11,11 +11,9 @@ import {
   successResponse,
   errorResponse,
   notFoundError,
-  permissionError,
-  unauthorizedError,
   badRequestError,
 } from '../utils/response.util';
-import { encrypt, decrypt } from '../utils/encryption.util';
+import { encrypt } from '../utils/encryption.util';
 import { getUserIdOrFail } from '../middleware/require-user.middleware';
 import { buildPaginationMeta } from '../utils/pagination.util';
 import { aiDeploymentGuardian } from '../services/ai-deployment-guardian.service';
@@ -31,6 +29,7 @@ type CreateConnectionRequest = {
   platformName: string;
   accessToken: string;
   refreshToken?: string;
+  webhookSecret?: string;
   tokenExpiry?: Date;
   platformUserId?: string;
   platformUsername?: string;
@@ -143,7 +142,7 @@ export async function createConnection(req: Request, res: Response) {
     const existing = await db.platformConnection.findFirst({
       where: {
         userId,
-        platform: data.platform,
+        platform: data.platform as any,
         platformTeamId: data.platformTeamId || null,
       },
     });
@@ -159,7 +158,7 @@ export async function createConnection(req: Request, res: Response) {
     const connection = await db.platformConnection.create({
       data: {
         userId,
-        platform: data.platform,
+        platform: data.platform as any,
         platformName: data.platformName,
         accessToken: encrypt(data.accessToken),
         refreshToken: data.refreshToken ? encrypt(data.refreshToken) : undefined,
@@ -697,8 +696,8 @@ export async function createDeployment(req: Request, res: Response) {
         siteId: data.siteId,
         platformDeploymentId: data.platformDeploymentId,
         platformBuildId: data.platformBuildId,
-        status: data.status || 'QUEUED',
-        environment: data.environment || 'PREVIEW',
+        status: (data.status || 'QUEUED') as any,
+        environment: (data.environment || 'PREVIEW') as any,
         gitCommitSha: data.gitCommitSha,
         gitCommitMessage: data.gitCommitMessage,
         gitBranch: data.gitBranch,
@@ -762,7 +761,7 @@ export async function updateDeployment(req: Request, res: Response) {
 
     const updated = await db.deployment.update({
       where: { id },
-      data,
+      data: data as any,
     });
 
     res.json(successResponse(updated, 'Deployment updated successfully'));

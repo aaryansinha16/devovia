@@ -8,8 +8,6 @@ import prisma from '../lib/prisma';
 import {
   internalServerError,
   successResponse,
-  errorResponse,
-  unauthorizedError,
   notFoundError,
   badRequestError,
 } from '../utils/response.util';
@@ -224,13 +222,13 @@ export async function syncVercelDeployments(req: Request, res: Response) {
         // Update existing deployment
         const updated = await db.deployment.update({
           where: { id: existing.id },
-          data: deploymentData,
+          data: deploymentData as any,
         });
         syncedDeployments.push(updated);
       } else {
         // Create new deployment
         const created = await db.deployment.create({
-          data: deploymentData,
+          data: deploymentData as any,
         });
         syncedDeployments.push(created);
       }

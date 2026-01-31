@@ -8,7 +8,6 @@ import crypto from 'crypto';
 import prisma from '../lib/prisma';
 import {
   successResponse,
-  errorResponse,
   internalServerError,
   unauthorizedError,
   badRequestError,
@@ -38,7 +37,6 @@ export async function handleGitHubWebhook(req: Request, res: Response) {
   try {
     const event = req.headers['x-github-event'] as string;
     const signature = req.headers['x-hub-signature-256'] as string;
-    const deliveryId = req.headers['x-github-delivery'] as string;
     const connectionId = req.params.connectionId;
 
     const rawBody = JSON.stringify(req.body);
@@ -107,7 +105,6 @@ export async function handleGitHubWebhook(req: Request, res: Response) {
 async function handleGitHubPush(payload: any) {
   const { repository, ref, commits, pusher, head_commit } = payload;
   const branch = ref?.replace('refs/heads/', '');
-  const repoFullName = repository?.full_name;
 
   // Find matching deployment sites
   const sites = await db.deploymentSite.findMany({
@@ -194,8 +191,8 @@ async function handleGitHubDeployment(payload: any) {
         data: {
           siteId: site.id,
           platformDeploymentId: `github-deploy-${deployment?.id}`,
-          status: 'QUEUED',
-          environment: mapGitHubEnvironment(deployment?.environment),
+          status: 'QUEUED' as any,
+          environment: mapGitHubEnvironment(deployment?.environment) as any,
           gitCommitSha: deployment?.sha,
           gitBranch: deployment?.ref,
           triggeredBy: 'webhook',
@@ -253,7 +250,7 @@ async function handleGitHubDeploymentStatus(payload: any) {
       await db.deployment.update({
         where: { id: existingDeployment.id },
         data: {
-          status: newStatus,
+          status: newStatus as any,
           deploymentUrl: deployment_status?.environment_url || deployment_status?.target_url,
           ...(newStatus === 'READY' && { finishedAt: new Date() }),
           ...(newStatus === 'ERROR' && { 

@@ -36,6 +36,7 @@ export interface CreateConnectionRequest {
   platformName: string;
   accessToken: string;
   refreshToken?: string;
+  webhookSecret?: string;
   tokenExpiry?: Date;
   platformUserId?: string;
   platformUsername?: string;
