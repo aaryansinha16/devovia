@@ -13,8 +13,9 @@ cmds = [
   "cd packages/database && pnpm exec tsc",
   "cp -r packages/database/dist $(find node_modules/.pnpm -type d -path '*/file+packages+database*/node_modules/@repo/database' | head -n 1)/",
   "cd apps/api && pnpm exec prisma generate",
-  "cd apps/api && pnpm exec tsc"
+  "cd apps/api && pnpm exec tsc",
+  "cd apps/api && pnpm exec prisma migrate resolve --rolled-back 20260131_add_webhook_secret || true"
 ]
 
 [start]
-cmd = "cd apps/api && pnpm exec prisma migrate resolve --rolled-back 20260131_add_webhook_secret 2>/dev/null; pnpm exec prisma migrate deploy 2>/dev/null; node dist/apps/api/src/railway.js"
+cmd = "cd apps/api && pnpm exec prisma migrate deploy || true; node dist/apps/api/src/railway.js"
