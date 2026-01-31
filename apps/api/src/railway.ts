@@ -1,147 +1,113 @@
 /**
- * Standalone healthcheck server for Railway deployment
- * This provides a reliable healthcheck endpoint regardless of main application state
+ * Railway deployment entry point
+ * Starts a minimal HTTP server for healthcheck IMMEDIATELY,
+ * then loads the main application in the background
  */
 
-// Log startup early to catch any issues
-console.log('Starting Railway deployment healthcheck server');
-console.log('Current directory:', process.cwd());
-
-// Import dependencies using TypeScript's import syntax for type checking
-// while still using CommonJS under the hood
-import * as fs from 'fs';
 import * as http from 'http';
 
-console.log('Files in directory:', fs.readdirSync('.'));
+const PORT = Number(process.env.PORT) || 4000;
 
-// Import with error handling
-let express: any;
-try {
-  // Import express using CommonJS require
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  express = require('express');
-  console.log('Express imported successfully');
-} catch (error) {
-  console.error('Failed to import express:', error);
-  // Create minimal replacement for express if import fails
-  express = function () {
-    const routes: Record<string, (req: any, res: any) => void> = {};
-    return {
-      get: function (path: string, handler: (req: any, res: any) => void) {
-        routes[path] = handler;
-      },
-      listen: function (port: number, callback: () => void) {
-        const server = http.createServer((req: any, res: any) => {
-          if (routes[req.url]) {
-            routes[req.url](req, res);
-          } else {
-            res.writeHead(404);
-            res.end('Not found');
-          }
-        });
-        server.listen(port, callback);
-        return server;
-      },
-    };
-  };
-}
+console.log('=== Railway Deployment Starting ===');
+console.log(`Port: ${PORT}`);
+console.log(`Node version: ${process.version}`);
+console.log(`Working directory: ${process.cwd()}`);
 
-// Create minimal Express app just for healthcheck
-const app = express();
-const PORT = process.env.PORT || 4000;
+// Track application state
+let mainAppLoaded = false;
+let mainApp: any = null;
 
-// Log all environment variables
-console.log('All environment variables:');
-for (const key in process.env) {
-  // Skip sensitive values but log presence
-  if (
-    key.includes('SECRET') ||
-    key.includes('PASSWORD') ||
-    key.includes('KEY') ||
-    key.includes('URL')
-  ) {
-    console.log(`${key}: <is set>`);
+// Create a minimal HTTP server that ALWAYS responds to healthcheck
+const server = http.createServer((req, res) => {
+  const url = req.url || '';
+
+  // Always respond to healthcheck - this is critical
+  if (url === '/api/hc' || url === '/api/hc/') {
+    console.log(`[${new Date().toISOString()}] Healthcheck request`);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        status: 'ok',
+        appLoaded: mainAppLoaded,
+        timestamp: new Date().toISOString(),
+      }),
+    );
+    return;
+  }
+
+  // Root endpoint for diagnostics
+  if (url === '/' || url === '') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end(`Devovia API - App loaded: ${mainAppLoaded}`);
+    return;
+  }
+
+  // Forward all other requests to main app if loaded
+  if (mainAppLoaded && mainApp) {
+    mainApp(req, res);
   } else {
-    console.log(`${key}: ${process.env[key]}`);
+    res.writeHead(503, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        error: 'Application still loading',
+        status: 'starting',
+      }),
+    );
+  }
+});
+
+// Start the HTTP server IMMEDIATELY
+server.listen(PORT, () => {
+  console.log(`✅ HTTP server listening on port ${PORT}`);
+  console.log(`✅ Healthcheck available at http://localhost:${PORT}/api/hc`);
+
+  // Now load the main application in the background
+  loadMainApplication();
+});
+
+// Load main application asynchronously
+async function loadMainApplication() {
+  console.log('Loading main application...');
+
+  try {
+    // Small delay to ensure server is fully ready
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Import the main Express app
+    console.log('Importing server module...');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { apiApp, connectToDatabase } = require('./server');
+
+    mainApp = apiApp;
+    mainAppLoaded = true;
+    console.log('✅ Main application loaded successfully');
+
+    // Connect to database
+    console.log('Connecting to database...');
+    const connected = await connectToDatabase();
+    console.log(`Database connection: ${connected ? 'SUCCESS' : 'FAILED'}`);
+  } catch (error) {
+    console.error('❌ Failed to load main application:', error);
+    // Server keeps running for healthcheck even if app fails to load
   }
 }
 
-// Health check endpoint (simplified and reliable)
-app.get('/api/hc', (req: any, res: any) => {
-  console.log('Health check endpoint called');
-  res.writeHead ? res.writeHead(200) : res.status(200);
-  res.end ? res.end('OK') : res.send('OK');
-});
-
-// Root endpoint for diagnostics
-app.get('/', (req: any, res: any) => {
-  console.log('Root endpoint called');
-  res.writeHead ? res.writeHead(200) : res.status(200);
-  res.end
-    ? res.end('Devovia API Healthcheck Server')
-    : res.send('Devovia API Healthcheck Server');
-});
-
-// Import and mount the main application routes
-try {
-  console.log('Attempting to import and mount main application...');
-  // Import server module using CommonJS require
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { apiApp } = require('./server');
-
-  // Mount all routes from the main app
-  app.use('/', apiApp);
-
-  console.log('Successfully mounted main application routes');
-} catch (error) {
-  console.error('Error mounting main application:', error);
-}
-
-// Start the healthcheck server first
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-
-  // Try to connect to the database and run migrations in the background
-  setTimeout(() => {
-    try {
-      console.log('Attempting to connect to database...');
-      // Import server module using CommonJS require
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { connectToDatabase } = require('./server');
-      connectToDatabase().then((connected) => {
-        console.log('Database connection result:', connected);
-
-        // Run Prisma migrations if connected
-        if (connected) {
-          console.log('Running Prisma migrations...');
-          try {
-            // Import child_process using CommonJS require
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { execSync } = require('child_process');
-            // Run migration in production mode to actually apply changes
-            execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-            console.log('Migrations completed successfully');
-          } catch (migrationError) {
-            console.error('Migration error:', migrationError);
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Error with database:', error);
-    }
-  }, 1000);
-});
-
-// Handle startup failures gracefully
+// Handle errors gracefully - never crash
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught exception:', error);
-  // Keep server running
+  console.error('Uncaught exception (server still running):', error);
 });
 
-process.on('unhandledRejection', (reason: any) => {
-  console.error('Unhandled Rejection:', reason);
-  // Keep server running
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection (server still running):', reason);
 });
 
-// Export for testing
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
 export default server;
