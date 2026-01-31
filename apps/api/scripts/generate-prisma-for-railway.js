@@ -49,6 +49,19 @@ if (schemaPath !== targetSchemaPath) {
   fs.copyFileSync(schemaPath, targetSchemaPath);
 }
 
+// Sync migrations from database package
+const migrationsSourcePath = path.join(path.dirname(schemaPath), 'migrations');
+const migrationsTargetPath = path.join(prismaDirPath, 'migrations');
+if (fs.existsSync(migrationsSourcePath)) {
+  console.log(
+    `Syncing migrations from ${migrationsSourcePath} to ${migrationsTargetPath}`,
+  );
+  fs.rmSync(migrationsTargetPath, { recursive: true, force: true });
+  fs.cpSync(migrationsSourcePath, migrationsTargetPath, { recursive: true });
+} else {
+  console.warn(`Migrations not found at ${migrationsSourcePath}`);
+}
+
 // Generate the Prisma client
 console.log('Generating Prisma client...');
 try {

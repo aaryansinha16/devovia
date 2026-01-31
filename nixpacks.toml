@@ -12,7 +12,7 @@ cmds = [
   "cd packages/database && pnpm exec prisma generate",
   "cd packages/database && pnpm exec tsc",
   "cp -r packages/database/dist $(find node_modules/.pnpm -type d -path '*/file+packages+database*/node_modules/@repo/database' | head -n 1)/",
-  "cd apps/api && pnpm exec prisma generate",
+  "cd apps/api && node scripts/generate-prisma-for-railway.js",
   "cd apps/api && pnpm exec tsc"
 ]
 
