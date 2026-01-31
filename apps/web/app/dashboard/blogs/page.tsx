@@ -18,7 +18,7 @@ import {
   deleteBlog,
   type BlogPost,
 } from "../../../lib/services/blog-service";
-import { Container, Heading, Text, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
+import { Container, Heading, Text, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, GlassCard } from "@repo/ui";
 
 export default function BlogsDashboardPage() {
   const router = useRouter();
@@ -94,7 +94,7 @@ export default function BlogsDashboardPage() {
 
           <div className="flex items-center gap-3">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px] bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+              <SelectTrigger className="w-[180px] bg-slate-900/50 rounded-xl">
                 <SelectValue placeholder="All Posts" />
               </SelectTrigger>
               <SelectContent>
@@ -150,9 +150,9 @@ export default function BlogsDashboardPage() {
         ) : (
           <div className="grid gap-6">
             {filteredBlogs.map((blog) => (
-              <div
+              <GlassCard
                 key={blog.id}
-                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
+                className="group p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -222,7 +222,7 @@ export default function BlogsDashboardPage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </GlassCard>
             ))}
           </div>
         )}

@@ -31,10 +31,6 @@ export default function HomePage() {
       {/* Header */}
       <Navbar />
 
-      <div className="fixed bottom-4 left-0 right-0 z-50">
-        <FloatingDockDemo />
-      </div>
-
       {/* Hero Section */}
       <HeroSection />
 

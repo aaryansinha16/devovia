@@ -101,7 +101,7 @@ export default function RunbooksPage() {
 
           <div className="flex items-center gap-3">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px] bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+              <SelectTrigger className="w-[180px] bg-slate-900/50 rounded-xl">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -114,7 +114,7 @@ export default function RunbooksPage() {
             </Select>
 
             <Select value={environmentFilter} onValueChange={setEnvironmentFilter}>
-              <SelectTrigger className="w-[180px] bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+              <SelectTrigger className="w-[180px] bg-slate-900/50 rounded-xl">
                 <SelectValue placeholder="All Environments" />
               </SelectTrigger>
               <SelectContent>
@@ -166,9 +166,9 @@ export default function RunbooksPage() {
         ) : (
           <div className="grid gap-6">
             {runbooks.map((runbook) => (
-              <div
+              <GlassCard
                 key={runbook.id}
-                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
+                className="group p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -241,7 +241,7 @@ export default function RunbooksPage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </GlassCard>
             ))}
           </div>
         )}

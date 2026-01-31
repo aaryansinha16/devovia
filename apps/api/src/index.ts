@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { apiApp, connectToDatabase, disconnectFromDatabase } from './server';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import SimpleYjsServer from './websocket/simple-yjs-server';
+import { websocketLogsService } from './services/websocket-logs.service';
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,11 @@ if (require.main === module) {
         yjsServer = new SimpleYjsServer(Number(PORT));
         await yjsServer.start(server);
         console.log(`✅ WebSocket server running on port ${PORT}`);
+
+        // Initialize WebSocket logs service for real-time deployment logs
+        console.log('🚀 Starting WebSocket logs service...');
+        websocketLogsService.initialize(server);
+        console.log(`✅ WebSocket logs service initialized`);
       } catch (err) {
         console.error('Error during database connection:', err);
         // Continue running even if DB connection fails

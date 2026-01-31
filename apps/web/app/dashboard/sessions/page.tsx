@@ -195,7 +195,7 @@ function SessionCard({ session }: { session: any }) {
   const createdDate = new Date(session.createdAt).toLocaleDateString();
   
   return (
-    <div className="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+    <GlassCard className="group relative p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       <div className="relative z-10">
@@ -262,13 +262,13 @@ function SessionCard({ session }: { session: any }) {
         </Button>
       </div>
       </div>
-    </div>
+    </GlassCard>
   );
 }
 
 function SessionCardSkeleton() {
   return (
-    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+    <GlassCard className="p-6">
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -289,7 +289,7 @@ function SessionCardSkeleton() {
           <div className="h-8 w-16 bg-gray-700 rounded animate-pulse" />
         </div>
       </div>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -405,7 +405,7 @@ export default function SessionsPage() {
               placeholder="Search sessions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-lg"
+              className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border-0 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
             />
           </div>
           
@@ -413,7 +413,7 @@ export default function SessionsPage() {
           <div className="relative">
             <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 z-10 pointer-events-none" />
             <Select value={languageFilter} onValueChange={setLanguageFilter}>
-              <SelectTrigger className="w-full pl-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg">
+              <SelectTrigger className="w-full pl-12 bg-slate-900/50 rounded-xl">
                 <SelectValue placeholder="All Languages" />
               </SelectTrigger>
               <SelectContent>
@@ -428,33 +428,33 @@ export default function SessionsPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <div className="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+          <GlassCard className="group relative p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-sky-500 to-indigo-600 bg-clip-text text-transparent mb-2">
                 {sessions.length}
               </div>
-              <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Sessions</div>
+              <div className="text-sm font-medium text-slate-400">Total Sessions</div>
             </div>
-          </div>
-          <div className="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+          </GlassCard>
+          <GlassCard className="group relative p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent mb-2">
                 {sessions.filter(s => s.isActive).length}
               </div>
-              <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Active Sessions</div>
+              <div className="text-sm font-medium text-slate-400">Active Sessions</div>
             </div>
-          </div>
-          <div className="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+          </GlassCard>
+          <GlassCard className="group relative p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-600 bg-clip-text text-transparent mb-2">
                 {sessions.reduce((acc, s) => acc + (s.permissions?.length || 0), 0)}
               </div>
-              <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Collaborators</div>
+              <div className="text-sm font-medium text-slate-400">Collaborators</div>
             </div>
-          </div>
+          </GlassCard>
         </div>
 
         {/* Error state */}

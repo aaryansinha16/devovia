@@ -104,3 +104,18 @@ export function permissionError(
     message,
   });
 }
+
+export function badRequestError(message: string, details?: unknown) {
+  return errorResponse({
+    code: 'BAD_REQUEST',
+    message,
+    details,
+  });
+}
+
+export function unauthorizedError(message = 'Authentication required') {
+  return errorResponse({
+    code: 'UNAUTHORIZED',
+    message,
+  });
+}

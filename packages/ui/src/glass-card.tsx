@@ -3,11 +3,11 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./lib/utils";
 
 const glassCardVariants = cva(
-  "backdrop-blur-sm transition-all duration-300",
+  "transition-all duration-300",
   {
     variants: {
       variant: {
-        default: "bg-white/80 dark:bg-slate-800/80 shadow-lg",
+        default: "bg-slate-900/50",
         subtle: "bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700",
         solid: "bg-white dark:bg-slate-800 shadow-xl",
         ghost: "bg-transparent",
@@ -47,7 +47,7 @@ export interface GlassCardProps
 }
 
 const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ className, variant, rounded, padding, hover, ...props }, ref) => {
+  ({ className, variant, rounded, padding, hover, style, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -55,6 +55,11 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
           glassCardVariants({ variant, rounded, padding, hover }),
           className
         )}
+        style={{
+          backdropFilter: "blur(9.8px)",
+          boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px",
+          ...style,
+        }}
         {...props}
       />
     );
