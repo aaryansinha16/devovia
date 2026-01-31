@@ -11,7 +11,7 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "cd apps/api && pnpm exec prisma migrate deploy && node dist/apps/api/src/index.js",
+    "startCommand": "bash /app/apps/api/scripts/start.sh",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/api/hc",
