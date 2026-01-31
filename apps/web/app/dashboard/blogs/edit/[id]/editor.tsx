@@ -279,9 +279,10 @@ export function BlogEditor({ id }: { id: string }) {
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/dashboard/blogs")}
-              className="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              className="p-3 bg-slate-900/50 rounded-xl hover:bg-slate-900/70 transition-all hover:shadow-xl hover:scale-105"
+              style={{backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px"}}
             >
-              <IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
+              <IconArrowLeft size={20} className="text-slate-300" />
             </button>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">Edit Blog Post</h1>
           </div>
@@ -307,7 +308,7 @@ export function BlogEditor({ id }: { id: string }) {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg space-y-8">
+        <form onSubmit={handleSubmit} className="bg-slate-900/50 rounded-2xl p-8 space-y-8" style={{backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px"}}>
           {/* Title */}
           <div className="space-y-3">
             <label htmlFor="title" className="text-sm font-semibold text-slate-700 dark:text-slate-300">

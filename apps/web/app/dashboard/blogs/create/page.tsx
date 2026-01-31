@@ -51,10 +51,11 @@ export default function CreateBlogPage() {
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => router.back()}
-            className="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            className="p-3 bg-slate-900/50 rounded-xl hover:bg-slate-900/70 transition-all hover:shadow-xl hover:scale-105"
+            style={{backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px"}}
             aria-label="Go back"
           >
-            <IconArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
+            <IconArrowLeft size={20} className="text-slate-300" />
           </button>
         </div>
         

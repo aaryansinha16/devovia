@@ -255,7 +255,7 @@ export default function ProjectDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-28 flex items-center justify-center">
         <div className="text-center">
           <Heading size="h2" className="mb-4">Error loading project</Heading>
           <Text className="text-slate-400 mb-6">{error.message}</Text>
@@ -272,7 +272,7 @@ export default function ProjectDetailPage() {
   const isOwner = true; // Simplified check - you can enhance this with proper auth
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-28">
       <BackgroundDecorative />
       
       <Container className="py-8 relative z-10">
