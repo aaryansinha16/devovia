@@ -11,7 +11,7 @@ cmds = [
 cmds = [
   "cd packages/database && pnpm exec prisma generate",
   "cd packages/database && pnpm exec tsc",
-  "cp -r packages/database/dist node_modules/.pnpm/file+packages+database_prisma@5.11.0/node_modules/@repo/database/",
+  "cp -r packages/database/dist $(find node_modules/.pnpm -type d -path '*/file+packages+database*/node_modules/@repo/database' | head -n 1)/",
   "cd apps/api && pnpm exec prisma generate",
   "cd apps/api && pnpm exec tsc"
 ]
