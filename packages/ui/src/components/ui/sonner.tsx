@@ -8,6 +8,7 @@ import {
   TriangleAlert,
 } from "lucide-react"
 import { useTheme } from "next-themes"
+import React from "react"
 import { Toaster as Sonner } from "sonner"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
