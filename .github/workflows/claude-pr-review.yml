@@ -41,17 +41,46 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
-            Review this PR for the Devovia project (Next.js 15 + Express + PostgreSQL monorepo).
-            
-            Read the project context from `.github/CLAUDE_CONTEXT.md` for detailed guidelines.
-            
-            Focus on:
-            1. API response standardization (check `.github/CLAUDE_CONTEXT.md`)
-            2. TypeScript type safety (no `any` types)
-            3. Security issues (authentication, validation)
-            4. Code quality and maintainability (SOLID, DRY)
-            5. Performance issues (efficient Prisma queries, no N+1)
-            
+            You are reviewing code for the Devovia project, a comprehensive developer collaboration platform.
+
+            ## Project Context
+            - **Tech Stack**: Next.js 15 (frontend), Node.js/Express (backend), PostgreSQL (Prisma), TypeScript, TailwindCSS
+            - **Package Manager**: pnpm (always use pnpm, never npm or yarn)
+            - **Architecture**: Monorepo with Turborepo, API standardization with unified response format
+            - **Development Approach**: Type-safe development with comprehensive error handling
+
+            ## Review Focus Areas
+
+            ### 1. API Response Standardization (CRITICAL)
+            - Verify all API endpoints return standardized format: `{ success, data, pagination?, message?, meta? }`
+            - Check error responses follow format: `{ success: false, error: { code, message, details? }, meta? }`
+            - Ensure pagination uses: `{ page, limit, total, totalPages, hasNext, hasPrev }`
+            - Validate services use response utilities from `utils/response.util.ts`
+            - Check frontend uses type-safe extractors from `lib/utils/api-adapter.ts`
+
+            ### 2. Type Safety & TypeScript (CRITICAL)
+            - Ensure all new code has proper TypeScript types (no `any` unless absolutely necessary)
+            - Verify API responses use centralized types from `lib/types/api.types.ts`
+            - Check Prisma schema changes include proper types and relations
+            - Validate React components have proper prop types
+
+            ### 3. Security & Authentication
+            - Verify protected routes use proper authentication middleware
+            - Check API endpoints validate user permissions
+            - Ensure sensitive data is not exposed in responses
+            - Validate input sanitization and validation (Zod schemas)
+
+            ### 4. Code Quality & Maintainability
+            - Follow SOLID design principles
+            - Ensure DRY (Don't Repeat Yourself) compliance
+            - Check for clear, self-documenting code
+            - Verify consistent patterns with existing codebase
+
+            ### 5. Performance & Best Practices
+            - Efficient database queries (avoid N+1)
+            - Proper React component optimization
+            - Appropriate use of Next.js Server Components vs Client Components
+
             ## Review Instructions - CRITICAL FOR PROPER GITHUB INTEGRATION
 
             **IMPORTANT**: Create proper GitHub review comments that can be resolved, NOT generic completion messages.
@@ -87,18 +116,33 @@ jobs:
 
             5. **Summary Comments**:
                - Use `gh pr comment` only for overall PR feedback or when @claude is mentioned
-               - Summarize key findings and reference the inline comments
+               - Summarize key findings and provide general guidance
+               - Reference the inline comments for specific issues
 
             ### What NOT to Do:
-            - ❌ Don't post generic "I'll analyze this" messages
+            - ❌ Don't post generic "I'll analyze this and get back to you" messages
             - ❌ Don't create vague comments without specific line references
             - ❌ Don't post completion status updates
+            - ❌ Don't create comments that aren't actionable
 
-            ### Workflow:
-            1. Start by running `gh pr diff` to see the changes.
-            2. For each specific issue found, create an inline comment using the tool.
-            3. Use the templates from `.github/claude-review-templates.md` for consistent feedback.
-            4. End with a summary of critical issues if any, or a brief positive note.
+            ### Review Workflow
+            1. **Start with `gh pr diff`** to understand the changes
+            2. **Create inline comments** for each specific issue found
+            3. **Use structured templates** for consistent feedback format
+            4. **Focus on resolvable issues** - each comment should be actionable
+            5. **End with summary comment** only if needed for overall guidance
+
+            ## Success Criteria
+
+            Your review is successful when:
+            - ✅ Each comment addresses a specific, fixable issue
+            - ✅ Comments are attached to relevant code lines
+            - ✅ Feedback follows the structured template format
+            - ✅ Suggestions include code examples where helpful
+            - ✅ Comments can be marked as "resolved" when addressed
+            - ✅ No generic completion messages are posted
+
+            Remember: Create specific, actionable review comments that help improve the code, not generic status updates.
 
           claude_args: |
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh issue comment:*),Read,Bash(find:*),Bash(grep:*)"
