@@ -8,7 +8,7 @@ interface ApiKey {
   id: string;
   name: string;
   key: string;
-  createdAt: string;
+  createdAt?: string;
   lastUsed: string | null;
 }
 
