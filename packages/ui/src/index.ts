@@ -43,5 +43,8 @@ export {
   TableCaption,
 } from "./components/ui/table";
 
+export { Toaster } from "./components/ui/sonner";
+export { toast } from "sonner";
+
 // Utilities
 export * from "./lib/utils";

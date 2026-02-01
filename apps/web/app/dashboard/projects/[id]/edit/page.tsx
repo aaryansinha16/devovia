@@ -17,10 +17,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  toast,
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import { useProjectById, useUpdateProject } from "../../../../../lib/hooks/useProject";
-import { useToast } from "@repo/ui/hooks/use-toast";
 import Loader from "../../../../../components/ui/loader";
 
 export default function EditProjectPage() {
@@ -30,7 +30,6 @@ export default function EditProjectPage() {
 
   const { data: project, loading, error } = useProjectById(projectId);
   const { mutate: updateProject, loading: saving } = useUpdateProject(projectId);
-  const { toast } = useToast();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -87,18 +86,12 @@ export default function EditProjectPage() {
         endDate: endDate || undefined,
       });
 
-      toast({
-        title: "Success!",
-        description: "Project updated successfully",
-      });
+      toast.success("Project updated successfully");
 
       router.push(`/dashboard/projects/${projectId}`);
     } catch (error: any) {
       console.error("Error updating project:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update project",
-      });
+      toast.error(error.message || "Failed to update project");
     }
   };
 

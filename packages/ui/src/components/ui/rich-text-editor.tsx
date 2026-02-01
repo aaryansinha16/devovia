@@ -7,6 +7,7 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { cn } from "../../lib/utils";
+import { toast } from "sonner";
 
 // Editor toolbar button
 const ToolbarButton = ({
@@ -85,7 +86,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const timer = setTimeout(() => {
       setIsHydrated(true);
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -99,7 +100,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Inject CSS to completely remove all focus outlines in the editor
   useEffect(() => {
     const styleId = 'rich-text-editor-no-focus';
-    
+
     // Remove existing style if it exists
     const existingStyle = document.getElementById(styleId);
     if (existingStyle) {
@@ -143,7 +144,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         box-shadow: none !important;
       }
     `;
-    
+
     document.head.appendChild(style);
 
     // Cleanup function
@@ -180,7 +181,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             editor.chain().focus().setImage({ src: imageUrl }).run();
           } catch (error) {
             console.error("Image upload failed:", error);
-            alert("Failed to upload image. Please try again.");
+            toast.error("Failed to upload image. Please try again.");
           }
         }
       };
@@ -480,7 +481,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           "text-base leading-relaxed",
           editorClassName,
         )}
-        style={{ 
+        style={{
           minHeight,
         } as React.CSSProperties}
         // Add global style to completely remove focus outlines

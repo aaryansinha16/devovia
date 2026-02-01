@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Input, Label, Textarea } from "@repo/ui";
+import { Button, Input, Label, Textarea, toast } from "@repo/ui";
 import { IconX, IconPlus } from "@tabler/icons-react";
 import Editor from "@monaco-editor/react";
 
@@ -42,12 +42,13 @@ export function CreateSnippetModal({ isOpen, onClose, onSuccess }: CreateSnippet
       if (response.ok) {
         resetForm();
         onSuccess();
+        toast.success("Snippet created successfully");
       } else {
-        alert("Failed to create snippet");
+        toast.error("Failed to create snippet");
       }
     } catch (error) {
       console.error("Error creating snippet:", error);
-      alert("An error occurred");
+      toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
     }

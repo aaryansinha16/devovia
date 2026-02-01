@@ -21,7 +21,7 @@ import {
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import Editor from "@monaco-editor/react";
 import { useSnippetById, useUpdateSnippet } from '../../../../../lib/hooks/useSnippet';
-import { useToast } from '@repo/ui/hooks/use-toast';
+import { toast } from "@repo/ui";
 import Loader from '../../../../../components/ui/loader';
 
 export default function EditSnippetPage() {
@@ -31,7 +31,6 @@ export default function EditSnippetPage() {
 
   const { data: snippet, loading, error } = useSnippetById(snippetId);
   const { mutate: updateSnippet, loading: saving } = useUpdateSnippet(snippetId);
-  const { toast } = useToast();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -65,18 +64,12 @@ export default function EditSnippetPage() {
         visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
       });
 
-      toast({
-        title: "Success!",
-        description: "Snippet updated successfully",
-      });
+      toast.success("Snippet updated successfully");
 
       router.push(`/dashboard/snippets/${snippetId}`);
     } catch (error: any) {
       console.error("Error updating snippet:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update snippet",
-      });
+      toast.error(error.message || "Failed to update snippet");
     }
   };
 

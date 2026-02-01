@@ -17,16 +17,15 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  toast,
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import Editor from "@monaco-editor/react";
 import { useCreateSnippet } from "../../../../lib/hooks/useSnippet";
-import { useToast } from "@repo/ui/hooks/use-toast";
 
 export default function CreateSnippetPage() {
   const router = useRouter();
   const { mutate: createSnippet, loading } = useCreateSnippet();
-  const { toast } = useToast();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -49,18 +48,12 @@ export default function CreateSnippetPage() {
         visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
       });
 
-      toast({
-        title: "Success!",
-        description: "Snippet created successfully",
-      });
+      toast.success("Snippet created successfully");
 
       router.push(`/dashboard/snippets/${snippet.id}`);
     } catch (error: any) {
       console.error("Error creating snippet:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create snippet",
-      });
+      toast.error(error.message || "Failed to create snippet");
     }
   };
 

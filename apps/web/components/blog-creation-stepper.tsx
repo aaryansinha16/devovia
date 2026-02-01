@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FansyInput, FansyLabel, RichTextEditor } from "@repo/ui/components";
+import { toast } from "@repo/ui";
 import {
   IconArrowRight,
   IconArrowLeft,
@@ -152,9 +153,10 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
     try {
       const result = await uploadBlogImage(file);
       updateFormData("coverImage", result.imageUrl);
+      toast.success("Cover image uploaded successfully");
     } catch (error) {
       console.error("Error uploading cover image:", error);
-      alert("Failed to upload cover image. Please try again.");
+      toast.error("Failed to upload cover image");
     } finally {
       setIsUploading(false);
     }
@@ -172,7 +174,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
 
   const handleSubmit = async () => {
     if (!canProceed()) return;
-    
+
     const blogData: BlogFormData = {
       title: formData.title,
       slug: formData.slug,
@@ -211,7 +213,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
                   autoFocus
                 />
               </div>
-              
+
               {formData.title && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -244,7 +246,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
               <FansyLabel className="text-lg font-semibold">
                 Add a cover image (optional)
               </FansyLabel>
-              
+
               <div className="space-y-4">
                 <FansyInput
                   type="text"
@@ -253,13 +255,13 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
                   placeholder="https://example.com/image.jpg"
                   className="h-12"
                 />
-                
+
                 <div className="flex items-center gap-4">
                   <div className="flex-1 border-t border-border"></div>
                   <span className="text-sm text-muted-foreground">or</span>
                   <div className="flex-1 border-t border-border"></div>
                 </div>
-                
+
                 <label
                   htmlFor="coverImageUpload"
                   className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
@@ -284,7 +286,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
                   disabled={isUploading}
                 />
               </div>
-              
+
               {formData.coverImage && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -351,7 +353,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
               <FansyLabel htmlFor="tags" className="text-lg font-semibold">
                 Add relevant tags (optional)
               </FansyLabel>
-              
+
               {formData.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {formData.tags.map((tag) => (
@@ -373,7 +375,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
                   ))}
                 </div>
               )}
-              
+
               <FansyInput
                 id="tags"
                 type="text"
@@ -384,7 +386,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
                 className="h-12"
                 autoFocus
               />
-              
+
               <div className="text-sm text-muted-foreground">
                 Press Enter to add tags. Good tags help readers discover your content.
               </div>
@@ -427,7 +429,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
               <FansyLabel className="text-lg font-semibold">
                 Publication Settings
               </FansyLabel>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border border-border rounded-lg">
                   <div>
@@ -446,7 +448,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
-                
+
                 <div className="p-4 bg-muted rounded-lg">
                   <h3 className="font-medium mb-2">Preview</h3>
                   <div className="space-y-2 text-sm">
@@ -478,7 +480,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
             </span>
           </div>
         </div>
-        
+
         {/* Progress Bar */}
         <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 mb-8">
           <motion.div
@@ -488,17 +490,16 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
             transition={{ duration: 0.3 }}
           />
         </div>
-        
+
         {/* Step Indicators */}
         <div className="flex items-center justify-between">
           {steps.map((step, index) => (
             <div key={step.id} className="flex flex-col items-center">
               <motion.div
-                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-lg ${
-                  index <= currentStep
+                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-lg ${index <= currentStep
                     ? "bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-sky-500/30"
                     : "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
-                }`}
+                  }`}
                 whileHover={{ scale: 1.05 }}
               >
                 {index < currentStep ? (
@@ -508,11 +509,10 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
                 )}
               </motion.div>
               <div className="mt-3 text-center">
-                <div className={`text-xs font-medium ${
-                  index <= currentStep
+                <div className={`text-xs font-medium ${index <= currentStep
                     ? "text-slate-800 dark:text-slate-100"
                     : "text-slate-500 dark:text-slate-400"
-                }`}>{step.title}</div>
+                  }`}>{step.title}</div>
               </div>
             </div>
           ))}
@@ -525,7 +525,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">{steps[currentStep]?.title}</h2>
           <p className="text-slate-600 dark:text-slate-300">{steps[currentStep]?.description}</p>
         </div>
-        
+
         <AnimatePresence mode="wait">
           <div key={currentStep}>
             {renderStepContent()}
@@ -543,7 +543,7 @@ export function BlogCreationStepper({ onSubmit, isSubmitting = false }: BlogCrea
           <IconArrowLeft className="w-5 h-5" />
           Previous
         </button>
-        
+
         {currentStep === steps.length - 1 ? (
           <button
             onClick={handleSubmit}

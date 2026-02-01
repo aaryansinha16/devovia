@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Container, Heading, Text, GlassCard, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from '@repo/ui';
-import { 
-  Plus, 
-  Users, 
-  Lock, 
+import { Container, Heading, Text, GlassCard, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, toast } from '@repo/ui';
+import {
+  Plus,
+  Users,
+  Lock,
   Calendar,
   Search,
   Filter,
@@ -39,12 +39,12 @@ function CreateSessionDialog() {
   const [language, setLanguage] = useState('TYPESCRIPT');
   const [visibility, setVisibility] = useState('PRIVATE');
   const [isCreating, setIsCreating] = useState(false);
-  
+
   const { createSession } = useSessionStore();
 
   const handleCreate = async () => {
     if (!title.trim()) return;
-    
+
     setIsCreating(true);
     try {
       await createSession({
@@ -53,15 +53,18 @@ function CreateSessionDialog() {
         language,
         visibility
       });
-      
+
+      toast.success("Session created successfully");
+
       // Reset form
       setTitle('');
       setDescription('');
       setLanguage('TYPESCRIPT');
       setVisibility('PRIVATE');
       setOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create session:', error);
+      toast.error(error.message || "Failed to create session");
     } finally {
       setIsCreating(false);
     }
@@ -77,15 +80,15 @@ function CreateSessionDialog() {
       >
         New Session
       </Button>
-      
+
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          
+
           {/* Modal */}
           <div className="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-0 rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
@@ -111,7 +114,7 @@ function CreateSessionDialog() {
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-0 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                   Description (optional)
@@ -124,7 +127,7 @@ function CreateSessionDialog() {
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-0 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none transition-all"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
@@ -147,7 +150,7 @@ function CreateSessionDialog() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                     Visibility
@@ -164,7 +167,7 @@ function CreateSessionDialog() {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 pt-6">
                 <Button
                   onClick={() => setOpen(false)}
@@ -193,74 +196,74 @@ function CreateSessionDialog() {
 function SessionCard({ session }: { session: any }) {
   const participantCount = session.permissions?.length || 1;
   const createdDate = new Date(session.createdAt).toLocaleDateString();
-  
+
   return (
     <GlassCard className="group relative p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       <div className="relative z-10">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">
-              {LANGUAGE_ICONS[session.language as keyof typeof LANGUAGE_ICONS] || '📝'}
-            </span>
-            <h3 className="font-bold text-lg bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
-              {session.title}
-            </h3>
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">
+                {LANGUAGE_ICONS[session.language as keyof typeof LANGUAGE_ICONS] || '📝'}
+              </span>
+              <h3 className="font-bold text-lg bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+                {session.title}
+              </h3>
+            </div>
+
+            {session.description && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+                {session.description}
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                <Users className="w-3 h-3" />
+                {participantCount}
+              </span>
+              <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                <Calendar className="w-3 h-3" />
+                {createdDate}
+              </span>
+              {session.isActive && (
+                <span className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg font-medium">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  Active
+                </span>
+              )}
+              <span className="px-3 py-1 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-700 dark:text-sky-300 rounded-lg font-medium">
+                {session.language}
+              </span>
+            </div>
           </div>
-          
-          {session.description && (
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
-              {session.description}
-            </p>
-          )}
-          
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
-              <Users className="w-3 h-3" />
-              {participantCount}
-            </span>
-            <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
-              <Calendar className="w-3 h-3" />
-              {createdDate}
-            </span>
-            {session.isActive && (
-              <span className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg font-medium">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                Active
+        </div>
+
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            {session.lockedBy && (
+              <span className="text-xs text-red-400 flex items-center gap-1">
+                <X className="w-5 h-5" />
               </span>
             )}
-            <span className="px-3 py-1 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-700 dark:text-sky-300 rounded-lg font-medium">
-              {session.language}
-            </span>
+            {session.visibility === 'PRIVATE' && (
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <Lock className="w-3 h-3" />
+                Private
+              </span>
+            )}
           </div>
+
+          <Button
+            href={`/dashboard/sessions/${session.id}`}
+            variant="gradient"
+            size="sm"
+          >
+            Open
+          </Button>
         </div>
-      </div>
-      
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          {session.lockedBy && (
-            <span className="text-xs text-red-400 flex items-center gap-1">
-              <X className="w-5 h-5" />
-            </span>
-          )}
-          {session.visibility === 'PRIVATE' && (
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Lock className="w-3 h-3" />
-              Private
-            </span>
-          )}
-        </div>
-        
-        <Button
-          href={`/dashboard/sessions/${session.id}`}
-          variant="gradient"
-          size="sm"
-        >
-          Open
-        </Button>
-      </div>
       </div>
     </GlassCard>
   );
@@ -311,16 +314,16 @@ export default function SessionsPage() {
     // Tab filter
     if (activeTab === 'active' && !session.isActive) return false;
     if (activeTab === 'archived' && session.isActive) return false;
-    
+
     // Search filter
-    if (searchQuery && !session.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !session.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (searchQuery && !session.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !session.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    
+
     // Language filter
     if (languageFilter !== 'all' && session.language !== languageFilter) return false;
-    
+
     return true;
   });
 
@@ -373,11 +376,10 @@ export default function SessionsPage() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 variant="ghost"
-                className={`flex-1 ${
-                  activeTab === tab
+                className={`flex-1 ${activeTab === tab
                     ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/30'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-center gap-2">
                   {tab === 'all' && <Globe className="w-4 h-4" />}
@@ -385,9 +387,9 @@ export default function SessionsPage() {
                   {tab === 'archived' && <Archive className="w-4 h-4" />}
                   <span className="capitalize">{tab}</span>
                   <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs">
-                    {tab === 'all' ? sessions.length : 
-                     tab === 'active' ? sessions.filter(s => s.isActive).length :
-                     sessions.filter(s => !s.isActive).length}
+                    {tab === 'all' ? sessions.length :
+                      tab === 'active' ? sessions.filter(s => s.isActive).length :
+                        sessions.filter(s => !s.isActive).length}
                   </span>
                 </div>
               </Button>
@@ -408,7 +410,7 @@ export default function SessionsPage() {
               className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border-0 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
             />
           </div>
-          
+
           {/* Language Filter */}
           <div className="relative">
             <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 z-10 pointer-events-none" />
@@ -503,9 +505,9 @@ export default function SessionsPage() {
               icon="📝"
               title={`No ${activeTab === 'active' ? 'active' : activeTab === 'archived' ? 'archived' : ''} sessions`}
               description={
-                activeTab === 'active' ? 'Start a new session to collaborate with your team.' : 
-                activeTab === 'archived' ? 'Your archived sessions will appear here.' :
-                'Create your first collaborative session to get started.'
+                activeTab === 'active' ? 'Start a new session to collaborate with your team.' :
+                  activeTab === 'archived' ? 'Your archived sessions will appear here.' :
+                    'Create your first collaborative session to get started.'
               }
               action={activeTab !== 'archived' ? <CreateSessionDialog /> : undefined}
             />

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconArrowLeft } from "@tabler/icons-react";
+import { toast } from "@repo/ui";
 import { useAuth } from "../../../../lib/auth-context";
 import {
   createBlog,
@@ -18,7 +19,7 @@ export default function CreateBlogPage() {
   // Handle form submission
   const handleSubmit = async (blogData: BlogFormData) => {
     if (!blogData.title || !blogData.slug || !blogData.content) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -30,9 +31,10 @@ export default function CreateBlogPage() {
 
       // Redirect to the blogs list
       router.push("/dashboard/blogs");
+      toast.success("Blog post created successfully");
     } catch (error: any) {
       console.error("Error creating blog post:", error);
-      alert(error.message || "Failed to create blog post. Please try again.");
+      toast.error(error.message || "Failed to create blog post");
     } finally {
       setIsSubmitting(false);
     }
@@ -43,7 +45,7 @@ export default function CreateBlogPage() {
       {/* Background decorative elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
       </div>
 
@@ -52,13 +54,13 @@ export default function CreateBlogPage() {
           <button
             onClick={() => router.back()}
             className="p-3 bg-slate-900/50 rounded-xl hover:bg-slate-900/70 transition-all hover:shadow-xl hover:scale-105"
-            style={{backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px"}}
+            style={{ backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px" }}
             aria-label="Go back"
           >
             <IconArrowLeft size={20} className="text-slate-300" />
           </button>
         </div>
-        
+
         <BlogCreationStepper
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}

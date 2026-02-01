@@ -2,21 +2,22 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { 
-  Button, 
+import {
+  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogTrigger,
-  Badge
+  Badge,
 } from '@repo/ui/components';
-import { 
-  Plus, 
-  Crown, 
-  Edit, 
-  Eye, 
+import { toast } from '@repo/ui';
+import {
+  Plus,
+  Crown,
+  Edit,
+  Eye,
   MoreVertical,
   UserMinus,
   Mail,
@@ -32,12 +33,12 @@ function InviteUserDialog() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'EDITOR' | 'VIEWER'>('VIEWER');
   const [isInviting, setIsInviting] = useState(false);
-  
+
   const { inviteUser } = useSessionStore();
 
   const handleInvite = async () => {
     if (!email.trim()) return;
-    
+
     setIsInviting(true);
     try {
       await inviteUser(email.trim(), role);
@@ -46,7 +47,7 @@ function InviteUserDialog() {
       setOpen(false);
     } catch (error) {
       console.error('Failed to invite user:', error);
-      alert('Failed to invite user. Please check the console for details.');
+      toast.error('Failed to invite user');
     } finally {
       setIsInviting(false);
     }
@@ -67,7 +68,7 @@ function InviteUserDialog() {
             Invite a team member to collaborate on this coding session.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-5 mt-2">
           <div>
             <label className="text-sm font-medium text-slate-300 mb-2 block">
@@ -81,7 +82,7 @@ function InviteUserDialog() {
               className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
             />
           </div>
-          
+
           <div>
             <label className="text-sm font-medium text-slate-300 mb-2 block">
               Permission Level
@@ -90,11 +91,10 @@ function InviteUserDialog() {
               <button
                 type="button"
                 onClick={() => setRole('VIEWER')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                  role === 'VIEWER' 
-                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${role === 'VIEWER'
+                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
                     : 'bg-slate-800/30 border-slate-600/30 text-slate-400 hover:bg-slate-800/50 hover:border-slate-500/50'
-                }`}
+                  }`}
               >
                 <Eye className="w-5 h-5" />
                 <span className="text-sm font-medium">Viewer</span>
@@ -103,11 +103,10 @@ function InviteUserDialog() {
               <button
                 type="button"
                 onClick={() => setRole('EDITOR')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                  role === 'EDITOR' 
-                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${role === 'EDITOR'
+                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
                     : 'bg-slate-800/30 border-slate-600/30 text-slate-400 hover:bg-slate-800/50 hover:border-slate-500/50'
-                }`}
+                  }`}
               >
                 <Edit className="w-5 h-5" />
                 <span className="text-sm font-medium">Editor</span>
@@ -115,15 +114,15 @@ function InviteUserDialog() {
               </button>
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-3 pt-2">
-            <button 
+            <button
               onClick={() => setOpen(false)}
               className="px-5 py-2.5 text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl border border-slate-600/30 transition-all"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleInvite}
               disabled={!email.trim() || isInviting}
               className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -147,14 +146,14 @@ function InviteUserDialog() {
   );
 }
 
-function ParticipantItem({ participant, canManage }: { 
-  participant: any; 
+function ParticipantItem({ participant, canManage }: {
+  participant: any;
   isOwner: boolean;
   canManage: boolean;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const { updateUserRole, removeUser } = useSessionStore();
-  
+
   const handleRoleChange = async (newRole: 'EDITOR' | 'VIEWER') => {
     try {
       await updateUserRole(participant.id, newRole);
@@ -191,23 +190,22 @@ function ParticipantItem({ participant, canManage }: {
             </span>
           </div>
         )}
-        
+
         {/* Online indicator */}
-        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-gray-800 ${
-          participant.isOnline ? 'bg-green-500' : 'bg-gray-500'
-        }`} />
+        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-gray-800 ${participant.isOnline ? 'bg-green-500' : 'bg-gray-500'
+          }`} />
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-white truncate">
             {participant.name || participant.username}
           </span>
-          
+
           {participant.role === 'OWNER' && (
             <Crown className="w-3 h-3 text-yellow-400" />
           )}
-          
+
           {participant.cursor && (
             <div className="flex items-center gap-1">
               <Circle className="w-2 h-2 text-blue-400 fill-current" />
@@ -217,30 +215,29 @@ function ParticipantItem({ participant, canManage }: {
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2 mt-1">
-          <Badge 
-            variant="outline" 
-            className={`text-xs ${
-              participant.role === 'OWNER' 
+          <Badge
+            variant="outline"
+            className={`text-xs ${participant.role === 'OWNER'
                 ? 'border-yellow-500 text-yellow-400'
                 : participant.role === 'EDITOR'
-                ? 'border-blue-500 text-blue-400'
-                : 'border-gray-500 text-gray-400'
-            }`}
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-gray-500 text-gray-400'
+              }`}
           >
             {participant.role === 'OWNER' && <Crown className="w-2 h-2 mr-1" />}
             {participant.role === 'EDITOR' && <Edit className="w-2 h-2 mr-1" />}
             {participant.role === 'VIEWER' && <Eye className="w-2 h-2 mr-1" />}
             {participant.role}
           </Badge>
-          
+
           {participant.isOnline && (
             <span className="text-xs text-green-400">Online</span>
           )}
         </div>
       </div>
-      
+
       {canManage && participant.role !== 'OWNER' && (
         <div className="relative">
           <Button
@@ -251,7 +248,7 @@ function ParticipantItem({ participant, canManage }: {
           >
             <MoreVertical className="w-4 h-4" />
           </Button>
-          
+
           {showMenu && (
             <div className="absolute right-0 top-8 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10 py-1 min-w-[120px]">
               {participant.role !== 'EDITOR' && (
@@ -266,7 +263,7 @@ function ParticipantItem({ participant, canManage }: {
                   Make Editor
                 </button>
               )}
-              
+
               {participant.role !== 'VIEWER' && (
                 <button
                   onClick={() => {
@@ -279,7 +276,7 @@ function ParticipantItem({ participant, canManage }: {
                   Make Viewer
                 </button>
               )}
-              
+
               <button
                 onClick={() => {
                   handleRemove();
@@ -301,12 +298,12 @@ function ParticipantItem({ participant, canManage }: {
 export default function ParticipantsPanel() {
   const { user } = useAuth();
   const { currentSession, participants, isLocked, lockedBy } = useSessionStore();
-  
+
   if (!currentSession) return null;
-  
+
   const isOwner = currentSession.ownerId === user?.id;
   const canManage = isOwner;
-  
+
   // Combine session owner with participants
   const allParticipants = [
     {
@@ -327,7 +324,7 @@ export default function ParticipantsPanel() {
           </h3>
           {canManage && <InviteUserDialog />}
         </div>
-        
+
         {/* Lock status */}
         {isLocked && (
           <div className="flex items-center gap-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
@@ -343,7 +340,7 @@ export default function ParticipantsPanel() {
           </div>
         )}
       </div>
-      
+
       {/* Participants list */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
@@ -356,7 +353,7 @@ export default function ParticipantsPanel() {
             />
           ))}
         </div>
-        
+
         {allParticipants.length === 1 && (
           <div className="p-4 text-center text-gray-500">
             <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -365,7 +362,7 @@ export default function ParticipantsPanel() {
           </div>
         )}
       </div>
-      
+
       {/* Quick stats */}
       <div className="p-4 border-t border-gray-700">
         <div className="grid grid-cols-2 gap-4 text-center">

@@ -11,8 +11,7 @@ import {
   IconLock,
   IconAlertCircle,
 } from '@tabler/icons-react';
-import { Button, Input, Label, GlassCard } from '@repo/ui';
-import { useToast } from '@repo/ui/hooks/use-toast';
+import { Button, Input, Label, GlassCard, toast } from '@repo/ui';
 import {
   createConnection,
   type DeploymentPlatform,
@@ -103,7 +102,6 @@ const platforms: PlatformConfig[] = [
 
 export default function ConnectPlatformPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformConfig | null>(null);
   const [connectionName, setConnectionName] = useState('');
   const [accessToken, setAccessToken] = useState('');
@@ -111,10 +109,7 @@ export default function ConnectPlatformPage() {
 
   const handleConnect = async () => {
     if (!selectedPlatform || !accessToken || !connectionName) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please fill in all required fields',
-      });
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -127,23 +122,14 @@ export default function ConnectPlatformPage() {
       });
 
       if (response.success) {
-        toast({
-          title: 'Platform Connected',
-          description: `Successfully connected to ${getPlatformName(selectedPlatform.platform)}`,
-        });
+        toast.success(`Successfully connected to ${getPlatformName(selectedPlatform.platform)}`);
         router.push('/dashboard/deployments');
       } else {
-        toast({
-          title: 'Connection Failed',
-          description: response.error?.message || 'Failed to connect platform',
-        });
+        toast.error(response.error?.message || 'Failed to connect platform');
       }
     } catch (error) {
       console.error('Error connecting platform:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setLoading(false);
     }

@@ -15,6 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  toast,
 } from "@repo/ui";
 import {
   IconPlus,
@@ -71,11 +72,11 @@ export default function SnippetsPage() {
       });
 
       if (!response.ok) throw new Error('Failed to delete snippet');
-      
+
       refetch();
     } catch (error) {
       console.error("Error deleting snippet:", error);
-      alert("Failed to delete snippet");
+      toast.error("Failed to delete snippet");
     }
   };
 

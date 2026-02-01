@@ -17,15 +17,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  toast,
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import { useCreateProject } from "../../../../lib/hooks/useProject";
-import { useToast } from "@repo/ui/hooks/use-toast";
 
 export default function CreateProjectPage() {
   const router = useRouter();
   const { mutate: createProject, loading } = useCreateProject();
-  const { toast } = useToast();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -67,18 +66,12 @@ export default function CreateProjectPage() {
         endDate: endDate || undefined,
       });
 
-      toast({
-        title: "Success!",
-        description: "Project created successfully",
-      });
+      toast.success("Project created successfully", { position: "top-center" });
 
       router.push(`/dashboard/projects/${project.id}`);
     } catch (error: any) {
       console.error("Error creating project:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create project",
-      });
+      toast.error(error.message || "Failed to create project");
     }
   };
 

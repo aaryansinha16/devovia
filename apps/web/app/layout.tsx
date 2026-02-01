@@ -8,6 +8,7 @@ import { ThemeProvider } from "../lib/theme-context";
 import Header from "../components/header";
 import SessionNotification from "../components/session-notification";
 import CursorManager from "../components/cursor-manager";
+import { Toaster } from "@repo/ui";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <CursorManager />
+            <Toaster />
             <div className="relative min-h-screen flex flex-col">
               <SessionNotification />
               <header>

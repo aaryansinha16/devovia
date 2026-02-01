@@ -27,8 +27,7 @@ import {
   IconSearch,
   IconFilter,
 } from '@tabler/icons-react';
-import { Button, Badge, GlassCard, Input } from '@repo/ui';
-import { useToast } from '@repo/ui/hooks/use-toast';
+import { Button, Badge, GlassCard, Input, toast } from '@repo/ui';
 import {
   getDeployment,
   getDeploymentLogs,
@@ -93,7 +92,6 @@ type TabType = 'overview' | 'logs' | 'collaboration' | 'ai' | 'safety';
 export default function DeploymentDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { toast } = useToast();
   const deploymentId = params.id as string;
 
   const [deployment, setDeployment] = useState<Deployment | null>(null);
@@ -159,10 +157,7 @@ export default function DeploymentDetailPage() {
 
   const handleRollback = async () => {
     if (!deployment?.canRollback) {
-      toast({
-        title: 'Cannot Rollback',
-        description: 'This deployment cannot be rolled back',
-      });
+      toast.error('This deployment cannot be rolled back');
       return;
     }
 
@@ -174,24 +169,15 @@ export default function DeploymentDetailPage() {
       setRollingBack(true);
       const response = await rollbackDeployment(deploymentId);
       if (response.success) {
-        toast({
-          title: 'Rollback Initiated',
-          description: 'Rolling back to the previous deployment',
-        });
+        toast.success('Rolling back to the previous deployment');
         // Refresh deployment data
         window.location.reload();
       } else {
-        toast({
-          title: 'Rollback Failed',
-          description: response.error?.message || 'Failed to initiate rollback',
-        });
+        toast.error(response.error?.message || 'Failed to initiate rollback');
       }
     } catch (error) {
       console.error('Error rolling back:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setRollingBack(false);
     }
@@ -202,10 +188,7 @@ export default function DeploymentDetailPage() {
       setAnalyzingRisk(true);
       const response = await analyzeDeploymentRisk(deploymentId);
       if (response.success && response.data) {
-        toast({
-          title: 'Analysis Complete',
-          description: 'AI risk analysis has been updated',
-        });
+        toast.success('AI risk analysis has been updated');
         // Update deployment with new AI data
         setDeployment((prev) => prev ? {
           ...prev,
@@ -215,17 +198,11 @@ export default function DeploymentDetailPage() {
           aiSuggestions: response.data!.aiSuggestions,
         } : null);
       } else {
-        toast({
-          title: 'Analysis Failed',
-          description: response.error?.message || 'Failed to analyze deployment',
-        });
+        toast.error(response.error?.message || 'Failed to analyze deployment');
       }
     } catch (error) {
       console.error('Error analyzing deployment:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setAnalyzingRisk(false);
     }
@@ -236,27 +213,18 @@ export default function DeploymentDetailPage() {
       setSyncingLogs(true);
       const response = await syncDeploymentLogs(deploymentId);
       if (response && 'synced' in response) {
-        toast({
-          title: 'Logs Synced',
-          description: `Synced ${response.synced || 0} logs from Vercel`,
-        });
+        toast.success(`Synced ${response.synced || 0} logs from Vercel`);
         // Refresh logs
         const logsResponse = await getDeploymentLogs(deploymentId);
         if (logsResponse.success && logsResponse.data) {
           setLogs(logsResponse.data);
         }
       } else {
-        toast({
-          title: 'Sync Failed',
-          description: 'Failed to sync logs',
-        });
+        toast.error('Failed to sync logs');
       }
     } catch (error) {
       console.error('Error syncing logs:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setSyncingLogs(false);
     }
@@ -720,23 +688,14 @@ export default function DeploymentDetailPage() {
                       setCreatingSession(true);
                       const response = await createDeploymentSession(deploymentId);
                       if (response.success && response.data) {
-                        toast({
-                          title: 'Session Created',
-                          description: 'Collaborative session is ready',
-                        });
+                        toast.success('Collaborative session is ready');
                         // Refresh deployment data to get the session ID
                         window.location.reload();
                       } else {
-                        toast({
-                          title: 'Error',
-                          description: response.error?.message || 'Failed to create session',
-                        });
+                        toast.error(response.error?.message || 'Failed to create session');
                       }
                     } catch (error) {
-                      toast({
-                        title: 'Error',
-                        description: 'An unexpected error occurred',
-                      });
+                      toast.error('An unexpected error occurred');
                     } finally {
                       setCreatingSession(false);
                     }
