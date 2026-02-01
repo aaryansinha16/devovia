@@ -34,6 +34,7 @@ jobs:
       - name: Claude Code Action
         uses: anthropics/claude-code-action@v1
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           track_progress: true
           prompt: |
@@ -117,18 +118,33 @@ jobs:
 
             5. **Summary Comments**:
                - Use `gh pr comment` only for overall PR feedback or when @claude is mentioned
-               - Summarize key findings and reference the inline comments
+               - Summarize key findings and provide general guidance
+               - Reference the inline comments for specific issues
 
             ### What NOT to Do:
-            - ❌ Don't post generic "I'll analyze this" messages
+            - ❌ Don't post generic "I'll analyze this and get back to you" messages
             - ❌ Don't create vague comments without specific line references
             - ❌ Don't post completion status updates
+            - ❌ Don't create comments that aren't actionable
 
-            ### Workflow:
-            1. Start by running `gh pr diff` to see the changes.
-            2. For each specific issue found, create an inline comment using the tool.
-            3. Use the templates from `.github/claude-review-templates.md` for consistent feedback.
-            4. End with a summary of critical issues if any, or a brief positive note.
+            ### Review Workflow
+            1. **Start with `gh pr diff`** to understand the changes
+            2. **Create inline comments** for each specific issue found
+            3. **Use structured templates** for consistent feedback format
+            4. **Focus on resolvable issues** - each comment should be actionable
+            5. **End with summary comment** only if needed for overall guidance
+
+            ## Success Criteria
+
+            Your review is successful when:
+            - ✅ Each comment addresses a specific, fixable issue
+            - ✅ Comments are attached to relevant code lines
+            - ✅ Feedback follows the structured template format
+            - ✅ Suggestions include code examples where helpful
+            - ✅ Comments can be marked as "resolved" when addressed
+            - ✅ No generic completion messages are posted
+
+            Remember: Create specific, actionable review comments that help improve the code, not generic status updates.
 
             ## Review Categories
 
