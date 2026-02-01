@@ -4,6 +4,10 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../lib/auth-context";
+import { Container, Heading, Text, GlassCard, BackgroundDecorative, Button } from "@repo/ui";
+import { IconSettings, IconUser, IconShield, IconBell, IconChevronRight, IconAdjustments } from "@tabler/icons-react";
+import { DashboardFloatingDock } from "../../components/dashboard-floating-dock";
+import { DashboardMobileSidebar } from "../../components/dashboard-mobile-sidebar";
 
 export default function SettingsLayout({
   children,
@@ -16,67 +20,87 @@ export default function SettingsLayout({
   // If user is not authenticated, redirect or show login prompt
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center p-8">
-          <h1 className="text-2xl font-bold mb-4">Login Required</h1>
-          <p className="mb-4">Please log in to access your account settings.</p>
-          <Link
-            href="/login"
-            className="inline-block px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90"
-          >
-            Login
-          </Link>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <BackgroundDecorative />
+        <GlassCard className="p-8 text-center relative z-10">
+          <Heading size="h2" className="mb-4">Login Required</Heading>
+          <Text variant="muted" className="mb-6">Please log in to access your account settings.</Text>
+          <Button asChild variant="gradient">
+            <Link href="/login">Login</Link>
+          </Button>
+        </GlassCard>
       </div>
     );
   }
 
   const navItems = [
-    { name: "Profile", href: "/settings/profile" },
-    { name: "Account", href: "/settings/account" },
-    { name: "Security", href: "/settings/security" },
-    { name: "Notifications", href: "/settings/notifications" },
+    { name: "Profile", href: "/profile", icon: IconUser },
+    { name: "Account", href: "/settings/account", icon: IconAdjustments },
+    { name: "Security", href: "/settings/security", icon: IconShield },
+    { name: "Notifications", href: "/settings/notifications", icon: IconBell },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
-      </div>
+    <>
+      {/* Mobile Sidebar */}
+      <DashboardMobileSidebar />
+      
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-28">
+        <BackgroundDecorative />
+      
+      <Container className="py-8 relative z-10">
+        {/* Header */}
+        <div className="mb-8">
+          <Heading size="h1" variant="gradient" spacing="sm">
+            Settings
+          </Heading>
+          <Text variant="muted">
+            Manage your account settings and preferences
+          </Text>
+        </div>
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-800 to-sky-600 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent mb-10">Settings</h1>
-
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar Navigation */}
           <aside className="w-full lg:w-64 shrink-0">
-            <nav className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg space-y-2">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`block px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
-                      isActive 
-                        ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/30" 
-                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
+            <GlassCard className="p-4">
+              <nav className="space-y-1">
+                {navItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center justify-between px-4 py-3 rounded-lg font-medium transition-all duration-200 group ${
+                        isActive 
+                          ? "bg-sky-500/10 text-sky-400" 
+                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5" />
+                        <span>{item.name}</span>
+                      </div>
+                      <IconChevronRight className={`w-4 h-4 transition-transform ${
+                        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-50"
+                      }`} />
+                    </Link>
+                  );
+                })}
+              </nav>
+            </GlassCard>
           </aside>
 
           {/* Main Content */}
           <main className="flex-1 min-w-0">{children}</main>
         </div>
-      </div>
+      </Container>
     </div>
+
+    {/* Floating Dock - Desktop only */}
+    <div className="hidden md:block">
+      <DashboardFloatingDock />
+    </div>
+  </>
   );
 }

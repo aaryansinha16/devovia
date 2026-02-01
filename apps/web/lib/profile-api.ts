@@ -57,7 +57,7 @@ export interface PasswordChangeData {
  * Fetch the current user's profile
  */
 export async function fetchCurrentUserProfile(): Promise<{
-  user: ProfileData;
+  data: ProfileData;
 }> {
   const tokens = getTokens();
 

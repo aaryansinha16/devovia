@@ -16,7 +16,7 @@ export interface SessionData {
  * Interface for session response from API
  */
 export interface SessionResponse {
-  sessions: SessionData[];
+  data: SessionData[];
   currentSessionId: string | null;
 }
 
