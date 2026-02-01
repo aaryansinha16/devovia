@@ -6,8 +6,7 @@ import dynamic from "next/dynamic";
 import { IconArrowLeft, IconLayoutGrid, IconList } from "@tabler/icons-react";
 import { type RunbookStep } from "../../../../lib/services/runbooks-service";
 import { useCreateRunbook } from "../../../../lib/hooks/useRunbook";
-import { useToast } from "@repo/ui/hooks/use-toast";
-import { Container, Heading, Text, GlassCard, IconButton, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
+import { Container, Heading, Text, GlassCard, IconButton, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, toast } from "@repo/ui";
 import { FansyInput, FansyLabel } from "@repo/ui/components";
 
 const RunbookFlowEditor = dynamic(
@@ -37,7 +36,6 @@ const FormBasedEditor = dynamic(
 export default function CreateRunbookPage() {
   const router = useRouter();
   const { mutate: createRunbook, loading: saving } = useCreateRunbook();
-  const { toast } = useToast();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -61,11 +59,11 @@ export default function CreateRunbookPage() {
 
   async function handleSave() {
     if (!name.trim()) {
-      toast({ title: "Error", description: "Name is required" });
+      toast.error("Name is required");
       return;
     }
     if (steps.length === 0) {
-      toast({ title: "Error", description: "At least one step is required" });
+      toast.error("At least one step is required");
       return;
     }
     try {
@@ -76,10 +74,10 @@ export default function CreateRunbookPage() {
         tags,
         steps,
       });
-      toast({ title: "Success!", description: "Runbook created successfully" });
+      toast.success("Runbook created successfully");
       router.push(`/dashboard/runbooks/${runbook.id}`);
     } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to create runbook" });
+      toast.error(err.message || "Failed to create runbook");
     }
   }
 

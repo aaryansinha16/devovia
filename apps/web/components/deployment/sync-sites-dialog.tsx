@@ -9,10 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  toast,
 } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { IconRefresh, IconCheck, IconLoader2, IconAlertCircle } from '@tabler/icons-react';
-import { useToast } from '@repo/ui/hooks/use-toast';
 import {
   getConnections,
   syncVercelSites,
@@ -26,7 +26,6 @@ export function SyncSitesDialog() {
   const [connections, setConnections] = useState<PlatformConnection[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -54,25 +53,16 @@ export function SyncSitesDialog() {
       const response = await syncVercelSites(connectionId);
       
       if (response && 'synced' in response) {
-        toast({
-          title: 'Sync Complete',
-          description: `Successfully synced ${response.synced || 0} sites from ${platformName}`,
-        });
+        toast.success(`Successfully synced ${response.synced || 0} sites from ${platformName}`);
         // Close dialog and refresh page
         setOpen(false);
         window.location.reload();
       } else {
-        toast({
-          title: 'Sync Failed',
-          description: 'Failed to sync sites',
-        });
+        toast.error('Failed to sync sites');
       }
     } catch (error) {
       console.error('Error syncing sites:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setSyncing(null);
     }

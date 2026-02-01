@@ -561,9 +561,15 @@ importers:
       motion:
         specifier: ^12.12.2
         version: 12.12.2(react-dom@19.2.3)(react@19.0.0)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@19.2.3)(react@19.0.0)
       react:
         specifier: ^19
         version: 19.0.0
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.7(react-dom@19.2.3)(react@19.0.0)
       three:
         specifier: ^0.176.0
         version: 0.176.0
@@ -9725,6 +9731,16 @@ packages:
       react: 19.1.0
     dev: false
 
+  /next-themes@0.4.6(react-dom@19.2.3)(react@19.0.0):
+    resolution: {integrity: sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==}
+    peerDependencies:
+      react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+    dependencies:
+      react: 19.0.0
+      react-dom: 19.2.3(react@19.0.0)
+    dev: false
+
   /next@15.3.8(react-dom@19.1.0)(react@19.1.0):
     resolution: {integrity: sha512-L+4c5Hlr84fuaNADZbB9+ceRX9/CzwxJ+obXIGHupboB/Q1OLbSUapFs4bO8hnS/E6zV/JDX7sG1QpKVR2bguA==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
@@ -11532,6 +11548,16 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: false
+
+  /sonner@2.0.7(react-dom@19.2.3)(react@19.0.0):
+    resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+    dependencies:
+      react: 19.0.0
+      react-dom: 19.2.3(react@19.0.0)
     dev: false
 
   /source-map-js@1.2.1:

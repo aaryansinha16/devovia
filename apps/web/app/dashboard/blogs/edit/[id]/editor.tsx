@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@repo/ui";
 import { RichTextEditor } from "@repo/ui/components";
 import {
   IconDeviceFloppy,
@@ -163,6 +164,7 @@ export function BlogEditor({ id }: { id: string }) {
 
       // Redirect to blogs list page
       router.push("/dashboard/blogs");
+      toast.success("Blog post updated successfully");
     } catch (error) {
       console.error("Error updating blog post:", error);
       setErrorMessage("Failed to update blog post. Please try again.");
@@ -182,9 +184,10 @@ export function BlogEditor({ id }: { id: string }) {
         // Delete the blog post via API
         await deleteBlog(id);
         router.push("/dashboard/blogs");
+        toast.success("Blog post deleted successfully");
       } catch (error) {
         console.error("Error deleting blog post:", error);
-        alert("Failed to delete blog post. Please try again.");
+        toast.error("Failed to delete blog post");
       }
     }
   };
@@ -269,7 +272,7 @@ export function BlogEditor({ id }: { id: string }) {
       {/* Background decorative elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-sky-500/20 dark:bg-sky-400/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/20 dark:bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-sky-400/10 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/10 rounded-full blur-3xl"></div>
       </div>
 
@@ -280,7 +283,7 @@ export function BlogEditor({ id }: { id: string }) {
             <button
               onClick={() => router.push("/dashboard/blogs")}
               className="p-3 bg-slate-900/50 rounded-xl hover:bg-slate-900/70 transition-all hover:shadow-xl hover:scale-105"
-              style={{backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px"}}
+              style={{ backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px" }}
             >
               <IconArrowLeft size={20} className="text-slate-300" />
             </button>
@@ -308,7 +311,7 @@ export function BlogEditor({ id }: { id: string }) {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-slate-900/50 rounded-2xl p-8 space-y-8" style={{backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px"}}>
+        <form onSubmit={handleSubmit} className="bg-slate-900/50 rounded-2xl p-8 space-y-8" style={{ backdropFilter: "blur(9.8px)", boxShadow: "rgba(0, 0, 0, 0.3) 0px 7px 29px 0px" }}>
           {/* Title */}
           <div className="space-y-3">
             <label htmlFor="title" className="text-sm font-semibold text-slate-700 dark:text-slate-300">

@@ -21,8 +21,7 @@ import {
   IconLink,
   IconWorld,
 } from '@tabler/icons-react';
-import { Button, Badge, GlassCard, Container, Heading, Text, BackgroundDecorative } from '@repo/ui';
-import { useToast } from '@repo/ui/hooks/use-toast';
+import { Button, Badge, GlassCard, Container, Heading, Text, BackgroundDecorative, toast } from '@repo/ui';
 import {
   getSite,
   getDeployments,
@@ -160,7 +159,6 @@ function DeploymentCard({ deployment }: { deployment: Deployment }) {
 export default function SiteDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { toast } = useToast();
   const siteId = params.id as string;
 
   const [site, setSite] = useState<DeploymentSite | null>(null);
@@ -187,10 +185,7 @@ export default function SiteDetailPage() {
         }
       } catch (error) {
         console.error('Error fetching site data:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load site details',
-        });
+        toast.error('Failed to load site details');
       } finally {
         setLoading(false);
       }
@@ -206,23 +201,14 @@ export default function SiteDetailPage() {
       setDeleting(true);
       const response = await deleteSite(siteId);
       if (response.success) {
-        toast({
-          title: 'Site Deleted',
-          description: 'The site has been removed from your deployments',
-        });
+        toast.success('The site has been removed from your deployments');
         router.push('/dashboard/deployments');
       } else {
-        toast({
-          title: 'Error',
-          description: response.error?.message || 'Failed to delete site',
-        });
+        toast.error(response.error?.message || 'Failed to delete site');
       }
     } catch (error) {
       console.error('Error deleting site:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setDeleting(false);
     }
@@ -236,27 +222,18 @@ export default function SiteDetailPage() {
       });
       
       if (response.success) {
-        toast({
-          title: 'Deployment Triggered',
-          description: `Deployment started for ${site?.repoBranch || 'main'} branch`,
-        });
+        toast.success(`Deployment started for ${site?.repoBranch || 'main'} branch`);
         // Refresh deployments list
         const deploymentsRes = await getDeployments({ siteId, limit: 20 });
         if (deploymentsRes.success && deploymentsRes.data) {
           setDeployments(deploymentsRes.data);
         }
       } else {
-        toast({
-          title: 'Error',
-          description: response.error?.message || 'Failed to trigger deployment',
-        });
+        toast.error(response.error?.message || 'Failed to trigger deployment');
       }
     } catch (error) {
       console.error('Error triggering deployment:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setTriggering(false);
     }
@@ -268,27 +245,18 @@ export default function SiteDetailPage() {
       const response = await syncSiteDeployments(siteId, 20);
       
       if (response && 'synced' in response) {
-        toast({
-          title: 'Sync Complete',
-          description: `Synced ${response.synced || 0} deployments from ${getPlatformName(site?.connection?.platform || 'CUSTOM')}`,
-        });
+        toast.success(`Synced ${response.synced || 0} deployments from ${getPlatformName(site?.connection?.platform || 'CUSTOM')}`);
         // Refresh deployments list
         const deploymentsRes = await getDeployments({ siteId, limit: 20 });
         if (deploymentsRes.success && deploymentsRes.data) {
           setDeployments(deploymentsRes.data);
         }
       } else {
-        toast({
-          title: 'Sync Failed',
-          description: 'Failed to sync deployments',
-        });
+        toast.error('Failed to sync deployments');
       }
     } catch (error) {
       console.error('Error syncing deployments:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-      });
+      toast.error('An unexpected error occurred');
     } finally {
       setSyncing(false);
     }

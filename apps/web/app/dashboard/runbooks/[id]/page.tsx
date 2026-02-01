@@ -13,8 +13,7 @@ import {
 import Loader from '../../../../components/ui/loader';
 import { type RunbookStep } from "../../../../lib/services/runbooks-service";
 import { useRunbookById, useUpdateRunbook, useExecuteRunbook } from "../../../../lib/hooks/useRunbook";
-import { useToast } from "@repo/ui/hooks/use-toast";
-import { Container, Heading, Text, GlassCard, IconButton, Input, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
+import { Container, Heading, Text, GlassCard, IconButton, Input, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, toast } from "@repo/ui";
 
 // Dynamic import to avoid SSR issues with ReactFlow
 const RunbookFlowEditor = dynamic(
@@ -49,7 +48,6 @@ export default function EditRunbookPage() {
   const { data: runbook, loading, error: loadError } = useRunbookById(runbookId);
   const { mutate: updateRunbook, loading: saving } = useUpdateRunbook(runbookId);
   const { mutate: executeRunbook, loading: executing } = useExecuteRunbook(runbookId);
-  const { toast } = useToast();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -85,12 +83,12 @@ export default function EditRunbookPage() {
 
   async function handleSave() {
     if (!name.trim()) {
-      toast({ title: "Error", description: "Name is required" });
+      toast.error("Name is required");
       return;
     }
 
     if (steps.length === 0) {
-      toast({ title: "Error", description: "At least one step is required" });
+      toast.error("At least one step is required");
       return;
     }
 
@@ -104,20 +102,20 @@ export default function EditRunbookPage() {
         steps,
       });
 
-      toast({ title: "Success!", description: "Runbook updated successfully" });
+      toast.success("Runbook updated successfully");
       router.push("/dashboard/runbooks");
     } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to update runbook" });
+      toast.error(err.message || "Failed to update runbook");
     }
   }
 
   async function handleExecute() {
     try {
       const execution = await executeRunbook({});
-      toast({ title: "Success!", description: "Runbook execution started" });
+      toast.success("Runbook execution started");
       router.push(`/dashboard/runbooks/executions/${execution.id}`);
     } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to execute runbook" });
+      toast.error(err.message || "Failed to execute runbook");
     }
   }
 

@@ -12,8 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { type Runbook, deleteRunbook, executeRunbook } from "../../../lib/services/runbooks-service";
 import { useRunbooks } from "../../../lib/hooks/useRunbook";
-import { useToast } from "@repo/ui/hooks/use-toast";
-import { Container, Heading, Text, Input, EmptyState, GlassCard, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button } from "@repo/ui";
+import { Container, Heading, Text, Input, EmptyState, GlassCard, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, toast } from "@repo/ui";
 import Loader from "../../../components/ui/loader";
 
 const statusColors: Record<string, string> = {
@@ -31,7 +30,6 @@ const environmentColors: Record<string, string> = {
 
 export default function RunbooksPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState("all");
   const [environmentFilter, setEnvironmentFilter] = useState("all");
   const [executingId, setExecutingId] = useState<string | null>(null);
@@ -50,16 +48,9 @@ export default function RunbooksPage() {
     try {
       setExecutingId(runbook.id);
       const execution = await executeRunbook(runbook.id, {});
-      // toast({
-      //   title: "Success!",
-      //   description: "Runbook execution started",
-      // });
       router.push(`/dashboard/runbooks/executions/${execution.id}`);
     } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message || "Failed to execute runbook",
-      });
+      toast.error(err.message || "Failed to execute runbook");
     } finally {
       setExecutingId(null);
     }
@@ -72,16 +63,10 @@ export default function RunbooksPage() {
 
     try {
       await deleteRunbook(runbook.id);
-      toast({
-        title: "Success!",
-        description: "Runbook deleted successfully",
-      });
+      toast.success("Runbook deleted successfully");
       refetch();
     } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message || "Failed to delete runbook",
-      });
+      toast.error(err.message || "Failed to delete runbook");
     }
   }
 

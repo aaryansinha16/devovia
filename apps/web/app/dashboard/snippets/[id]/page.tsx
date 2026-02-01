@@ -9,6 +9,7 @@ import {
   GlassCard,
   Button,
   BackgroundDecorative,
+  toast,
 } from "@repo/ui";
 import {
   IconArrowLeft,
@@ -26,7 +27,6 @@ import {
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useSnippetById, useDeleteSnippet } from "../../../../lib/hooks/useSnippet";
-import { useToast } from "@repo/ui/hooks/use-toast";
 import Loader from '../../../../components/ui/loader';
 
 export default function SnippetDetailPage() {
@@ -36,7 +36,6 @@ export default function SnippetDetailPage() {
 
   const { data: snippet, loading, error } = useSnippetById(snippetId);
   const { mutate: deleteSnippet, loading: deleting } = useDeleteSnippet(snippetId);
-  const { toast } = useToast();
 
   const [copied, setCopied] = useState(false);
 
@@ -56,7 +55,7 @@ export default function SnippetDetailPage() {
     const shareUrl = `${window.location.origin}/snippets/${snippet.id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      alert("Share link copied to clipboard!");
+      toast.success("Share link copied to clipboard!");
     } catch (error) {
       console.error("Failed to copy share link:", error);
     }
@@ -67,17 +66,11 @@ export default function SnippetDetailPage() {
 
     try {
       await deleteSnippet();
-      toast({
-        title: "Success!",
-        description: "Snippet deleted successfully",
-      });
+      toast.success("Snippet deleted successfully");
       router.push("/dashboard/snippets");
     } catch (error: any) {
       console.error("Error deleting snippet:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete snippet",
-      });
+      toast.error(error.message || "Failed to delete snippet");
     }
   };
 

@@ -18,7 +18,7 @@ import {
   deleteBlog,
   type BlogPost,
 } from "../../../lib/services/blog-service";
-import { Container, Heading, Text, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, GlassCard } from "@repo/ui";
+import { Container, Heading, Text, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, GlassCard, toast } from "@repo/ui";
 
 export default function BlogsDashboardPage() {
   const router = useRouter();
@@ -61,9 +61,10 @@ export default function BlogsDashboardPage() {
       try {
         await deleteBlog(id);
         setBlogs((prev) => prev.filter((blog) => blog.id !== id));
+        toast.success("Blog post deleted successfully");
       } catch (err) {
         console.error("Failed to delete blog:", err);
-        alert("Failed to delete the blog post. Please try again.");
+        toast.error("Failed to delete the blog post");
       }
     }
   };
@@ -173,11 +174,10 @@ export default function BlogsDashboardPage() {
                         {blog._count?.likes || 0} likes
                       </span>
                       <span
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                          blog.published
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium ${blog.published
                             ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
                             : "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400"
-                        }`}
+                          }`}
                       >
                         {blog.published ? "Published" : "Draft"}
                       </span>

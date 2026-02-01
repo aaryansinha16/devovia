@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { GlassCard, Text } from "@repo/ui";
+import { GlassCard, Text, toast } from "@repo/ui";
 import {
   IconCopy,
   IconEdit,
@@ -39,9 +39,10 @@ export function SnippetCard({ snippet, viewMode, onDelete, onEdit }: SnippetCard
     const shareUrl = `${window.location.origin}/snippets/${snippet.id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      alert("Share link copied to clipboard!");
+      toast.success("Share link copied to clipboard!");
     } catch (error) {
       console.error("Failed to copy share link:", error);
+      toast.error("Failed to copy share link");
     }
   };
 

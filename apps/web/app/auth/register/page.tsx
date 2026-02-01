@@ -9,6 +9,7 @@ import Link from "next/link";
 import { registerUser, getGitHubLoginUrl } from "../../../lib/auth";
 import { useAuth } from "../../../lib/auth-context";
 import Loader from "../../../components/ui/loader";
+import { toast } from "@repo/ui";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -35,12 +36,16 @@ export default function RegisterPage() {
 
     // Validate form
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      const msg = "Passwords do not match";
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long");
+      const msg = "Password must be at least 8 characters long";
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -55,10 +60,13 @@ export default function RegisterPage() {
       });
 
       login(result.tokens);
+      toast.success("Account created successfully!");
       setIsRedirecting(true);
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      const message = err instanceof Error ? err.message : "Registration failed";
+      setError(message);
+      toast.error(message);
       setIsLoading(false);
     }
   };

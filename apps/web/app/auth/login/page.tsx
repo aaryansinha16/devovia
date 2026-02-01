@@ -9,6 +9,7 @@ import Link from "next/link";
 import { loginUser, getGitHubLoginUrl } from "../../../lib/auth";
 import { useAuth } from "../../../lib/auth-context";
 import Loader from "../../../components/ui/loader";
+import { toast } from "@repo/ui";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -27,10 +28,13 @@ export default function LoginPage() {
     try {
       const result = await loginUser({ email, password });
       login(result.tokens);
+      toast.success("Login successful! Welcome back.");
       setIsRedirecting(true);
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      const message = err instanceof Error ? err.message : "Login failed";
+      setError(message);
+      toast.error(message);
       setIsLoading(false);
     }
   };

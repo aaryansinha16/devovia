@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { IconHeart, IconHeartFilled, IconShare } from "@tabler/icons-react";
-import { Button } from "@repo/ui";
+import { Button, toast } from "@repo/ui";
 import { cn } from "@repo/ui/lib/utils";
 import { HeartBlastAnimation, HeartParticles, FloatingHearts } from "../../../components/heart-blast-animation";
 import {
@@ -11,7 +11,6 @@ import {
   checkUserLike,
 } from "../../../lib/services/public-blog-service";
 import { useAuth } from "../../../lib/auth-context";
-import { useToast } from "@repo/ui/hooks/use-toast";
 import { useBlogLike } from "../../../lib/hooks/useBlog";
 
 interface BlogActionButtonsProps {
@@ -26,7 +25,6 @@ export function BlogActionButtons({
   const [isAnimating, setIsAnimating] = useState(false);
   const [showBlast, setShowBlast] = useState(false);
   const { isAuthenticated, openAuthModal } = useAuth();
-  const { toast } = useToast();
 
   const { isLiked, likeCount, loading, like, unlike } = useBlogLike(postId, isAuthenticated);
 
@@ -47,11 +45,7 @@ export function BlogActionButtons({
       }
     } catch (error) {
       console.error("Error toggling like:", error);
-      toast({
-        title: "Action failed",
-        description: "Could not process your like. Please try again.",
-        type: "error",
-      });
+      toast.error("Could not process your like. Please try again.");
     }
 
     setTimeout(() => {
@@ -78,10 +72,7 @@ export function BlogActionButtons({
       // Fallback to copying to clipboard
       try {
         await navigator.clipboard.writeText(url);
-        toast({
-          title: "Link copied!",
-          description: "Blog link copied to clipboard",
-        });
+        toast.success("Blog link copied to clipboard");
       } catch (error) {
         console.error("Failed to copy:", error);
       }

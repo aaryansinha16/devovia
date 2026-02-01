@@ -37,6 +37,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  toast,
 } from "@repo/ui";
 import ProjectNotes from "./components/project-notes";
 import ProjectChat from "./components/project-chat";
@@ -55,7 +56,7 @@ export default function ProjectDetailPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "team" | "links" | "notes" | "chat">("overview");
   const [memberEmail, setMemberEmail] = useState("");
   const [memberRole, setMemberRole] = useState("MEMBER");
-  
+
   // Links management state
   const [linkTitle, setLinkTitle] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -69,13 +70,13 @@ export default function ProjectDetailPage() {
       router.push("/dashboard/projects");
     } catch (error) {
       console.error("Error deleting project:", error);
-      alert("Failed to delete project");
+      toast.error("Failed to delete project");
     }
   };
 
   const handleAddMember = async () => {
     if (!memberEmail) {
-      alert("Please enter an email address");
+      toast.error("Please enter an email address");
       return;
     }
 
@@ -95,9 +96,9 @@ export default function ProjectDetailPage() {
 
       if (!searchResponse.ok) {
         if (searchResponse.status === 404) {
-          alert("User not found. Please check the email address.");
+          toast.error("User not found. Please check the email address.");
         } else {
-          alert("Error searching for user");
+          toast.error("Error searching for user");
         }
         return;
       }
@@ -125,13 +126,14 @@ export default function ProjectDetailPage() {
         setShowAddMember(false);
         setMemberEmail("");
         setMemberRole("MEMBER");
+        toast.success("Team member added successfully");
       } else {
         const error = await addResponse.json();
-        alert(error.error || "Failed to add member");
+        toast.error(error.error || "Failed to add member");
       }
     } catch (error) {
       console.error("Error adding member:", error);
-      alert("Failed to add member");
+      toast.error("Failed to add member");
     }
   };
 
@@ -274,7 +276,7 @@ export default function ProjectDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-28">
       <BackgroundDecorative />
-      
+
       <Container className="py-8 relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -326,8 +328,7 @@ export default function ProjectDetailPage() {
         <div className="flex gap-1 border-b border-slate-700/50 mt-6 mb-4">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'overview'
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${activeTab === 'overview'
                 ? 'text-blue-400 border-b-2 border-blue-400'
                 : 'text-slate-400 hover:text-slate-300'
               }`}
@@ -337,8 +338,7 @@ export default function ProjectDetailPage() {
           </button>
           <button
             onClick={() => setActiveTab('team')}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'team'
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${activeTab === 'team'
                 ? 'text-blue-400 border-b-2 border-blue-400'
                 : 'text-slate-400 hover:text-slate-300'
               }`}
@@ -348,8 +348,7 @@ export default function ProjectDetailPage() {
           </button>
           <button
             onClick={() => setActiveTab('links')}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'links'
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${activeTab === 'links'
                 ? 'text-blue-400 border-b-2 border-blue-400'
                 : 'text-slate-400 hover:text-slate-300'
               }`}
@@ -359,8 +358,7 @@ export default function ProjectDetailPage() {
           </button>
           <button
             onClick={() => setActiveTab('notes')}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'notes'
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${activeTab === 'notes'
                 ? 'text-blue-400 border-b-2 border-blue-400'
                 : 'text-slate-400 hover:text-slate-300'
               }`}
@@ -370,8 +368,7 @@ export default function ProjectDetailPage() {
           </button>
           <button
             onClick={() => setActiveTab('chat')}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'chat'
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${activeTab === 'chat'
                 ? 'text-blue-400 border-b-2 border-blue-400'
                 : 'text-slate-400 hover:text-slate-300'
               }`}
