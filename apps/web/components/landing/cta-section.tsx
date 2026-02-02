@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@repo/ui";
 import AnimatedElement from "../animated-element";
+import { CursorTrigger } from "../../lib/cursor-context";
 
 export const ArrowRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   props,
@@ -59,25 +60,29 @@ const CTASection: React.FC = () => {
             <label htmlFor="email-address" className="sr-only">
               Email address
             </label>
-            <input
-              id="email-address" // Already has ID
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="flex-auto appearance-none rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-base text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 shadow-sm focus:border-sky-500 dark:focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 min-w-0 email-input"
-              placeholder="Enter your email"
-            />
-            <Button
-              type="submit"
-              variant="default"
-              size="md"
-              className="w-full sm:w-auto submit-button"
-              id="early-access-submit-btn"
-              rightIcon={<ArrowRightIcon className="w-5 h-5" />}
-            >
-              Request Access
-            </Button>
+            <CursorTrigger variant="text" className="flex-auto">
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="w-full appearance-none rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-base text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 shadow-sm focus:border-sky-500 dark:focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 min-w-0 email-input"
+                placeholder="Enter your email"
+              />
+            </CursorTrigger>
+            <CursorTrigger variant="button" className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                variant="default"
+                size="md"
+                className="w-full submit-button"
+                id="early-access-submit-btn"
+                rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+              >
+                Request Access
+              </Button>
+            </CursorTrigger>
           </form>
           <p
             id="cta-privacy-note"

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@repo/ui";
 import AnimatedElement from "../animated-element";
+import { CursorTrigger } from "../../lib/cursor-context";
 import {
-  FlipWords,
-  TextHoverEffect,
-  FloatingDockDemo,
+  FlipWords
 } from "@repo/ui/components";
 
 export const ArrowRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
@@ -133,23 +132,27 @@ const HeroSection: React.FC = () => {
           id="hero-cta-buttons"
           className="mt-10 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 hero-actions"
         >
-          <Button
-            href="#early-access"
-            variant="default"
-            size="lg"
-            rightIcon={<ArrowRightIcon className="w-5 h-5" />}
-            id="hero-cta-primary"
-          >
-            Get Early Access
-          </Button>
-          <Button
-            href="#features"
-            variant="outline"
-            size="lg"
-            id="hero-cta-secondary"
-          >
-            Explore Features
-          </Button>
+          <CursorTrigger variant="button">
+            <Button
+              href="#early-access"
+              variant="default"
+              size="lg"
+              rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+              id="hero-cta-primary"
+            >
+              Get Early Access
+            </Button>
+          </CursorTrigger>
+          <CursorTrigger variant="button">
+            <Button
+              href="#features"
+              variant="outline"
+              size="lg"
+              id="hero-cta-secondary"
+            >
+              Explore Features
+            </Button>
+          </CursorTrigger>
         </AnimatedElement>
       </div>
     </section>
