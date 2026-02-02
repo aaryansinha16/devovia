@@ -53,19 +53,57 @@ const GlobalCursor: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Hide default cursor globally
-    document.body.style.cursor = "none";
-    document.documentElement.style.cursor = "none";
+    // Hide default cursor globally with maximum specificity
+    const applyCursorNone = () => {
+      document.body.style.setProperty('cursor', 'none', 'important');
+      document.documentElement.style.setProperty('cursor', 'none', 'important');
+    };
 
-    // Apply cursor:none to all interactive elements
+    applyCursorNone();
+
+    // Apply cursor:none to all interactive elements with !important
     const style = document.createElement('style');
     style.id = 'global-cursor-style';
     style.textContent = `
-      *, *::before, *::after {
+      *, *::before, *::after,
+      a, button, input, textarea, select,
+      [role="button"], [role="link"],
+      .cursor-pointer, [onclick] {
+        cursor: none !important;
+      }
+      
+      /* Override any inline styles */
+      body, html {
+        cursor: none !important;
+      }
+      
+      /* Target specific UI library components */
+      [class*="button"], [class*="btn"],
+      [class*="link"], [class*="input"] {
         cursor: none !important;
       }
     `;
     document.head.appendChild(style);
+
+    // Aggressive reapply using requestAnimationFrame
+    let rafId: number;
+    const reapplyCursorNone = () => {
+      applyCursorNone();
+      rafId = requestAnimationFrame(reapplyCursorNone);
+    };
+    rafId = requestAnimationFrame(reapplyCursorNone);
+
+    // Watch for DOM changes that might reset cursor
+    const observer = new MutationObserver(() => {
+      applyCursorNone();
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+      subtree: true,
+      childList: true
+    });
 
     const moveCursor = (e: MouseEvent) => {
       mouseX.set(e.clientX);
@@ -78,18 +116,50 @@ const GlobalCursor: React.FC = () => {
         ...prev,
         { x: mouseX.get(), y: mouseY.get(), id: Date.now() }
       ]);
+      applyCursorNone();
     };
 
-    const onMouseUp = () => setIsClicked(false);
+    const onMouseUp = () => {
+      setIsClicked(false);
+      applyCursorNone();
+    };
+
+    const onClick = () => {
+      applyCursorNone();
+    };
+
+    const forceTargetCursorNone = (target: EventTarget | null) => {
+      if (target instanceof HTMLElement) {
+        target.style.setProperty('cursor', 'none', 'important');
+      }
+    };
+
+    const onPointerOver = (e: PointerEvent) => {
+      forceTargetCursorNone(e.target);
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      forceTargetCursorNone(e.target);
+    };
 
     window.addEventListener('mousemove', moveCursor);
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('click', onClick, true); // Use capture phase
+    document.addEventListener('click', onClick, true);
+    document.addEventListener('pointerover', onPointerOver, true);
+    document.addEventListener('pointerdown', onPointerDown, true);
 
     return () => {
       window.removeEventListener('mousemove', moveCursor);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('click', onClick, true);
+      document.removeEventListener('click', onClick, true);
+      document.removeEventListener('pointerover', onPointerOver, true);
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
 
       // Cleanup
       document.body.style.cursor = "";
