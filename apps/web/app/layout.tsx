@@ -5,9 +5,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "../lib/auth-context";
 import { ThemeProvider } from "../lib/theme-context";
+import { CursorProvider } from "../lib/cursor-context";
 import Header from "../components/header";
 import SessionNotification from "../components/session-notification";
-import CursorManager from "../components/cursor-manager";
+import GlobalCursor from "../components/global-cursor";
 import { Toaster } from "@repo/ui";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -30,19 +31,21 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning={true}>
         <ThemeProvider>
           <AuthProvider>
-            <CursorManager />
-            <Toaster />
-            <div className="relative min-h-screen flex flex-col">
-              <SessionNotification />
-              <header>
-                {/* Skip rendering header on auth pages */}
-                <div className="hidden has-[main:not(:has(.auth-container))] block">
-                  {/* @ts-ignore */}
-                  <Header />
-                </div>
-              </header>
-              <main className="flex-1">{children}</main>
-            </div>
+            <CursorProvider>
+              <GlobalCursor />
+              <Toaster />
+              <div className="relative min-h-screen flex flex-col">
+                <SessionNotification />
+                <header>
+                  {/* Skip rendering header on auth pages */}
+                  <div className="hidden has-[main:not(:has(.auth-container))] block">
+                    {/* @ts-ignore */}
+                    <Header />
+                  </div>
+                </header>
+                <main className="flex-1">{children}</main>
+              </div>
+            </CursorProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

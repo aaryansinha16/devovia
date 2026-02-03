@@ -52,17 +52,13 @@ export function registerGlobalCursorFix() {
   interactiveElements.forEach((el) => {
     el.addEventListener("mouseout", () => {
       // Ensure cursor is visible when leaving elements
-      if (window.location.pathname !== "/") {
-        document.body.style.cursor = "";
-      }
+      document.body.style.cursor = "";
     });
   });
 
   // Also add a global mousemove handler as a fallback
   document.addEventListener("mousemove", () => {
-    // If we're not on the homepage, ensure cursor is visible
-    if (window.location.pathname !== "/") {
-      document.body.style.cursor = "";
-    }
+    // Ensure cursor is visible
+    document.body.style.cursor = "";
   });
 }
