@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, JSX } from "react";
 import { Rnd } from "react-rnd";
 import { GlassCard, Button, Text, toast } from "@repo/ui";
 import { StatsCard } from "./dashboard-stats-card";
@@ -404,7 +404,7 @@ export function DashboardCanvasLayout({ stats, activities, isLoading }: Dashboar
                     </button>
                   )}
                 </div>
-                {widgetRenderers[widget.id]()}
+                {widgetRenderers[widget.id]?.()}
               </GlassCard>
             </Rnd>
           ))}
