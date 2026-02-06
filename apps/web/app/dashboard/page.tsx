@@ -1,27 +1,53 @@
 "use client";
 
-// This ensures the page is always rendered at request time, not build time
 export const dynamic = "force-dynamic";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../lib/auth-context";
-import { StatsCard } from "../../components/dashboard-stats-card";
-import { DashboardQuickActions } from "../../components/dashboard-quick-actions";
-import { DashboardRecentProjects } from "../../components/dashboard-recent-projects";
-import {
-  IconPlus,
-  IconBell,
-  IconCheck,
-  IconCode,
-  IconRocket,
-  IconUsers,
-} from "@tabler/icons-react";
-import { Button, Container, Heading, Text, IconButton, BackgroundDecorative } from "@repo/ui";
+import { DashboardCanvasLayout } from "../../components/dashboard-canvas-layout";
+import { fetchDashboardStats, fetchDashboardActivity, DashboardStats, DashboardActivity } from "../../lib/dashboard-api";
+import { IconPlus, IconBell } from "@tabler/icons-react";
+import { Button, Container, Heading, Text, BackgroundDecorative, toast, IconButton } from "@repo/ui";
 import { useRouter } from "next/navigation";
+import Loader from "../../components/ui/loader";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [activities, setActivities] = useState<DashboardActivity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const [statsResponse, activityResponse] = await Promise.all([
+          fetchDashboardStats(),
+          fetchDashboardActivity(5),
+        ]);
+        setStats(statsResponse.data);
+        setActivities(activityResponse.data);
+      } catch (err) {
+        console.error('Error loading dashboard data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+        toast.error('Failed to load dashboard data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
+
+  if (isLoading && !stats) {
+    return <Loader />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-900 pb-24 relative overflow-hidden">
@@ -51,58 +77,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Active Projects"
-          value="12"
-          change={{ value: "+2 this week", type: "increase" }}
-          icon={
-            <IconCheck className="w-6 h-6 text-white bg-blue-600 p-1 rounded" />
-          }
-          gradient={true}
+        {/* Canvas Widget Dashboard */}
+        <DashboardCanvasLayout
+          stats={stats}
+          activities={activities}
+          isLoading={isLoading}
         />
-
-        <StatsCard
-          title="Code Snippets"
-          value="247"
-          change={{ value: "+15 this week", type: "increase" }}
-          icon={
-            <IconCode className="w-6 h-6 text-white bg-purple-600 p-1 rounded" />
-          }
-        />
-
-        <StatsCard
-          title="Deployments"
-          value="89"
-          change={{ value: "+7 this week", type: "increase" }}
-          icon={
-            <IconRocket className="w-6 h-6 text-white bg-green-600 p-1 rounded" />
-          }
-        />
-
-        <StatsCard
-          title="Team Members"
-          value="8"
-          change={{ value: "+1 this week", type: "increase" }}
-          icon={
-            <IconUsers className="w-6 h-6 text-white bg-orange-600 p-1 rounded" />
-          }
-        />
-      </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Projects */}
-          <div className="lg:col-span-2">
-            <DashboardRecentProjects />
-          </div>
-
-          {/* Quick Actions */}
-          <div>
-            <DashboardQuickActions />
-          </div>
-        </div>
       </Container>
     </div>
   );
