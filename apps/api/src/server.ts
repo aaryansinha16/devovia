@@ -36,6 +36,7 @@ import projectNotesRoutes from './routes/project-notes.routes';
 import projectChatRoutes from './routes/project-chat.routes';
 import deploymentRoutes from './routes/deployment.routes';
 import webhookRoutes from './routes/webhook.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 // import docsRoutes from './routes/docs.routes'; // Temporarily disabled - ESM module issue
 
 // Import WebSocket collaboration server
@@ -151,6 +152,7 @@ export function createExpressApp() {
   app.use('/api/project-chat', projectChatRoutes);
   app.use('/api/deployments', deploymentRoutes);
   app.use('/api/webhooks', webhookRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
   // app.use('/api/docs', docsRoutes); // Temporarily disabled - ESM module issue
 
   // Health check endpoint - must work regardless of database connection
