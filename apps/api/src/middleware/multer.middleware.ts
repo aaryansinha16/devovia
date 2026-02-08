@@ -85,6 +85,34 @@ export const imageUpload = multer({
   fileFilter: imageFileFilter,
 });
 
+// Chat file upload - accepts images, documents, and common file types
+const chatFileFilter = (
+  req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) => {
+  if (
+    !file.originalname.match(
+      /\.(jpg|jpeg|png|gif|webp|pdf|doc|docx|txt|md|csv|xls|xlsx|zip|json)$/i,
+    )
+  ) {
+    return cb(
+      new Error(
+        'Unsupported file type. Allowed: images, PDF, DOC, TXT, MD, CSV, XLS, ZIP, JSON',
+      ),
+    );
+  }
+  cb(null, true);
+};
+
+export const chatFileUpload = multer({
+  storage: tempStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max size
+  },
+  fileFilter: chatFileFilter,
+});
+
 // Utility function to clean up temporary files after uploading to Cloudinary
 export const cleanupTempFile = (filePath: string) => {
   try {

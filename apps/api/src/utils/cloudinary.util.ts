@@ -46,22 +46,23 @@ export interface UploadResult {
 export const uploadToCloudinary = async (
   filePath: string,
   folder = 'devovia',
+  resourceType: 'auto' | 'image' | 'raw' | 'video' = 'auto',
 ): Promise<UploadResult> => {
   if (!isCloudinaryConfigured()) {
     throw new Error('Cloudinary credentials not configured');
   }
 
   try {
-    // Upload the image
+    // Upload the file
     const result = await cloudinary.uploader.upload(filePath, {
       folder,
       use_filename: true,
       unique_filename: true,
       overwrite: false,
-      resource_type: 'auto',
+      resource_type: resourceType,
     });
 
-    // Return the result
+    // Return the result with original Cloudinary URLs
     return {
       url: result.url,
       publicId: result.public_id,

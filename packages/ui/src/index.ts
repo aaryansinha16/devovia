@@ -6,6 +6,7 @@ export * from "./textarea";
 export * from "./label";
 export * from "./badge";
 export * from "./dialog";
+export * from "./popover";
 export * from "./card";
 export * from "./avatar";
 
@@ -43,6 +44,7 @@ export {
   TableCaption,
 } from "./components/ui/table";
 
+export { Calendar, CalendarDayButton } from "./components/ui/calendar";
 export { Toaster } from "./components/ui/sonner";
 export { toast } from "sonner";
 

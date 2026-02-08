@@ -1,11 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Send, MessageSquare, Paperclip, X, FileText, Image, File, Download, Loader2, Calendar as CalendarIcon, ChevronDown, Search } from 'lucide-react';
+import { Button, Input, IconButton, Popover, PopoverTrigger, PopoverContent, Calendar, cn } from '@repo/ui';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { useAuth } from '../../../../../lib/auth-context';
-import { WS_URL } from '../../../../../lib/api-config';
+import { WS_URL, API_URL } from '../../../../../lib/api-config';
+import { getTokens } from '../../../../../lib/auth';
+import { useTypingIndicator } from '../../../../../hooks/use-typing-indicator';
+
+interface ChatAttachment {
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+}
 
 interface ChatMessage {
   id: string;
@@ -14,6 +24,7 @@ interface ChatMessage {
   userColor: string;
   content: string;
   timestamp: number;
+  attachment?: ChatAttachment;
 }
 
 interface ChatPanelProps {
@@ -25,7 +36,19 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dateRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchMatches, setSearchMatches] = useState<ChatMessage[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const ydocRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
   const yMessagesRef = useRef<Y.Array<ChatMessage> | null>(null);
@@ -42,6 +65,14 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
     }
     return colors[Math.abs(hash) % colors.length]!;
   };
+
+  const userColor = user?.id ? generateUserColor(user.id as string) : '#6366f1';
+  const { typingUsers, broadcastTyping, clearTyping } = useTypingIndicator({
+    provider: providerRef.current,
+    userId: user?.id as string | undefined,
+    userName: user?.name || user?.email || 'Anonymous',
+    userColor,
+  });
 
   useEffect(() => {
     if (!token || !sessionId) return;
@@ -88,23 +119,99 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!message.trim() || !yMessagesRef.current || !user || !user.id) return;
+  const uploadFile = async (file: File): Promise<ChatAttachment | null> => {
+    try {
+      const tokens = await getTokens();
+      if (!tokens?.accessToken) return null;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_URL}/chat/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const data = await response.json();
+      const fileData = data.data;
+      return {
+        url: fileData.url,
+        name: fileData.name,
+        size: fileData.size,
+        type: fileData.type,
+      };
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      return null;
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if ((!message.trim() && !pendingFile) || !yMessagesRef.current || !user || !user.id) return;
 
     const userId = user.id as string;
     const userColor = generateUserColor(userId);
-    
+
+    let attachment: ChatAttachment | undefined;
+
+    if (pendingFile) {
+      setIsUploading(true);
+      const uploaded = await uploadFile(pendingFile);
+      setIsUploading(false);
+      if (uploaded) {
+        attachment = uploaded;
+      } else {
+        return;
+      }
+    }
+
     const newMessage: ChatMessage = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       userId: userId,
       userName: user.name || user.email || 'Anonymous',
       userColor: userColor,
       content: message.trim(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      ...(attachment && { attachment }),
     };
 
     yMessagesRef.current.push([newMessage]);
+    clearTyping();
     setMessage('');
+    setPendingFile(null);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be under 10MB');
+        return;
+      }
+      setPendingFile(file);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const isImageType = (type: string) => type.startsWith('image/');
+
+  const getFileUrl = (key: string) =>
+    `${API_URL}/chat/view?key=${encodeURIComponent(key)}`;
+
+  const handleDownload = (key: string, fileName: string) => {
+    const downloadUrl = `${API_URL}/chat/download?key=${encodeURIComponent(key)}&name=${encodeURIComponent(fileName)}`;
+    window.open(downloadUrl, '_blank');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -121,6 +228,144 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
     });
   };
 
+  const getDateKey = (timestamp: number) => {
+    const d = new Date(timestamp);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  const formatDateLabel = (dateKey: string) => {
+    const date = new Date(dateKey + 'T00:00:00');
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const isToday = getDateKey(today.getTime()) === dateKey;
+    const isYesterday = getDateKey(yesterday.getTime()) === dateKey;
+
+    if (isToday) return 'Today';
+    if (isYesterday) return 'Yesterday';
+
+    return date.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+    });
+  };
+
+  const scrollToDate = (dateKey: string) => {
+    const el = dateRefs.current.get(dateKey);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const getUniqueDateKeys = () => {
+    const keys: string[] = [];
+    messages.forEach((msg) => {
+      const key = getDateKey(msg.timestamp);
+      if (!keys.includes(key)) keys.push(key);
+    });
+    return keys;
+  };
+
+  const handleJumpTo = (option: 'yesterday' | 'day_before' | 'beginning') => {
+    if (option === 'beginning') {
+      const keys = getUniqueDateKeys();
+      if (keys.length > 0) scrollToDate(keys[0]!);
+      return;
+    }
+
+    const target = new Date();
+    target.setHours(0, 0, 0, 0);
+    if (option === 'yesterday') target.setDate(target.getDate() - 1);
+    if (option === 'day_before') target.setDate(target.getDate() - 2);
+    const targetKey = getDateKey(target.getTime());
+    const keys = getUniqueDateKeys();
+    let closest = keys[0];
+    for (const k of keys) {
+      if (k <= targetKey) closest = k;
+    }
+    if (closest) scrollToDate(closest);
+  };
+
+  // Client-side search (session chat is Yjs-only, no backend persistence)
+  const runSearch = useCallback((query: string) => {
+    if (!query.trim()) {
+      setSearchMatches([]);
+      return;
+    }
+    const q = query.toLowerCase();
+    setSearchMatches(messages.filter((m) => m.content.toLowerCase().includes(q)));
+  }, [messages]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      runSearch(value);
+    }, 300);
+  };
+
+  const handleSearchResultClick = (msgId: string) => {
+    requestAnimationFrame(() => {
+      const el = messageRefs.current.get(msgId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    setSearchOpen(true);
+  };
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchQuery('');
+    setSearchMatches([]);
+  };
+
+  const getSnippet = (content: string, query: string, maxLen = 80) => {
+    const lower = content.toLowerCase();
+    const idx = lower.indexOf(query.toLowerCase());
+    if (idx === -1) return content.slice(0, maxLen) + (content.length > maxLen ? '...' : '');
+    const start = Math.max(0, idx - 30);
+    const end = Math.min(content.length, idx + query.length + 30);
+    return (start > 0 ? '...' : '') + content.slice(start, end) + (end < content.length ? '...' : '');
+  };
+
+  const formatSearchTime = (timestamp: number) => {
+    const d = new Date(timestamp);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = d.toDateString() === yesterday.toDateString();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return time;
+    if (isYesterday) return `Yesterday ${time}`;
+    return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`;
+  };
+
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) =>
+      regex.test(part)
+        ? <mark key={i} className="bg-yellow-400/40 text-inherit rounded-sm px-0.5">{part}</mark>
+        : part
+    );
+  };
+
+  const handleDatePick = (date: Date | undefined) => {
+    if (!date) return;
+    setShowCalendar(false);
+    const targetKey = getDateKey(date.getTime());
+    const keys = getUniqueDateKeys();
+    let closest = keys[0];
+    for (const k of keys) {
+      if (k <= targetKey) closest = k;
+    }
+    if (closest) scrollToDate(closest);
+  };
+
   return (
     <div className="h-full flex flex-col bg-slate-900/50">
       {/* Header */}
@@ -135,18 +380,173 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
               Discuss changes with your team
             </p>
           </div>
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} 
-               title={isConnected ? 'Connected' : 'Disconnected'} />
+          <div className="flex items-center gap-2">
+            <IconButton
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchOpen(!searchOpen);
+                if (!searchOpen) setTimeout(() => searchInputRef.current?.focus(), 100);
+                else closeSearch();
+              }}
+              className="text-slate-400 hover:text-sky-400 shadow-none"
+              title="Search messages"
+              icon={<Search className="w-4 h-4" />}
+            />
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+                 title={isConnected ? 'Connected' : 'Disconnected'} />
+          </div>
         </div>
+        {searchOpen && (
+          <div className="mt-3">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                <Input
+                  ref={searchInputRef}
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') closeSearch();
+                  }}
+                  variant="glass"
+                  placeholder="Search messages..."
+                  className="pl-8 pr-3 py-1.5 h-8 bg-slate-800/50 border-slate-600/50 rounded-lg text-xs text-white placeholder-slate-500"
+                />
+              </div>
+              {searchQuery && (
+                <span className="text-[10px] text-slate-500 whitespace-nowrap">
+                  {`${searchMatches.length} result${searchMatches.length !== 1 ? 's' : ''}`}
+                </span>
+              )}
+              <IconButton
+                variant="ghost"
+                size="sm"
+                onClick={closeSearch}
+                className="text-slate-400 hover:text-slate-200 shadow-none p-1"
+                icon={<X className="w-3.5 h-3.5" />}
+              />
+            </div>
+            {searchQuery && searchMatches.length > 0 && (
+              <div className="mt-2 max-h-60 overflow-y-auto rounded-lg bg-slate-800/80 backdrop-blur-sm divide-y divide-slate-700/30">
+                {searchMatches.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => handleSearchResultClick(m.id)}
+                    className="w-full text-left px-3 py-2 hover:bg-slate-700/50 transition-colors shadow-none"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <span className="text-[11px] font-medium text-slate-300 truncate">{m.userName}</span>
+                      <span className="text-[10px] text-slate-500 whitespace-nowrap flex-shrink-0">{formatSearchTime(m.timestamp)}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed truncate">
+                      {highlightText(getSnippet(m.content, searchQuery), searchQuery)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+            {searchQuery && searchMatches.length === 0 && (
+              <div className="mt-2 px-3 py-3 text-center text-[11px] text-slate-500 rounded-lg border border-slate-700/50 bg-slate-800/80">
+                No messages found
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((msg) => {
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messages.map((msg, index) => {
           const isOwnMessage = msg.userId === user?.id;
+          const currentDateKey = getDateKey(msg.timestamp);
+          const prevDateKey = index > 0 ? getDateKey(messages[index - 1]!.timestamp) : null;
+          const showDateDivider = currentDateKey !== prevDateKey;
+
           return (
-            <div 
-              key={msg.id} 
+            <React.Fragment key={msg.id}>
+              {showDateDivider && (
+                <div
+                  ref={(el) => { if (el) dateRefs.current.set(currentDateKey, el); }}
+                  className="relative flex items-center justify-center my-4"
+                >
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-700/50" />
+                  </div>
+                  <div className="relative">
+                    <Popover onOpenChange={(open) => { if (!open) setShowCalendar(false); }}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="gradient"
+                          size="sm"
+                        >
+                          <CalendarIcon className="w-3 h-3" />
+                          {formatDateLabel(currentDateKey)}
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className={cn(
+                          'p-1 bg-slate-900 border-none',
+                          showCalendar ? 'w-auto' : 'w-52'
+                        )}
+                        sideOffset={6}
+                      >
+                        {showCalendar ? (
+                          <Calendar
+                            mode="single"
+                            selected={undefined}
+                            onSelect={handleDatePick}
+                            disabled={{ after: new Date() }}
+                            className="text-slate-200"
+                          />
+                        ) : (
+                          <div className="flex flex-col">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start text-xs text-slate-300 hover:bg-slate-700/70 rounded-lg shadow-none"
+                              onClick={() => handleJumpTo('yesterday')}
+                            >
+                              Jump to yesterday
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start text-xs text-slate-300 hover:bg-slate-700/70 rounded-lg shadow-none"
+                              onClick={() => handleJumpTo('day_before')}
+                            >
+                              Jump to day before yesterday
+                            </Button>
+                            <div className="border-t border-slate-700/50 my-1" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start text-xs text-slate-300 hover:bg-slate-700/70 rounded-lg shadow-none"
+                              onClick={() => setShowCalendar(true)}
+                            >
+                              <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                              Jump to a specific date...
+                            </Button>
+                            <div className="border-t border-slate-700/50 my-1" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start text-xs text-slate-300 hover:bg-slate-700/70 rounded-lg shadow-none"
+                              onClick={() => handleJumpTo('beginning')}
+                            >
+                              Jump to the very beginning
+                            </Button>
+                          </div>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
+
+            <div
+              ref={(el) => { if (el) messageRefs.current.set(msg.id, el); }}
               className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''}`}
             >
               <div 
@@ -172,10 +572,40 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
                       : 'bg-slate-800 text-slate-200 rounded-bl-md'
                   }`}
                 >
-                  {msg.content}
+                  {msg.attachment && (
+                    <div className="mb-1.5">
+                      {isImageType(msg.attachment.type) ? (
+                        <a href={getFileUrl(msg.attachment.url)} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={getFileUrl(msg.attachment.url)}
+                            alt={msg.attachment.name}
+                            className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          />
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => handleDownload(msg.attachment!.url, msg.attachment!.name)}
+                          className={`flex items-center gap-2 p-2 rounded-lg transition-colors text-left ${
+                            isOwnMessage ? 'bg-blue-700/50 hover:bg-blue-700/70' : 'bg-slate-700/50 hover:bg-slate-700/70'
+                          }`}
+                        >
+                          <FileText className="w-5 h-5 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium truncate">{msg.attachment.name}</p>
+                            <p className={`text-[10px] ${isOwnMessage ? 'text-blue-200' : 'text-slate-400'}`}>
+                              {formatFileSize(msg.attachment.size)}
+                            </p>
+                          </div>
+                          <Download className="w-4 h-4 flex-shrink-0 opacity-60" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {msg.content && <span>{searchQuery ? highlightText(msg.content, searchQuery) : msg.content}</span>}
                 </div>
               </div>
             </div>
+            </React.Fragment>
           );
         })}
         
@@ -192,27 +622,85 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
       
       {/* Message input */}
       <div className="p-4 border-t border-slate-700/50">
+        {/* File preview */}
+        {pendingFile && (
+          <div className="flex items-center gap-2 mb-2 p-2 bg-slate-800/50 rounded-lg border border-slate-600/30">
+            {pendingFile.type.startsWith('image/') ? (
+              <Image className="w-4 h-4 text-sky-400 flex-shrink-0" />
+            ) : (
+              <File className="w-4 h-4 text-sky-400 flex-shrink-0" />
+            )}
+            <span className="text-xs text-slate-300 truncate flex-1">{pendingFile.name}</span>
+            <span className="text-[10px] text-slate-500 flex-shrink-0">{formatFileSize(pendingFile.size)}</span>
+            <button
+              onClick={() => setPendingFile(null)}
+              className="p-0.5 hover:bg-slate-700 rounded transition-colors flex-shrink-0"
+            >
+              <X className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-2.5 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-            disabled={!isConnected}
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt,.md,.csv,.xls,.xlsx,.zip,.json"
+            onChange={handleFileSelect}
           />
-          <button
+          <IconButton
+            variant="ghost"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!isConnected || isUploading}
+            className="text-slate-400 hover:text-sky-400 shadow-none"
+            title="Attach file"
+            icon={<Paperclip className="w-4 h-4" />}
+          />
+          <Input
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              broadcastTyping();
+            }}
+            variant={'glass'}
+            onKeyPress={handleKeyPress}
+            placeholder={pendingFile ? 'Add a message (optional)...' : 'Type a message...'}
+            // className="flex-1 px-4 py-2.5 bg-slate-800/50 border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm"
+            disabled={!isConnected || isUploading}
+          />
+          <Button
             onClick={handleSendMessage}
-            disabled={!message.trim() || !isConnected}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all"
+            disabled={(!message.trim() && !pendingFile) || !isConnected || isUploading}
+            className="px-4 py-2.5"
           >
-            <Send className="w-4 h-4 text-white" />
-          </button>
+            {isUploading ? (
+              <Loader2 className="w-4 h-4 text-white animate-spin" />
+            ) : (
+              <Send className="w-4 h-4 text-white" />
+            )}
+          </Button>
         </div>
         
-        <p className="text-xs text-slate-500 mt-2 text-center">
-          Press Enter to send
-        </p>
+        {typingUsers.length > 0 ? (
+          <div className="flex items-center gap-1.5 mt-2 h-4">
+            <div className="flex gap-0.5">
+              <span className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <span className="text-xs text-slate-400">
+              {typingUsers.length === 1
+                ? `${typingUsers[0]!.userName} is typing...`
+                : `${typingUsers.map((u) => u.userName).join(', ')} are typing...`}
+            </span>
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500 mt-2 text-center h-4">
+            Press Enter to send
+          </p>
+        )}
       </div>
     </div>
   );

@@ -274,10 +274,10 @@ export default function ProjectDetailPage() {
   const isOwner = true; // Simplified check - you can enhance this with proper auth
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-28">
+    <div className={`bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 ${activeTab === 'chat' || activeTab === 'notes' ? 'h-screen overflow-hidden' : 'min-h-screen pb-28'}`}>
       <BackgroundDecorative />
 
-      <Container className="py-8 relative z-10">
+      <Container className={`py-8 relative z-10 ${activeTab === 'chat' || activeTab === 'notes' ? 'h-full flex flex-col overflow-hidden' : ''}`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -754,7 +754,7 @@ export default function ProjectDetailPage() {
 
         {/* Chat Tab */}
         {activeTab === "chat" && (
-          <div className="h-[calc(100vh-300px)] mt-6">
+          <div className="flex-1 min-h-0 mt-6 mb-[60px]">
             <ProjectChat projectId={projectId} />
           </div>
         )}
