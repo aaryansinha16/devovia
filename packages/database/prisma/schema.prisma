@@ -191,6 +191,13 @@ model ProjectMessage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // File attachment fields
+  attachmentUrl      String?
+  attachmentName     String?
+  attachmentSize     Int?
+  attachmentType     String?  // MIME type e.g. "image/png", "application/pdf"
+  attachmentPublicId String?  // Cloudinary public ID for cleanup
+
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)

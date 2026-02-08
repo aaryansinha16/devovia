@@ -28,6 +28,8 @@
     "vercel-build": "cd ../../packages/database && npx prisma generate && cd ../../apps/api && tsc"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.985.0",
+    "@aws-sdk/s3-request-presigner": "^3.985.0",
     "@hocuspocus/extension-logger": "^3.2.3",
     "@hocuspocus/server": "^3.2.3",
     "@octokit/rest": "^20.1.1",

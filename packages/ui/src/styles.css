@@ -209,22 +209,29 @@
     color: var(--foreground-color) !important;
   }
   
-  /* Button styles with box shadows */
-  button, .button, [type='button'], [type='reset'], [type='submit'] {
+  /* Button styles with box shadows — respect .shadow-none to allow opt-out */
+  button:not(.shadow-none), .button:not(.shadow-none), [type='button']:not(.shadow-none), [type='reset']:not(.shadow-none), [type='submit']:not(.shadow-none) {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
     transition: all 0.2s ease-in-out !important;
   }
   
-  button:hover, .button:hover, [type='button']:hover, [type='reset']:hover, [type='submit']:hover {
+  button:not(.shadow-none):hover, .button:not(.shadow-none):hover, [type='button']:not(.shadow-none):hover, [type='reset']:not(.shadow-none):hover, [type='submit']:not(.shadow-none):hover {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
     transform: translateY(-1px) !important;
   }
   
-  .dark button, .dark .button, .dark [type='button'], .dark [type='reset'], .dark [type='submit'] {
+  .dark button:not(.shadow-none), .dark .button:not(.shadow-none), .dark [type='button']:not(.shadow-none), .dark [type='reset']:not(.shadow-none), .dark [type='submit']:not(.shadow-none) {
     box-shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px 0 rgba(255, 255, 255, 0.06) !important;
   }
   
-  .dark button:hover, .dark .button:hover, .dark [type='button']:hover, .dark [type='reset']:hover, .dark [type='submit']:hover {
+  .dark button:not(.shadow-none):hover, .dark .button:not(.shadow-none):hover, .dark [type='button']:not(.shadow-none):hover, .dark [type='reset']:not(.shadow-none):hover, .dark [type='submit']:not(.shadow-none):hover {
     box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06) !important;
+  }
+
+  /* Opt-out: shadow-none removes all box-shadow and hover transform */
+  button.shadow-none, .button.shadow-none, [type='button'].shadow-none, [type='reset'].shadow-none, [type='submit'].shadow-none,
+  button.shadow-none:hover, .button.shadow-none:hover, [type='button'].shadow-none:hover, [type='reset'].shadow-none:hover, [type='submit'].shadow-none:hover {
+    box-shadow: none !important;
+    transform: none !important;
   }
 }
