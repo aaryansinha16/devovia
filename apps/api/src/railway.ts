@@ -86,6 +86,31 @@ async function loadMainApplication() {
     console.log('Connecting to database...');
     const connected = await connectToDatabase();
     console.log(`Database connection: ${connected ? 'SUCCESS' : 'FAILED'}`);
+
+    // Start WebSocket server (Yjs collaboration + project chat)
+    try {
+      console.log('🚀 Starting WebSocket collaboration server...');
+      /* eslint-disable @typescript-eslint/no-var-requires */
+      const { SimpleYjsServer } = require('./websocket/simple-yjs-server');
+      const yjsServer = new SimpleYjsServer(PORT);
+      await yjsServer.start(server);
+      console.log(`✅ WebSocket server running on port ${PORT}`);
+    } catch (wsError) {
+      console.error('❌ Failed to start WebSocket server:', wsError);
+    }
+
+    // Start WebSocket logs service for real-time deployment logs
+    try {
+      console.log('🚀 Starting WebSocket logs service...');
+      const {
+        websocketLogsService,
+      } = require('./services/websocket-logs.service');
+      /* eslint-enable @typescript-eslint/no-var-requires */
+      websocketLogsService.initialize(server);
+      console.log('✅ WebSocket logs service initialized');
+    } catch (wsLogsError) {
+      console.error('❌ Failed to start WebSocket logs service:', wsLogsError);
+    }
   } catch (error) {
     console.error('❌ Failed to load main application:', error);
     // Server keeps running for healthcheck even if app fails to load
