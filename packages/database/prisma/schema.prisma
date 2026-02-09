@@ -52,6 +52,9 @@ model User {
   comments              Comment[]
   likes                 Like[]
   runbooks              Runbook[]                  @relation("RunbookOwner")
+  superchargedMemories  SuperchargedMemory[]
+  superchargedMacros    SuperchargedMacro[]
+  superchargedOrchestrators SuperchargedOrchestrator[]
 }
 
 // User sessions for authentication and token management
@@ -1194,4 +1197,146 @@ model DeploymentNotification {
   @@unique([userId, siteId])
   @@index([userId])
   @@map("deployment_notifications")
+}
+
+// ============================================================================
+// SUPERCHARGED MODE MODELS
+// ============================================================================
+
+enum SuperchargedStatus {
+  PENDING     // Awaiting user confirmation
+  CONFIRMED   // User confirmed, executing
+  EXECUTED    // Successfully executed
+  FAILED      // Execution failed
+  CANCELLED   // User cancelled
+}
+
+// Audit log for every Supercharged command
+model SuperchargedCommand {
+  id     String @id @default(cuid())
+  userId String
+
+  // Raw input
+  rawInput String @db.Text
+
+  // Parsed intent
+  intent     String  // CreateProject, OpenSession, ChangeProfile, Navigate, Conversational, Unknown
+  confidence Float   @default(1.0) // 0-1 confidence score
+  slots      Json?   // Extracted entities: { projectName, email, displayName, ... }
+
+  // Execution
+  status       SuperchargedStatus @default(PENDING)
+  actionType   String?  // The internal action taken (e.g., "api:projects:create")
+  actionPayload Json?   // The payload sent to the internal API
+  result        Json?   // The response/result from execution
+  errorMessage  String? @db.Text
+
+  // LLM audit (prompt traceability)
+  llmPrompt    Json?   // The messages array sent to the LLM (redacted if needed)
+  llmResponse  String? @db.Text // Raw LLM response text
+  tokensUsed   Int?    // Total tokens consumed (input + output)
+  modelUsed    String? // e.g. "gpt-4o-mini"
+
+  // Undo support
+  undoData   Json?    // Snapshot of data needed to reverse the action
+  undoneAt   DateTime? // When the undo was performed
+  undoneById String?   // Who performed the undo (usually same user)
+
+  // Context
+  ipAddress String?
+  userAgent String?
+
+  // Timing
+  createdAt  DateTime  @default(now())
+  confirmedAt DateTime?
+  executedAt  DateTime?
+
+  @@index([userId])
+  @@index([intent])
+  @@index([status])
+  @@index([createdAt])
+  @@map("supercharged_commands")
+}
+
+// Autonomous Orchestrators for Supercharged Mode
+model SuperchargedOrchestrator {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+
+  // Trigger definition
+  triggerEvent String   // e.g. "project.created", "deployment.failed", "session.ended", "schedule.daily"
+  triggerConditions Json? // Optional conditions, e.g. { "environment": "PRODUCTION" }
+
+  // Action definition
+  actionIntent String   // The Supercharged intent to execute
+  actionSlots  Json     // Slots to pass to the executor (can include template variables)
+
+  // Execution tracking
+  runCount     Int      @default(0)
+  lastRunAt    DateTime?
+  lastRunStatus String? // "success" or "failed"
+  lastRunError  String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([triggerEvent])
+  @@map("supercharged_orchestrators")
+}
+
+// Workspace Automation Macros for Supercharged Mode
+model SuperchargedMacro {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String   // e.g. "morning setup", "deploy pipeline"
+  description String?
+  steps       Json     // Array of { intent, slots, description }
+  trigger     String?  // Optional shortcut phrase, e.g. "morning routine"
+
+  // Usage tracking
+  runCount   Int      @default(0)
+  lastRunAt  DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("supercharged_macros")
+}
+
+// Personalized AI Memory for Supercharged Mode
+model SuperchargedMemory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Memory content
+  category  String   // "preference", "correction", "pattern", "shortcut"
+  key       String   // e.g. "default_language", "preferred_env", "project_alias"
+  value     String   @db.Text // The stored memory value
+  source    String   @default("auto") // "auto" (learned) or "explicit" (user-set)
+
+  // Usage tracking
+  usageCount Int     @default(0)
+  lastUsedAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, category, key])
+  @@index([userId])
+  @@map("supercharged_memories")
 }

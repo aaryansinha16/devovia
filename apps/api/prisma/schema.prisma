@@ -183,7 +183,6 @@ model ProjectNote {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
-  @@map("project_notes")
 }
 
 // Project chat messages
@@ -209,7 +208,6 @@ model ProjectMessage {
   @@index([projectId])
   @@index([userId])
   @@index([createdAt])
-  @@map("project_messages")
 }
 
 // Code snippets
