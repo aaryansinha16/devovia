@@ -5,7 +5,7 @@
   "scripts": {
     "prebuild": "rimraf dist && node scripts/generate-prisma-for-railway.js",
     "build": "tsc",
-    "build:railway": "rimraf dist && node scripts/generate-prisma-for-railway.js && tsc -p tsconfig.json",
+    "build:railway": "rimraf dist && node scripts/generate-prisma-for-railway.js && npx prisma db push --skip-generate --accept-data-loss && tsc -p tsconfig.json",
     "start:railway": "node dist/railway.js",
     "prisma:deploy": "prisma migrate deploy",
     "postinstall": "echo 'Skipping prisma generate in postinstall'",
