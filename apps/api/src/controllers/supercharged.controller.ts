@@ -12,6 +12,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { parseIntent, getSuggestions } from '../services/supercharged-intent.service';
 import { executeIntent, undoCommand } from '../services/supercharged-executor.service';
+import { websocketLogsService } from '../services/websocket-logs.service';
 
 // ─── Parse user input → return intent + confirmation ────────────────────────
 
@@ -246,13 +247,31 @@ export const executeCommand = async (req: Request, res: Response) => {
     const slots = (command.slots as Record<string, any>) || {};
     const chain = slots.__chain as Array<{ intent: string; slots: Record<string, any>; description: string }> | undefined;
 
-    // ── Chained execution ──────────────────────────────────────────────
+    // ── Chained execution (with real-time progress streaming) ─────────
     if (chain && chain.length > 1) {
       const chainResults: any[] = [];
       let prevData: Record<string, any> = {};
       let allSuccess = true;
 
-      for (const step of chain) {
+      // Emit initial progress
+      websocketLogsService.emitCommandProgress(commandId, {
+        percent: 0,
+        message: `Starting ${chain.length}-step command chain...`,
+        status: 'running',
+      });
+
+      for (let stepIdx = 0; stepIdx < chain.length; stepIdx++) {
+        const step = chain[stepIdx];
+
+        // Emit step starting
+        websocketLogsService.emitCommandStepUpdate(commandId, {
+          stepIndex: stepIdx,
+          totalSteps: chain.length,
+          intent: step.intent,
+          description: step.description,
+          status: 'running',
+        });
+
         // Resolve placeholders from previous step results
         let resolvedSlots = JSON.parse(JSON.stringify(step.slots));
         const slotsStr = JSON.stringify(resolvedSlots);
@@ -267,6 +286,27 @@ export const executeCommand = async (req: Request, res: Response) => {
         const stepResult = await executeIntent(step.intent, userId, resolvedSlots);
         chainResults.push({ intent: step.intent, description: step.description, ...stepResult });
 
+        // Emit step result
+        websocketLogsService.emitCommandStepUpdate(commandId, {
+          stepIndex: stepIdx,
+          totalSteps: chain.length,
+          intent: step.intent,
+          description: step.description,
+          status: stepResult.success ? 'completed' : 'failed',
+          result: stepResult.success ? stepResult.message : undefined,
+          error: stepResult.success ? undefined : stepResult.message,
+        });
+
+        // Emit overall progress
+        const percent = Math.round(((stepIdx + 1) / chain.length) * 100);
+        websocketLogsService.emitCommandProgress(commandId, {
+          percent,
+          message: stepResult.success
+            ? `Step ${stepIdx + 1}/${chain.length} completed: ${step.description}`
+            : `Step ${stepIdx + 1}/${chain.length} failed: ${stepResult.message}`,
+          status: 'running',
+        });
+
         if (!stepResult.success) {
           allSuccess = false;
           break;
@@ -277,6 +317,13 @@ export const executeCommand = async (req: Request, res: Response) => {
           prevData = { ...prevData, ...stepResult.data };
         }
       }
+
+      // Emit final progress
+      websocketLogsService.emitCommandProgress(commandId, {
+        percent: 100,
+        message: allSuccess ? 'All steps completed successfully' : 'Chain execution failed',
+        status: allSuccess ? 'completed' : 'failed',
+      });
 
       const combinedMessage = chainResults.map((r, i) => `${i + 1}. ${r.message}`).join('\n');
       const lastResult = chainResults[chainResults.length - 1];
@@ -715,16 +762,39 @@ export const getMacros = async (req: Request, res: Response) => {
     const userId = req.user?.sub;
     if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-    const macros = await prisma.superchargedMacro.findMany({
+    // Get user's own macros
+    const ownMacros = await prisma.superchargedMacro.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true, name: true, description: true, steps: true, trigger: true,
-        runCount: true, lastRunAt: true, createdAt: true,
+        runCount: true, lastRunAt: true, createdAt: true, isShared: true, projectId: true,
+        project: { select: { id: true, title: true } },
       },
     });
 
-    res.json({ success: true, data: { macros } });
+    // Get team shared macros from projects the user belongs to
+    const teamMacros = await prisma.superchargedMacro.findMany({
+      where: {
+        isShared: true,
+        userId: { not: userId },
+        project: {
+          OR: [
+            { userId },
+            { members: { some: { userId } } },
+          ],
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true, name: true, description: true, steps: true, trigger: true,
+        runCount: true, lastRunAt: true, createdAt: true, isShared: true, projectId: true,
+        project: { select: { id: true, title: true } },
+        user: { select: { name: true, username: true } },
+      },
+    });
+
+    res.json({ success: true, data: { macros: ownMacros, teamMacros } });
   } catch (error: any) {
     console.error('Supercharged macros error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -736,7 +806,7 @@ export const createMacro = async (req: Request, res: Response) => {
     const userId = req.user?.sub;
     if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-    const { name, description, steps, trigger } = req.body;
+    const { name, description, steps, trigger, projectId, isShared } = req.body;
     if (!name || !steps || !Array.isArray(steps) || steps.length === 0) {
       return res.status(400).json({ success: false, message: 'name and steps (non-empty array) are required' });
     }
@@ -748,8 +818,16 @@ export const createMacro = async (req: Request, res: Response) => {
       }
     }
 
+    // Verify project access if sharing to a team
+    if (projectId) {
+      const project = await prisma.project.findUnique({ where: { id: projectId }, include: { members: true } });
+      if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
+      const hasAccess = project.userId === userId || project.members.some(m => m.userId === userId);
+      if (!hasAccess) return res.status(403).json({ success: false, message: 'Access denied to this project' });
+    }
+
     const macro = await prisma.superchargedMacro.create({
-      data: { userId, name, description, steps, trigger },
+      data: { userId, name, description, steps, trigger, projectId: projectId || null, isShared: isShared || false },
     });
 
     res.json({ success: true, data: { macro } });
@@ -829,6 +907,233 @@ export const getCommandSuggestions = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Supercharged suggestions error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// ─── Scheduled Commands ─────────────────────────────────────────────────────
+
+export const getSchedules = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const schedules = await prisma.superchargedSchedule.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    res.json({ success: true, data: { schedules } });
+  } catch (error: any) {
+    console.error('Supercharged schedules error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const createSchedule = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const { name, description, cronExpression, timezone, actionType, macroId, intent, slots } = req.body;
+    if (!name || !cronExpression || !actionType) {
+      return res.status(400).json({ success: false, message: 'name, cronExpression, and actionType are required' });
+    }
+
+    if (actionType === 'macro' && !macroId) {
+      return res.status(400).json({ success: false, message: 'macroId is required for macro action type' });
+    }
+    if (actionType === 'intent' && !intent) {
+      return res.status(400).json({ success: false, message: 'intent is required for intent action type' });
+    }
+
+    // Validate cron expression (basic check)
+    const cronParts = cronExpression.trim().split(/\s+/);
+    if (cronParts.length < 5 || cronParts.length > 6) {
+      return res.status(400).json({ success: false, message: 'Invalid cron expression. Expected 5-6 fields (minute hour day month weekday [year])' });
+    }
+
+    // Calculate next run time (simplified — just set to next hour for now)
+    const nextRunAt = new Date();
+    nextRunAt.setMinutes(0, 0, 0);
+    nextRunAt.setHours(nextRunAt.getHours() + 1);
+
+    const schedule = await prisma.superchargedSchedule.create({
+      data: {
+        userId,
+        name,
+        description,
+        cronExpression: cronExpression.trim(),
+        timezone: timezone || 'UTC',
+        actionType,
+        macroId: macroId || null,
+        intent: intent || null,
+        slots: slots || null,
+        nextRunAt,
+      },
+    });
+
+    res.json({ success: true, data: { schedule } });
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ success: false, message: `A schedule named "${req.body.name}" already exists` });
+    }
+    console.error('Supercharged create schedule error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const updateSchedule = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const { scheduleId, ...updates } = req.body;
+    if (!scheduleId) return res.status(400).json({ success: false, message: 'scheduleId is required' });
+
+    const existing = await prisma.superchargedSchedule.findUnique({ where: { id: scheduleId } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(404).json({ success: false, message: 'Schedule not found' });
+    }
+
+    const allowedFields = ['name', 'description', 'cronExpression', 'timezone', 'actionType', 'macroId', 'intent', 'slots', 'isActive'];
+    const data: Record<string, any> = {};
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) data[field] = updates[field];
+    }
+
+    const schedule = await prisma.superchargedSchedule.update({
+      where: { id: scheduleId },
+      data,
+    });
+
+    res.json({ success: true, data: { schedule } });
+  } catch (error: any) {
+    console.error('Supercharged update schedule error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const deleteSchedule = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const { scheduleId } = req.body;
+    if (!scheduleId) return res.status(400).json({ success: false, message: 'scheduleId is required' });
+
+    const schedule = await prisma.superchargedSchedule.findUnique({ where: { id: scheduleId } });
+    if (!schedule || schedule.userId !== userId) {
+      return res.status(404).json({ success: false, message: 'Schedule not found' });
+    }
+
+    await prisma.superchargedSchedule.delete({ where: { id: scheduleId } });
+    res.json({ success: true, message: `Schedule "${schedule.name}" deleted` });
+  } catch (error: any) {
+    console.error('Supercharged delete schedule error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// ─── AI-Powered Code Review Summaries ───────────────────────────────────────
+
+export const getCodeReviewSummary = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const { projectId, siteId, count } = req.query;
+    const commitCount = Math.min(parseInt(count as string) || 5, 20);
+
+    if (!siteId) {
+      return res.status(400).json({ success: false, message: 'siteId is required' });
+    }
+
+    // Find the deployment site and its connection
+    const site = await prisma.deploymentSite.findUnique({
+      where: { id: siteId as string },
+      include: {
+        connection: true,
+        project: true,
+      },
+    });
+
+    if (!site || !site.connection) {
+      return res.status(404).json({ success: false, message: 'Deployment site not found' });
+    }
+
+    // Verify user access
+    const hasAccess = site.project
+      ? (site.project.userId === userId || await prisma.projectMember.findFirst({ where: { projectId: site.project.id, userId } }))
+      : site.connection.userId === userId;
+
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    // Fetch recent deployments as a proxy for commits
+    const recentDeploys = await prisma.deployment.findMany({
+      where: { siteId: site.id },
+      orderBy: { createdAt: 'desc' },
+      take: commitCount,
+      select: {
+        id: true,
+        gitCommitSha: true,
+        gitCommitMessage: true,
+        gitBranch: true,
+        status: true,
+        environment: true,
+        createdAt: true,
+      },
+    });
+
+    if (recentDeploys.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          summary: 'No recent deployments found for this site.',
+          deployments: [],
+        },
+      });
+    }
+
+    // Use LLM to summarize the deployments/commits
+    const OpenAI = require('openai');
+    const openai = new OpenAI.default({ apiKey: process.env.OPENAI_API_KEY });
+
+    const deploySummary = recentDeploys.map((d, i) =>
+      `${i + 1}. [${d.status}] ${d.gitCommitMessage || 'No message'} (${d.gitBranch || 'unknown branch'}, ${d.environment}, ${d.gitCommitSha?.slice(0, 7) || 'no sha'}, ${d.createdAt.toISOString().split('T')[0]})`
+    ).join('\n');
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a code review assistant. Summarize the following deployment/commit history concisely. Highlight: patterns (frequent failures, environments), risks, and recommendations. Be brief and actionable.',
+        },
+        {
+          role: 'user',
+          content: `Summarize these ${recentDeploys.length} recent deployments for site "${site.name}":\n\n${deploySummary}`,
+        },
+      ],
+      max_tokens: 500,
+      temperature: 0.3,
+    });
+
+    const summary = completion.choices[0]?.message?.content?.trim() || 'Unable to generate summary.';
+
+    res.json({
+      success: true,
+      data: {
+        summary,
+        siteName: site.name,
+        deploymentCount: recentDeploys.length,
+        deployments: recentDeploys,
+      },
+    });
+  } catch (error: any) {
+    console.error('Code review summary error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

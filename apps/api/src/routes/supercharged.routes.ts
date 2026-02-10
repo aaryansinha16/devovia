@@ -23,6 +23,11 @@ import {
   updateMacro,
   deleteMacro,
   getCommandSuggestions,
+  getSchedules,
+  createSchedule,
+  updateSchedule,
+  deleteSchedule,
+  getCodeReviewSummary,
 } from '../controllers/supercharged.controller';
 
 const router = Router();
@@ -46,5 +51,10 @@ router.post('/macros', requireAuth, createMacro);
 router.put('/macros', requireAuth, updateMacro);
 router.delete('/macros', requireAuth, deleteMacro);
 router.get('/suggestions', requireAuth, getCommandSuggestions);
+router.get('/schedules', requireAuth, getSchedules);
+router.post('/schedules', requireAuth, createSchedule);
+router.put('/schedules', requireAuth, updateSchedule);
+router.delete('/schedules', requireAuth, deleteSchedule);
+router.get('/code-review', requireAuth, getCodeReviewSummary);
 
 export default router;

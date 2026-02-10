@@ -112,6 +112,29 @@ const INTENT_PATTERNS: IntentPattern[] = [
     },
   },
 
+  // ── SaveMacro ───────────────────────────────────────────────────────
+  {
+    intent: 'SaveMacro',
+    patterns: [
+      /(?:save|create|add|make)\s+(?:a\s+)?(?:new\s+)?macro\s+(?:called|named|titled)\s+[`"']?(?<name>[\w\-\s]+?)[`"']?\s+(?:that|which|to)\s+(?<stepsDesc>.+)$/i,
+      /(?:save|create|add|make)\s+(?:a\s+)?(?:new\s+)?macro\s+(?:called|named|titled)\s+[`"']?(?<name>[\w\-\s]+?)[`"']?\s*$/i,
+    ],
+    extract: (match, raw) => {
+      const name = (match.groups?.name || '').trim();
+      const stepsDesc = (match.groups?.stepsDesc || '').trim();
+
+      let description = `Save a macro called "${name}"`;
+      if (stepsDesc) description += ` that will: ${stepsDesc}`;
+      description += '.';
+
+      return {
+        slots: { macroName: name, stepsDescription: stepsDesc || null },
+        description,
+        requiresConfirmation: true,
+      };
+    },
+  },
+
   // ── ChangeProfile ─────────────────────────────────────────────────────
   {
     intent: 'ChangeProfile',
@@ -196,6 +219,12 @@ export const AVAILABLE_COMMANDS: CommandSuggestion[] = [
     template: 'Change my bio to ',
     intent: 'ChangeProfile',
     icon: 'User',
+  },
+  {
+    label: 'Save a macro',
+    template: 'Save a macro called ',
+    intent: 'SaveMacro',
+    icon: 'Settings2',
   },
   {
     label: 'Deploy a site',
@@ -339,7 +368,10 @@ You must classify the user's message into one of these intents and respond with 
 8. **RunMacro** — User wants to run a saved automation macro (e.g. "run my morning setup", "execute deploy pipeline macro"). Match the macro name or trigger phrase from the user's macros context.
    Output: { "intent": "RunMacro", "confidence": 0.X, "slots": { "macroId": "...", "macroName": "..." }, "description": "Running macro [name]", "requiresConfirmation": true }
 
-9. **Conversational** — User is asking a question, seeking help, making a general statement, or anything that doesn't map to a direct action. This is your most versatile intent — use it for:
+9. **SaveMacro** — User wants to SAVE/CREATE a new macro (e.g. "save a macro called morning-setup that creates a session and opens my project", "create a macro named deploy-pipeline"). This is DIFFERENT from RunMacro — SaveMacro creates a new macro definition, RunMacro executes an existing one. The stepsDescription should capture what the macro should do.
+   Output: { "intent": "SaveMacro", "confidence": 0.X, "slots": { "macroName": "...", "stepsDescription": "..." }, "description": "Save a macro called [name] that will: [steps]", "requiresConfirmation": true }
+
+10. **Conversational** — User is asking a question, seeking help, making a general statement, or anything that doesn't map to a direct action. This is your most versatile intent — use it for:
    - Product questions: "How do deployments work?", "What are runbooks?", "How do I invite someone?"
    - How-to guides: "How do I deploy to production?", "How do I create a runbook?"
    - Feature explanations: "What can you do?", "Tell me about collaborative sessions"

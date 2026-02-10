@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import debounce from 'lodash.debounce';
 import { API_URL } from '../../lib/api-config';
 import { getTokens } from '../../lib/auth';
@@ -15,6 +15,34 @@ interface CommandSuggestion {
   icon: string;
 }
 
+export interface MemoryItem {
+  id: string;
+  category: string;
+  key: string;
+  value: string;
+  source: string;
+  usageCount: number;
+  createdAt: string;
+}
+
+export interface MacroItem {
+  id: string;
+  name: string;
+  description: string | null;
+  steps: { intent: string; slots: Record<string, any>; description: string }[];
+  trigger: string | null;
+  runCount: number;
+  lastRunAt: string | null;
+  createdAt: string;
+}
+
+export interface ProactiveSuggestion {
+  label: string;
+  template: string;
+  reason: string;
+  icon: string;
+}
+
 interface ParsedCommand {
   commandId: string;
   intent: string;
@@ -22,6 +50,8 @@ interface ParsedCommand {
   slots: Record<string, any>;
   description: string;
   requiresConfirmation: boolean;
+  isChained?: boolean;
+  chainSteps?: number;
 }
 
 interface ExecutionResult {
@@ -90,6 +120,27 @@ interface SuperchargedContextType {
   // Token usage
   tokenUsage: TokenUsage | null;
   loadTokenUsage: () => Promise<void>;
+
+  // Memories & Macros management
+  memories: MemoryItem[];
+  macros: MacroItem[];
+  loadMemories: () => Promise<void>;
+  loadMacros: () => Promise<void>;
+  deleteMemoryItem: (id: string) => Promise<void>;
+  deleteMacroItem: (id: string) => Promise<void>;
+  showManage: 'memories' | 'macros' | null;
+  setShowManage: (v: 'memories' | 'macros' | null) => void;
+
+  // Streaming
+  streamingText: string;
+  isStreaming: boolean;
+
+  // Proactive suggestions
+  proactiveSuggestions: ProactiveSuggestion[];
+
+  // Contextual quick actions (page-aware)
+  contextualActions: CommandSuggestion[];
+  currentPage: string;
 }
 
 const SuperchargedContext = createContext<SuperchargedContextType | null>(null);
@@ -118,6 +169,22 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
   const [showHistory, setShowHistory] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
+
+  // Memories & Macros
+  const [memories, setMemories] = useState<MemoryItem[]>([]);
+  const [macros, setMacros] = useState<MacroItem[]>([]);
+  const [showManage, setShowManage] = useState<'memories' | 'macros' | null>(null);
+
+  // Streaming
+  const [streamingText, setStreamingText] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  // Proactive suggestions
+  const [proactiveSuggestions, setProactiveSuggestions] = useState<ProactiveSuggestion[]>([]);
+
+  // Contextual quick actions
+  const pathname = usePathname();
+  const [contextualActions, setContextualActions] = useState<CommandSuggestion[]>([]);
 
   // ── API helpers ─────────────────────────────────────────────────────────
 
@@ -182,6 +249,19 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
     setError(null);
   }, []);
 
+  // ── Token usage (declared early so submitInput/doExecute can reference it) ──
+
+  const loadTokenUsage = useCallback(async () => {
+    try {
+      const data = await apiFetch('/token-usage');
+      if (data.success) {
+        setTokenUsage(data.data as TokenUsage);
+      }
+    } catch {
+      // Silently fail
+    }
+  }, [apiFetch]);
+
   // ── Submit input → parse ────────────────────────────────────────────────
 
   const submitInput = useCallback(async () => {
@@ -213,6 +293,14 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
         const result = parsed.result as ExecutionResult;
         setExecutionResult({ ...result, commandId: parsed.commandId });
         setStep('result');
+
+        // Stream conversational responses word-by-word for premium feel
+        if (parsed.intent === 'Conversational' && result.message) {
+          await streamConversational(result.message);
+        }
+
+        // Refresh token usage after command execution
+        loadTokenUsage();
 
         // Accumulate conversation turns for multi-turn memory
         setConversationHistory(prev => [
@@ -248,7 +336,7 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
       setError(err.message || 'Something went wrong');
       setStep('idle');
     }
-  }, [input, apiFetch, conversationHistory]);
+  }, [input, apiFetch, conversationHistory, loadTokenUsage]);
 
   // ── Execute ─────────────────────────────────────────────────────────────
 
@@ -268,6 +356,9 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
       const result = data.data as ExecutionResult;
       setExecutionResult(result);
       setStep('result');
+
+      // Refresh token usage after command execution
+      loadTokenUsage();
 
       // Accumulate conversation turns for multi-turn memory
       if (userInput) {
@@ -289,7 +380,7 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
       setError(err.message || 'Execution failed');
       setStep('idle');
     }
-  }, [apiFetch, router, close]);
+  }, [apiFetch, router, close, loadTokenUsage]);
 
   const confirmCommand = useCallback(async () => {
     if (!parsedCommand) return;
@@ -388,18 +479,179 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
     }
   }, [apiFetch]);
 
-  // ── Token usage ────────────────────────────────────────────────────────
+  // ── Token usage (see early declaration above) ────────────────────────
 
-  const loadTokenUsage = useCallback(async () => {
+  // ── Memories & Macros ──────────────────────────────────────────────────
+
+  const loadMemories = useCallback(async () => {
     try {
-      const data = await apiFetch('/token-usage');
-      if (data.success) {
-        setTokenUsage(data.data as TokenUsage);
-      }
-    } catch {
-      // Silently fail
-    }
+      const data = await apiFetch('/memories');
+      if (data.success) setMemories(data.data.memories || []);
+    } catch { /* silently fail */ }
   }, [apiFetch]);
+
+  const loadMacros = useCallback(async () => {
+    try {
+      const data = await apiFetch('/macros');
+      if (data.success) setMacros(data.data.macros || []);
+    } catch { /* silently fail */ }
+  }, [apiFetch]);
+
+  const deleteMemoryItem = useCallback(async (memoryId: string) => {
+    try {
+      await apiFetch('/memories', { method: 'DELETE', body: JSON.stringify({ memoryId }) });
+      setMemories(prev => prev.filter(m => m.id !== memoryId));
+    } catch { /* silently fail */ }
+  }, [apiFetch]);
+
+  const deleteMacroItem = useCallback(async (macroId: string) => {
+    try {
+      await apiFetch('/macros', { method: 'DELETE', body: JSON.stringify({ macroId }) });
+      setMacros(prev => prev.filter(m => m.id !== macroId));
+    } catch { /* silently fail */ }
+  }, [apiFetch]);
+
+  // ── Streaming for Conversational responses ────────────────────────────
+
+  const streamConversational = useCallback(async (text: string) => {
+    setIsStreaming(true);
+    setStreamingText('');
+    // Simulate streaming by revealing the text progressively
+    // (Real SSE streaming is handled by the /parse-stream endpoint if available)
+    const words = text.split(' ');
+    let accumulated = '';
+    for (let i = 0; i < words.length; i++) {
+      accumulated += (i === 0 ? '' : ' ') + words[i];
+      setStreamingText(accumulated);
+      await new Promise(r => setTimeout(r, 25 + Math.random() * 20));
+    }
+    setIsStreaming(false);
+  }, []);
+
+  // ── Proactive Suggestions (memory-based) ──────────────────────────────
+
+  const generateProactiveSuggestions = useCallback(async () => {
+    try {
+      const data = await apiFetch('/memories');
+      if (!data.success) return;
+      const mems: MemoryItem[] = data.data.memories || [];
+      const suggestions: ProactiveSuggestion[] = [];
+
+      // Day-of-week based suggestions
+      const dayOfWeek = new Date().getDay();
+      const hour = new Date().getHours();
+
+      // Suggest deploy on Fridays
+      if (dayOfWeek === 5) {
+        suggestions.push({
+          label: 'Deploy staging builds?',
+          template: 'Deploy all sites to staging',
+          reason: "It's Friday — good time for staging deploys",
+          icon: 'Rocket',
+        });
+      }
+
+      // Morning suggestions
+      if (hour >= 7 && hour <= 10) {
+        const hasMorningMacro = macros.some(m => m.trigger?.toLowerCase().includes('morning'));
+        if (hasMorningMacro) {
+          const macro = macros.find(m => m.trigger?.toLowerCase().includes('morning'));
+          suggestions.push({
+            label: `Run "${macro!.name}"?`,
+            template: `Run macro ${macro!.name}`,
+            reason: 'Your morning routine macro',
+            icon: 'Zap',
+          });
+        }
+      }
+
+      // Preferred language suggestion
+      const langPref = mems.find(m => m.key === 'preferred_language');
+      if (langPref) {
+        suggestions.push({
+          label: `Start a ${langPref.value} session`,
+          template: `Open a ${langPref.value} session`,
+          reason: `Based on your preference for ${langPref.value}`,
+          icon: 'Monitor',
+        });
+      }
+
+      // Frequent intent suggestions
+      const freqIntents = mems.filter(m => m.key.startsWith('freq_intent_'));
+      const topIntent = freqIntents.sort((a, b) => b.usageCount - a.usageCount)[0];
+      if (topIntent && topIntent.usageCount >= 3) {
+        const intentName = topIntent.value;
+        if (intentName === 'CreateProject') {
+          suggestions.push({
+            label: 'Create a new project',
+            template: 'Create a project called ',
+            reason: `You frequently create projects (${topIntent.usageCount} times)`,
+            icon: 'Briefcase',
+          });
+        }
+      }
+
+      setProactiveSuggestions(suggestions.slice(0, 3));
+    } catch { /* silently fail */ }
+  }, [apiFetch, macros]);
+
+  // ── Contextual Quick Actions (page-aware) ─────────────────────────────
+
+  useEffect(() => {
+    const actions: CommandSuggestion[] = [];
+
+    if (pathname.startsWith('/dashboard/projects/') && pathname.split('/').length >= 4) {
+      const projectId = pathname.split('/')[3];
+      actions.push(
+        { label: 'Deploy this project', template: `Deploy project`, intent: 'Deploy', icon: 'Rocket' },
+        { label: 'Create session for this project', template: `Open a session for this project`, intent: 'OpenSession', icon: 'Monitor' },
+        { label: 'View project runbooks', template: 'Go to runbooks', intent: 'Navigate', icon: 'BookOpen' },
+      );
+    } else if (pathname === '/dashboard/projects') {
+      actions.push(
+        { label: 'Create a new project', template: 'Create a project called ', intent: 'CreateProject', icon: 'Briefcase' },
+        { label: 'Open recent project', template: 'Open my latest project', intent: 'Navigate', icon: 'Briefcase' },
+      );
+    } else if (pathname.startsWith('/dashboard/sessions')) {
+      actions.push(
+        { label: 'Start a new session', template: 'Open a new session', intent: 'OpenSession', icon: 'Monitor' },
+        { label: 'Start a TypeScript session', template: 'Open a TypeScript session', intent: 'OpenSession', icon: 'Monitor' },
+      );
+    } else if (pathname.startsWith('/dashboard/deployments')) {
+      actions.push(
+        { label: 'Deploy to staging', template: 'Deploy to staging', intent: 'Deploy', icon: 'Rocket' },
+        { label: 'View deployment metrics', template: 'Go to deployment metrics', intent: 'Navigate', icon: 'Navigation' },
+      );
+    } else if (pathname.startsWith('/dashboard/runbooks')) {
+      actions.push(
+        { label: 'Create a runbook', template: 'Create a runbook called ', intent: 'CreateRunbook', icon: 'BookOpen' },
+        { label: 'Run a runbook', template: 'Run runbook ', intent: 'TriggerRunbook', icon: 'BookOpen' },
+      );
+    } else if (pathname.startsWith('/dashboard/snippets')) {
+      actions.push(
+        { label: 'Create a snippet', template: 'Go to create snippet', intent: 'Navigate', icon: 'Navigation' },
+      );
+    } else if (pathname.startsWith('/dashboard/blogs')) {
+      actions.push(
+        { label: 'Write a blog post', template: 'Go to create blog', intent: 'Navigate', icon: 'Navigation' },
+      );
+    } else if (pathname === '/dashboard') {
+      actions.push(
+        { label: 'Create a project', template: 'Create a project called ', intent: 'CreateProject', icon: 'Briefcase' },
+        { label: 'Start a session', template: 'Open a new session', intent: 'OpenSession', icon: 'Monitor' },
+        { label: 'View deployments', template: 'Go to deployments', intent: 'Navigate', icon: 'Rocket' },
+      );
+    }
+
+    setContextualActions(actions);
+  }, [pathname]);
+
+  // Load proactive suggestions when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      generateProactiveSuggestions();
+    }
+  }, [isOpen, generateProactiveSuggestions]);
 
   // ── Keyboard shortcut: Cmd+K ──────────────────────────────────────────
 
@@ -444,6 +696,19 @@ export function SuperchargedProvider({ children }: { children: React.ReactNode }
         setShowHistory,
         tokenUsage,
         loadTokenUsage,
+        memories,
+        macros,
+        loadMemories,
+        loadMacros,
+        deleteMemoryItem,
+        deleteMacroItem,
+        showManage,
+        setShowManage,
+        streamingText,
+        isStreaming,
+        proactiveSuggestions,
+        contextualActions,
+        currentPage: pathname,
       }}
     >
       {children}

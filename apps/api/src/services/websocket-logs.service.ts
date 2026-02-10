@@ -88,6 +88,19 @@ export class WebSocketLogsService {
         console.log(`Client ${socket.id} left deployment ${deploymentId}`);
       });
 
+      // ── Supercharged command progress rooms ──────────────────────────
+
+      // Join command progress room (user-scoped, no extra auth needed since socket is already authed)
+      socket.on('join-command', (commandId: string) => {
+        socket.join(`command:${commandId}`);
+        socket.emit('joined-command', { commandId });
+      });
+
+      // Leave command progress room
+      socket.on('leave-command', (commandId: string) => {
+        socket.leave(`command:${commandId}`);
+      });
+
       // Handle disconnect
       socket.on('disconnect', () => {
         console.log(`WebSocket client disconnected: ${socket.id}`);
@@ -148,6 +161,46 @@ export class WebSocketLogsService {
 
     const room = this.io.sockets.adapter.rooms.get(`deployment:${deploymentId}`);
     return room ? room.size : 0;
+  }
+
+  // ── Supercharged Command Progress ────────────────────────────────────────
+
+  /**
+   * Emit a step progress update for a chained/multi-step command
+   */
+  emitCommandStepUpdate(commandId: string, stepData: {
+    stepIndex: number;
+    totalSteps: number;
+    intent: string;
+    description: string;
+    status: 'pending' | 'running' | 'completed' | 'failed';
+    result?: any;
+    error?: string;
+  }) {
+    if (!this.io) return;
+
+    this.io.to(`command:${commandId}`).emit('command-step', {
+      commandId,
+      ...stepData,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Emit overall command progress (percentage, status message)
+   */
+  emitCommandProgress(commandId: string, progress: {
+    percent: number;
+    message: string;
+    status: 'running' | 'completed' | 'failed';
+  }) {
+    if (!this.io) return;
+
+    this.io.to(`command:${commandId}`).emit('command-progress', {
+      commandId,
+      ...progress,
+      timestamp: new Date().toISOString(),
+    });
   }
 }
 

@@ -549,6 +549,92 @@ async function executeRunMacro(
   };
 }
 
+// ─── SaveMacro ───────────────────────────────────────────────────────────────
+
+async function executeSaveMacro(
+  userId: string,
+  slots: Record<string, any>,
+): Promise<ExecutionResult> {
+  const { macroName, stepsDescription } = slots;
+
+  if (!macroName) {
+    return { success: false, message: 'Macro name is required.' };
+  }
+
+  // Check for duplicate name
+  const existing = await prisma.superchargedMacro.findFirst({
+    where: { userId, name: macroName.toLowerCase().replace(/\s+/g, '-') },
+  });
+  if (existing) {
+    return { success: false, message: `A macro called "${macroName}" already exists.` };
+  }
+
+  // Parse the steps description into structured steps
+  // We use simple heuristic parsing for common patterns
+  const steps: { intent: string; slots: Record<string, any>; description: string }[] = [];
+
+  if (stepsDescription) {
+    // Split by "and", "then", "," to find individual actions
+    const parts = stepsDescription
+      .split(/\s+(?:and|then|,)\s+/i)
+      .map((p: string) => p.trim())
+      .filter(Boolean);
+
+    for (const part of parts) {
+      // Try to match common action patterns
+      if (/create\s+(?:a\s+)?(?:new\s+)?(?:project|session|runbook)/i.test(part)) {
+        const isSession = /session/i.test(part);
+        const isRunbook = /runbook/i.test(part);
+        const isProject = /project/i.test(part);
+
+        if (isSession) {
+          steps.push({ intent: 'OpenSession', slots: { sessionTitle: macroName }, description: part });
+        } else if (isRunbook) {
+          steps.push({ intent: 'CreateRunbook', slots: { name: macroName }, description: part });
+        } else if (isProject) {
+          steps.push({ intent: 'CreateProject', slots: { projectName: macroName }, description: part });
+        }
+      } else if (/(?:open|go\s+to|navigate|show)\s+(?:my\s+)?(?:project|session|dashboard|deploy)/i.test(part)) {
+        const route = /project/i.test(part) ? '/dashboard/projects'
+          : /session/i.test(part) ? '/dashboard/sessions'
+          : /deploy/i.test(part) ? '/dashboard/deployments'
+          : '/dashboard';
+        steps.push({ intent: 'Navigate', slots: { route }, description: part });
+      } else if (/deploy/i.test(part)) {
+        steps.push({ intent: 'Deploy', slots: {}, description: part });
+      } else {
+        // Generic step — store as-is for manual editing later
+        steps.push({ intent: 'Conversational', slots: { response: part }, description: part });
+      }
+    }
+  }
+
+  // If no steps could be parsed, create a placeholder
+  if (steps.length === 0) {
+    steps.push({ intent: 'Conversational', slots: {}, description: stepsDescription || 'No steps defined yet' });
+  }
+
+  const normalizedName = macroName.toLowerCase().replace(/\s+/g, '-');
+
+  const macro = await prisma.superchargedMacro.create({
+    data: {
+      userId,
+      name: normalizedName,
+      description: stepsDescription || `Macro: ${macroName}`,
+      steps: steps as any,
+      trigger: normalizedName,
+    },
+  });
+
+  return {
+    success: true,
+    message: `Macro "${normalizedName}" saved with ${steps.length} step${steps.length > 1 ? 's' : ''}. You can run it by saying "run ${normalizedName}".`,
+    data: { macroId: macro.id, macroName: normalizedName, stepCount: steps.length },
+    canUndo: true,
+    undoData: { action: 'deleteMacro', macroId: macro.id },
+  };
+}
+
 // ─── Conversational ──────────────────────────────────────────────────────────
 
 async function executeConversational(
@@ -571,6 +657,7 @@ const EXECUTORS: Record<string, (userId: string, slots: Record<string, any>) => 
   TriggerRunbook: executeTriggerRunbook,
   Deploy: executeDeploy,
   RunMacro: executeRunMacro,
+  SaveMacro: executeSaveMacro,
   Navigate: executeNavigate,
   Conversational: executeConversational,
 };
@@ -638,6 +725,17 @@ export async function undoCommand(
         }
         await prisma.runbook.delete({ where: { id: undoData.runbookId } });
         return { success: true, message: `Runbook "${runbook.name}" deleted (undo).` };
+      }
+
+      case 'deleteMacro': {
+        const macro = await prisma.superchargedMacro.findUnique({
+          where: { id: undoData.macroId },
+        });
+        if (!macro || macro.userId !== userId) {
+          return { success: false, message: 'Macro not found or access denied.' };
+        }
+        await prisma.superchargedMacro.delete({ where: { id: undoData.macroId } });
+        return { success: true, message: `Macro "${macro.name}" deleted (undo).` };
       }
 
       case 'revertProfile': {

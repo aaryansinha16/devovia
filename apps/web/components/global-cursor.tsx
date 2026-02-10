@@ -272,7 +272,7 @@ const GlobalCursor: React.FC = () => {
       {ripples.map((ripple) => (
         <motion.div
           key={ripple.id}
-          className={`fixed z-[9990] pointer-events-none rounded-full border ${theme === 'dark' ? 'border-neutral-400' : 'border-neutral-500'}`}
+          className={`fixed z-[10090] pointer-events-none rounded-full border ${theme === 'dark' ? 'border-neutral-400' : 'border-neutral-500'}`}
           initial={{ scale: 0, opacity: 0.5 }}
           animate={{ scale: 2.5, opacity: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
@@ -294,7 +294,7 @@ const GlobalCursor: React.FC = () => {
       {trails.map((trail, index) => (
         <motion.div
           key={index}
-          className={`fixed top-0 left-0 z-[9998] pointer-events-none rounded-full ${theme === 'dark' ? 'bg-neutral-200' : 'bg-neutral-800'}`}
+          className={`fixed top-0 left-0 z-[10098] pointer-events-none rounded-full ${theme === 'dark' ? 'bg-neutral-200' : 'bg-neutral-800'}`}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{
             opacity: cursorVariant === 'card' ? 0 : (1 - index * 0.18) * 0.3,
@@ -314,7 +314,7 @@ const GlobalCursor: React.FC = () => {
 
       {/* Main Cursor */}
       <motion.div
-        className="fixed top-0 left-0 z-[9999] pointer-events-none flex items-center justify-center"
+        className="fixed top-0 left-0 z-[10099] pointer-events-none flex items-center justify-center"
         style={{
           translateX: smoothX,
           translateY: smoothY,
