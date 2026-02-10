@@ -20,7 +20,9 @@ import {
   IconMenu2,
   IconX,
   IconBriefcase,
+  IconBolt,
 } from "@tabler/icons-react";
+import { useSupercharged } from "./supercharged/supercharged-context";
 
 interface NavItem {
   name: string;
@@ -48,6 +50,7 @@ const navigation: NavItem[] = [
 export function DashboardMobileSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { toggle: toggleSupercharged } = useSupercharged();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -98,6 +101,22 @@ export function DashboardMobileSidebar() {
               Devovia
             </h1>
           </div>
+        </div>
+
+        {/* Supercharged Button */}
+        <div className="px-4 pt-4">
+          <button
+            onClick={() => { setIsOpen(false); toggleSupercharged(); }}
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 hover:scale-[1.01] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10"
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+              <IconBolt className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div className="flex-1 text-left">
+              <span className="text-sm font-medium text-slate-200">Supercharged</span>
+              <p className="text-[10px] text-slate-500">⌘K · Command palette</p>
+            </div>
+          </button>
         </div>
 
         {/* Navigation */}

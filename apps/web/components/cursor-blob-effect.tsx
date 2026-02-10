@@ -73,7 +73,7 @@ const CursorBlobEffect: React.FC = () => {
         background: `radial-gradient(circle, ${currentBlobColor} 0%, transparent 50%)`,
         filter: "blur(50px) opacity(0.9)", // Slightly reduced blur, increased filter opacity
       }}
-      className={`fixed w-80 h-80 md:w-[400px] md:h-[400px] rounded-full pointer-events-none z-[99] transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ease-out
+      className={`fixed w-80 h-80 md:w-[400px] md:h-[400px] rounded-full pointer-events-none z-[10000] transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ease-out
       ${isVisible ? "opacity-100" : "opacity-0"} 
       `}
     >
