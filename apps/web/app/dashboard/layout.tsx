@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../lib/auth-context";
 import { DashboardFloatingDock } from "../../components/dashboard-floating-dock";
 import { DashboardMobileSidebar } from "../../components/dashboard-mobile-sidebar";
+import { SuperchargedProvider } from "../../components/supercharged/supercharged-context";
+import SuperchargedPanel from "../../components/supercharged/supercharged-panel";
 import Loader from "../../components/ui/loader";
 
 export default function DashboardLayout({
@@ -33,17 +35,22 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Mobile Sidebar - Only visible on mobile */}
-      <DashboardMobileSidebar />
+    <SuperchargedProvider>
+      <div className="flex h-screen bg-background overflow-hidden">
+        {/* Mobile Sidebar - Only visible on mobile */}
+        <DashboardMobileSidebar />
 
-      {/* Main Content - Full width on desktop, with bottom padding for dock */}
-      <div className="flex-1 overflow-y-auto">{children}</div>
+        {/* Main Content - Full width on desktop, with bottom padding for dock */}
+        <div className="flex-1 overflow-y-auto">{children}</div>
 
-      {/* Floating Dock - Only visible on desktop (md and up) */}
-      <div className="hidden md:block">
-        <DashboardFloatingDock />
+        {/* Floating Dock - Only visible on desktop (md and up) */}
+        <div className="hidden md:block">
+          <DashboardFloatingDock />
+        </div>
+
+        {/* Supercharged Mode — global command palette */}
+        <SuperchargedPanel />
       </div>
-    </div>
+    </SuperchargedProvider>
   );
 }

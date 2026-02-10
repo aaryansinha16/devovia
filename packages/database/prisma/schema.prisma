@@ -55,6 +55,7 @@ model User {
   superchargedMemories  SuperchargedMemory[]
   superchargedMacros    SuperchargedMacro[]
   superchargedOrchestrators SuperchargedOrchestrator[]
+  superchargedSchedules SuperchargedSchedule[]
 }
 
 // User sessions for authentication and token management
@@ -129,6 +130,7 @@ model Project {
   ProjectNote    ProjectNote?
   ProjectMessage ProjectMessage[]
   deploymentSites DeploymentSite[]
+  sharedMacros    SuperchargedMacro[]
 
   @@index([userId])
   @@index([status])
@@ -1303,6 +1305,11 @@ model SuperchargedMacro {
   steps       Json     // Array of { intent, slots, description }
   trigger     String?  // Optional shortcut phrase, e.g. "morning routine"
 
+  // Team sharing
+  projectId String?  // If set, macro is shared with all project members
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  isShared  Boolean  @default(false) // Whether this macro is visible to team members
+
   // Usage tracking
   runCount   Int      @default(0)
   lastRunAt  DateTime?
@@ -1313,7 +1320,45 @@ model SuperchargedMacro {
 
   @@unique([userId, name])
   @@index([userId])
+  @@index([projectId])
   @@map("supercharged_macros")
+}
+
+// Scheduled Commands for Supercharged Mode
+model SuperchargedSchedule {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String   // e.g. "Weekly staging deploy"
+  description String?
+
+  // Schedule definition
+  cronExpression String   // e.g. "0 9 * * 1" (Monday 9am)
+  timezone       String   @default("UTC")
+
+  // What to execute
+  actionType String   // "macro" | "intent"
+  macroId    String?  // If actionType is "macro"
+  intent     String?  // If actionType is "intent"
+  slots      Json?    // Slots for the intent
+
+  // State
+  isActive      Boolean  @default(true)
+  nextRunAt     DateTime?
+  lastRunAt     DateTime?
+  lastRunStatus String?  // "success" | "failed"
+  lastRunError  String?
+  runCount      Int      @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([isActive, nextRunAt])
+  @@map("supercharged_schedules")
 }
 
 // Personalized AI Memory for Supercharged Mode
