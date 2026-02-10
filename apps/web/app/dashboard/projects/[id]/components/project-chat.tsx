@@ -288,14 +288,29 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     const yMessages = ydoc.getArray<ChatMessage>('messages');
     yMessagesRef.current = yMessages;
 
-    // Sync messages from Yjs
+    // Track the count of Yjs messages at initial sync so we can
+    // ignore stale messages that are already loaded from the API.
+    let initialYjsCount: number | null = null;
+
+    // Sync only NEW Yjs messages (added after initial sync) into state
     const syncMessages = () => {
-      const yjsMessages = yMessages.toArray();
+      if (initialYjsCount === null) return;
+      const allYjs = yMessages.toArray();
+      // Only consider messages added after the initial sync snapshot
+      const newYjsMessages = allYjs.slice(initialYjsCount);
+      if (newYjsMessages.length === 0) return;
+
       setMessages((prev) => {
-        // Merge API messages with Yjs messages, avoiding duplicates
         const combined = [...prev];
-        yjsMessages.forEach((yjsMsg) => {
-          if (!combined.some((m) => m.id === yjsMsg.id)) {
+        newYjsMessages.forEach((yjsMsg) => {
+          const isDuplicate = combined.some(
+            (m) =>
+              m.id === yjsMsg.id ||
+              (m.content === yjsMsg.content &&
+                m.userId === yjsMsg.userId &&
+                Math.abs(m.timestamp - yjsMsg.timestamp) < 10000),
+          );
+          if (!isDuplicate) {
             combined.push(yjsMsg);
           }
         });
@@ -306,8 +321,11 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     // Listen for changes
     yMessages.observe(syncMessages);
 
-    // Initial sync
-    syncMessages();
+    // Once Yjs finishes initial sync, snapshot the current count
+    // so we only process messages added after this point.
+    provider.on('synced', () => {
+      initialYjsCount = yMessages.length;
+    });
 
     // Connection status
     provider.on('status', ({ status }: { status: string }) => {
