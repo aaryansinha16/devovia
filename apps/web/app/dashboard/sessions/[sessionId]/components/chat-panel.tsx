@@ -25,6 +25,8 @@ interface ChatMessage {
   content: string;
   timestamp: number;
   attachment?: ChatAttachment;
+  error?: boolean;
+  retrying?: boolean;
 }
 
 interface ChatPanelProps {
@@ -154,14 +156,22 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
   const handleSendMessage = async () => {
     if ((!message.trim() && !pendingFile) || !yMessagesRef.current || !user || !user.id) return;
 
+    // Capture values before clearing (optimistic UI)
+    const messageContent = message.trim();
+    const fileToUpload = pendingFile;
+
+    // Clear input immediately for instant UX feedback
+    setMessage('');
+    setPendingFile(null);
+
     const userId = user.id as string;
     const userColor = generateUserColor(userId);
 
     let attachment: ChatAttachment | undefined;
 
-    if (pendingFile) {
+    if (fileToUpload) {
       setIsUploading(true);
-      const uploaded = await uploadFile(pendingFile);
+      const uploaded = await uploadFile(fileToUpload);
       setIsUploading(false);
       if (uploaded) {
         attachment = uploaded;
@@ -171,19 +181,17 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
     }
 
     const newMessage: ChatMessage = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: crypto.randomUUID(),
       userId: userId,
       userName: user.name || user.email || 'Anonymous',
       userColor: userColor,
-      content: message.trim(),
+      content: messageContent,
       timestamp: Date.now(),
       ...(attachment && { attachment }),
     };
 
     yMessagesRef.current.push([newMessage]);
     clearTyping();
-    setMessage('');
-    setPendingFile(null);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,6 +220,29 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
   const handleDownload = (key: string, fileName: string) => {
     const downloadUrl = `${API_URL}/chat/download?key=${encodeURIComponent(key)}&name=${encodeURIComponent(fileName)}`;
     window.open(downloadUrl, '_blank');
+  };
+
+  const handleRetryMessage = async (messageIndex: number, msg: ChatMessage) => {
+    if (!yMessagesRef.current || msg.retrying) return;
+
+    // Mark as retrying
+    yMessagesRef.current.delete(messageIndex, 1);
+    yMessagesRef.current.insert(messageIndex, [{ ...msg, retrying: true, error: false }]);
+
+    try {
+      // For session chat, we just need to re-add to Yjs (no separate API persistence)
+      // Simulate a brief delay to show retrying state
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Success - remove error and retrying flags
+      yMessagesRef.current.delete(messageIndex, 1);
+      yMessagesRef.current.insert(messageIndex, [{ ...msg, retrying: false, error: false }]);
+    } catch (error) {
+      console.error('Error retrying message:', error);
+      // Mark as failed again
+      yMessagesRef.current.delete(messageIndex, 1);
+      yMessagesRef.current.insert(messageIndex, [{ ...msg, retrying: false, error: true }]);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -566,10 +597,16 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
                   </span>
                 </div>
                 <div 
+                  onClick={() => msg.error && isOwnMessage ? handleRetryMessage(index, msg) : undefined}
+                  title={msg.error ? 'Message not sent. Click to retry.' : undefined}
                   className={`inline-block px-3 py-2 rounded-2xl text-sm ${
-                    isOwnMessage 
-                      ? 'bg-blue-600 text-white rounded-br-md' 
-                      : 'bg-slate-800 text-slate-200 rounded-bl-md'
+                    msg.error
+                      ? 'bg-red-600/80 text-white rounded-br-md cursor-pointer hover:bg-red-600 transition-colors'
+                      : msg.retrying
+                        ? 'bg-yellow-600/80 text-white rounded-br-md opacity-70'
+                        : isOwnMessage 
+                          ? 'bg-blue-600 text-white rounded-br-md' 
+                          : 'bg-slate-800 text-slate-200 rounded-bl-md'
                   }`}
                 >
                   {msg.attachment && (

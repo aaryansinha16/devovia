@@ -27,6 +27,8 @@ interface ChatMessage {
   content: string;
   timestamp: number;
   attachment?: ChatAttachment;
+  error?: boolean;
+  retrying?: boolean;
 }
 
 interface ProjectChatProps {
@@ -303,13 +305,8 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
       setMessages((prev) => {
         const combined = [...prev];
         newYjsMessages.forEach((yjsMsg) => {
-          const isDuplicate = combined.some(
-            (m) =>
-              m.id === yjsMsg.id ||
-              (m.content === yjsMsg.content &&
-                m.userId === yjsMsg.userId &&
-                Math.abs(m.timestamp - yjsMsg.timestamp) < 10000),
-          );
+          // Only check for duplicate IDs, not content - allow identical messages
+          const isDuplicate = combined.some((m) => m.id === yjsMsg.id);
           if (!isDuplicate) {
             combined.push(yjsMsg);
           }
@@ -383,15 +380,23 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
   const handleSendMessage = async () => {
     if ((!message.trim() && !pendingFile) || !yMessagesRef.current || !user || !user.id) return;
 
+    // Capture values before clearing (optimistic UI)
+    const messageContent = message.trim();
+    const fileToUpload = pendingFile;
+
+    // Clear input immediately for instant UX feedback
+    setMessage('');
+    setPendingFile(null);
+
     const userId = user.id as string;
     const userColor = generateUserColor(userId);
 
     let attachment: ChatAttachment | undefined;
 
     // Upload file if pending
-    if (pendingFile) {
+    if (fileToUpload) {
       setIsUploading(true);
-      const uploaded = await uploadFile(pendingFile);
+      const uploaded = await uploadFile(fileToUpload);
       setIsUploading(false);
       if (uploaded) {
         attachment = uploaded;
@@ -401,18 +406,19 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     }
 
     const newMessage: ChatMessage = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: crypto.randomUUID(),
       userId: userId,
       userName: user.name || user.email || 'Anonymous',
       userAvatar: user.avatar,
       userColor: userColor,
-      content: message.trim(),
+      content: messageContent,
       timestamp: Date.now(),
       ...(attachment && { attachment }),
     };
 
     // Add to Yjs for real-time sync
     shouldScrollToBottom.current = true;
+    const messageIndex = yMessagesRef.current.length;
     yMessagesRef.current.push([newMessage]);
     clearTyping();
 
@@ -420,14 +426,14 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     try {
       const tokens = await getTokens();
       if (tokens?.accessToken) {
-        await fetch(`${API_URL}/project-chat/${projectId}/messages`, {
+        const response = await fetch(`${API_URL}/project-chat/${projectId}/messages`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${tokens.accessToken}`,
           },
           body: JSON.stringify({
-            content: message.trim(),
+            content: messageContent,
             ...(attachment && {
               attachmentUrl: attachment.url,
               attachmentName: attachment.name,
@@ -437,13 +443,20 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
             }),
           }),
         });
+        
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
       }
     } catch (error) {
       console.error('Error saving message:', error);
+      // Mark message as failed in Yjs
+      if (yMessagesRef.current && yMessagesRef.current.get(messageIndex)) {
+        const failedMsg = yMessagesRef.current.get(messageIndex);
+        yMessagesRef.current.delete(messageIndex, 1);
+        yMessagesRef.current.insert(messageIndex, [{ ...failedMsg, error: true }]);
+      }
     }
-
-    setMessage('');
-    setPendingFile(null);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -473,6 +486,50 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
   const handleDownload = (key: string, fileName: string) => {
     const downloadUrl = `${API_URL}/chat/download?key=${encodeURIComponent(key)}&name=${encodeURIComponent(fileName)}`;
     window.open(downloadUrl, '_blank');
+  };
+
+  const handleRetryMessage = async (messageIndex: number, msg: ChatMessage) => {
+    if (!yMessagesRef.current || msg.retrying) return;
+
+    // Mark as retrying
+    yMessagesRef.current.delete(messageIndex, 1);
+    yMessagesRef.current.insert(messageIndex, [{ ...msg, retrying: true, error: false }]);
+
+    try {
+      const tokens = await getTokens();
+      if (tokens?.accessToken) {
+        const response = await fetch(`${API_URL}/project-chat/${projectId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
+          body: JSON.stringify({
+            content: msg.content,
+            ...(msg.attachment && {
+              attachmentUrl: msg.attachment.url,
+              attachmentName: msg.attachment.name,
+              attachmentSize: String(msg.attachment.size),
+              attachmentType: msg.attachment.type,
+              attachmentPublicId: msg.attachment.publicId,
+            }),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
+
+        // Success - remove error and retrying flags
+        yMessagesRef.current.delete(messageIndex, 1);
+        yMessagesRef.current.insert(messageIndex, [{ ...msg, retrying: false, error: false }]);
+      }
+    } catch (error) {
+      console.error('Error retrying message:', error);
+      // Mark as failed again
+      yMessagesRef.current.delete(messageIndex, 1);
+      yMessagesRef.current.insert(messageIndex, [{ ...msg, retrying: false, error: true }]);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -912,10 +969,16 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
                   <span className="text-xs text-slate-500">{formatTime(msg.timestamp)}</span>
                 </div>
                 <div
+                  onClick={() => msg.error && isOwnMessage ? handleRetryMessage(index, msg) : undefined}
+                  title={msg.error ? 'Message not sent. Click to retry.' : undefined}
                   className={`inline-block px-3 py-2 rounded-2xl text-sm ${
-                    isOwnMessage
-                      ? 'bg-blue-600 text-white rounded-br-md'
-                      : 'bg-slate-800 text-slate-200 rounded-bl-md'
+                    msg.error
+                      ? 'bg-red-600/80 text-white rounded-br-md cursor-pointer hover:bg-red-600 transition-colors'
+                      : msg.retrying
+                        ? 'bg-yellow-600/80 text-white rounded-br-md opacity-70'
+                        : isOwnMessage
+                          ? 'bg-blue-600 text-white rounded-br-md'
+                          : 'bg-slate-800 text-slate-200 rounded-bl-md'
                   }`}
                 >
                   {msg.attachment && (
