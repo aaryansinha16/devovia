@@ -22,6 +22,7 @@ import {
   IconWorld,
 } from '@tabler/icons-react';
 import { Button, Badge, GlassCard, Container, Heading, Text, BackgroundDecorative, toast } from '@repo/ui';
+import NotificationBell from '../../../../components/notifications/notification-bell';
 import {
   getSite,
   getDeployments,
@@ -349,6 +350,7 @@ export default function SiteDetailPage() {
                 <IconTrash className="h-4 w-4 mr-2" />
                 {deleting ? 'Deleting...' : 'Delete'}
               </Button>
+              <NotificationBell />
             </div>
           </div>
         </div>

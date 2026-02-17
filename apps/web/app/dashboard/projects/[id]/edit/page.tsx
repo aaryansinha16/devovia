@@ -22,6 +22,7 @@ import {
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import { useProjectById, useUpdateProject } from "../../../../../lib/hooks/useProject";
 import Loader from "../../../../../components/ui/loader";
+import NotificationBell from "../../../../../components/notifications/notification-bell";
 
 export default function EditProjectPage() {
   const params = useParams();
@@ -117,23 +118,26 @@ export default function EditProjectPage() {
       
       <Container className="py-8 relative z-10">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            onClick={() => router.back()}
-            variant="ghost"
-            size="sm"
-            leftIcon={<IconArrowLeft className="w-5 h-5" />}
-          >
-            Back
-          </Button>
-          <div>
-            <Heading size="h1" className="mb-2">
-              Edit Project
-            </Heading>
-            <Text className="text-slate-400">
-              Update your project information
-            </Text>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => router.back()}
+              variant="ghost"
+              size="sm"
+              leftIcon={<IconArrowLeft className="w-5 h-5" />}
+            >
+              Back
+            </Button>
+            <div>
+              <Heading size="h1" className="mb-2">
+                Edit Project
+              </Heading>
+              <Text className="text-slate-400">
+                Update your project information
+              </Text>
+            </div>
           </div>
+          <NotificationBell />
         </div>
 
         {/* Form */}

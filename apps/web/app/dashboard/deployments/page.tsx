@@ -24,6 +24,7 @@ import {
 } from '@tabler/icons-react';
 import { Button, Badge, Input, GlassCard, Container, Heading, Text, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@repo/ui';
 import { SyncSitesDialog } from '../../../components/deployment/sync-sites-dialog';
+import NotificationBell from '../../../components/notifications/notification-bell';
 import {
   getDashboardStats,
   getSites,
@@ -372,6 +373,7 @@ export default function DeploymentsPage() {
                 Connect Platform
               </Button>
             </Link>
+            <NotificationBell />
           </div>
         </div>
 

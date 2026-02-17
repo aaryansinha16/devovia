@@ -52,6 +52,11 @@ export class WebSocketLogsService {
     this.io.on('connection', (socket) => {
       console.log(`WebSocket client connected: ${socket.id}`);
 
+      // ── Auto-join user notification room ───────────────────────────
+      if (socket.data.userId) {
+        socket.join(`user:${socket.data.userId}`);
+      }
+
       // Join deployment room
       socket.on('join-deployment', async (deploymentId: string) => {
         try {
@@ -161,6 +166,24 @@ export class WebSocketLogsService {
 
     const room = this.io.sockets.adapter.rooms.get(`deployment:${deploymentId}`);
     return room ? room.size : 0;
+  }
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+
+  /**
+   * Emit a new notification to a specific user
+   */
+  emitNotification(userId: string, notification: any) {
+    if (!this.io) return;
+    this.io.to(`user:${userId}`).emit('notification', notification);
+  }
+
+  /**
+   * Emit updated unread notification count to a specific user
+   */
+  emitUnreadCount(userId: string, count: number) {
+    if (!this.io) return;
+    this.io.to(`user:${userId}`).emit('notification-count', { count });
   }
 
   // ── Supercharged Command Progress ────────────────────────────────────────

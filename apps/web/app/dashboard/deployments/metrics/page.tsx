@@ -14,6 +14,7 @@ import {
   IconChartBar,
 } from '@tabler/icons-react';
 import { Button, GlassCard, Container, Heading, Text, BackgroundDecorative } from '@repo/ui';
+import NotificationBell from '../../../../components/notifications/notification-bell';
 import { getDashboardStats } from '../../../../lib/services/deployment-service';
 
 interface DORAMetrics {
@@ -204,6 +205,7 @@ export default function DORAMetricsPage() {
                 <IconRefresh className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
+              <NotificationBell />
             </div>
           </div>
         </div>

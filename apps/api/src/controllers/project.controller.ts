@@ -15,6 +15,7 @@ import {
 } from '../utils/pagination.util';
 
 const prisma = new PrismaClient();
+import { notify } from '../services/notification.service';
 
 // Type for authenticated request
 type AuthRequest = Request & {
@@ -235,9 +236,12 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
       prisma.project.count({ where }),
     ]);
 
+    // Map 'user' → 'owner' so frontend type matches
+    const mapped = projects.map(({ user: owner, ...rest }) => ({ ...rest, owner }));
+
     return res.json(
       paginatedResponse(
-        projects,
+        mapped,
         buildPaginationMeta(page, limit, total),
         'Projects retrieved successfully',
       ),
@@ -324,7 +328,9 @@ export const getProjectById = async (req: AuthRequest, res: Response) => {
     }
     // PUBLIC projects: anyone can view (no check needed)
 
-    return res.json(successResponse(project, 'Project retrieved successfully'));
+    // Map 'user' → 'owner' so frontend type matches
+    const { user: owner, ...rest } = project;
+    return res.json(successResponse({ ...rest, owner }, 'Project retrieved successfully'));
   } catch (error) {
     console.error('Error fetching project:', error);
     return res
@@ -579,6 +585,19 @@ export const addProjectMember = async (req: AuthRequest, res: Response) => {
             avatar: true,
           },
         },
+      },
+    });
+
+    // Notify the added member
+    await notify(memberUserId, {
+      type: 'project_invite',
+      title: 'Added to Project',
+      message: `You were added to project "${project.title}" as ${(role || 'MEMBER').toLowerCase()}.`,
+      data: {
+        projectId: id,
+        projectTitle: project.title,
+        role: role || 'MEMBER',
+        url: `/dashboard/projects/${id}`,
       },
     });
 

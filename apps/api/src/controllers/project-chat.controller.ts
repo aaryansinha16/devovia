@@ -9,6 +9,7 @@ import {
   validationError,
 } from '../utils/response.util';
 import { uploadToR2 } from '../utils/r2.util';
+import { notify, notifyMany } from '../services/notification.service';
 import { cleanupTempFile } from '../middleware/multer.middleware';
 
 // Get project messages
@@ -185,6 +186,64 @@ export const sendProjectMessage = async (req: AuthRequest, res: Response) => {
         },
       },
     });
+
+    // Notify project members about new message
+    const senderName = message.user?.name || message.user?.username || 'Someone';
+    const snippet = (content || 'sent an attachment').substring(0, 100) + ((content || '').length > 100 ? '...' : '');
+
+    // Collect all member IDs except the sender
+    const allMemberIds = [
+      ...(project.userId !== userId ? [project.userId] : []),
+      ...project.members.filter((m) => m.userId !== userId).map((m) => m.userId),
+    ];
+    // Deduplicate
+    const otherMemberIds = [...new Set(allMemberIds)];
+
+    console.log('[Chat Notify] sender:', userId, '| project owner:', project.userId, '| members:', project.members.map(m => m.userId), '| otherMemberIds:', otherMemberIds);
+
+    // Detect @mentions
+    let mentionedIdSet = new Set<string>();
+    if (content) {
+      const mentionRegex = /@(\w+)/g;
+      const mentions = [...content.matchAll(mentionRegex)].map((m: RegExpMatchArray) => m[1]);
+      if (mentions.length > 0) {
+        const mentionedUsers = await prisma.user.findMany({
+          where: { username: { in: mentions } },
+          select: { id: true },
+        });
+        mentionedIdSet = new Set(mentionedUsers.map((u) => u.id).filter((id) => id !== userId));
+
+        if (mentionedIdSet.size > 0) {
+          await notifyMany([...mentionedIdSet], {
+            type: 'mention',
+            title: 'You were mentioned',
+            message: `${senderName} mentioned you in project "${project.title}": "${snippet}"`,
+            data: {
+              projectId,
+              projectTitle: project.title,
+              messageId: message.id,
+              url: `/dashboard/projects/${projectId}`,
+            },
+          });
+        }
+      }
+    }
+
+    // Notify remaining members (not @mentioned) about the new message
+    const nonMentionedIds = otherMemberIds.filter((id) => !mentionedIdSet.has(id));
+    if (nonMentionedIds.length > 0) {
+      await notifyMany(nonMentionedIds, {
+        type: 'project_update',
+        title: `New message in ${project.title}`,
+        message: `${senderName}: ${snippet}`,
+        data: {
+          projectId,
+          projectTitle: project.title,
+          messageId: message.id,
+          url: `/dashboard/projects/${projectId}`,
+        },
+      });
+    }
 
     res.status(201).json(successResponse(message, 'Message sent successfully'));
   } catch (error) {

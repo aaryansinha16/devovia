@@ -8,6 +8,7 @@ import { type RunbookStep } from "../../../../lib/services/runbooks-service";
 import { useCreateRunbook } from "../../../../lib/hooks/useRunbook";
 import { Container, Heading, Text, GlassCard, IconButton, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, toast } from "@repo/ui";
 import { FansyInput, FansyLabel } from "@repo/ui/components";
+import NotificationBell from "../../../../components/notifications/notification-bell";
 
 const RunbookFlowEditor = dynamic(
   () => import("../../../../components/runbooks/editor/RunbookFlowEditor").then((mod) => mod.RunbookFlowEditor),
@@ -111,6 +112,7 @@ export default function CreateRunbookPage() {
             >
               {saving ? "Creating..." : "Create Runbook"}
             </Button>
+            <NotificationBell />
           </div>
         </div>
         {/* Error handling now via toast */}

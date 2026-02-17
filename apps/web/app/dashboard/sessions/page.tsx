@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../lib/auth-context';
 import { useSessionStore } from '../../../lib/stores/session-store';
+import NotificationBell from '../../../components/notifications/notification-bell';
 
 const LANGUAGE_ICONS = {
   TYPESCRIPT: '🔷',
@@ -365,7 +366,10 @@ export default function SessionsPage() {
               Code, debug, and collaborate with your team in real-time
             </Text>
           </div>
-          <CreateSessionDialog />
+          <div className="flex items-center gap-3">
+            <CreateSessionDialog />
+            <NotificationBell />
+          </div>
         </div>
 
         {/* Tabs */}

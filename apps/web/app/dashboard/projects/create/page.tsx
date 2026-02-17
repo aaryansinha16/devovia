@@ -21,6 +21,7 @@ import {
 } from "@repo/ui";
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import { useCreateProject } from "../../../../lib/hooks/useProject";
+import NotificationBell from "../../../../components/notifications/notification-bell";
 
 export default function CreateProjectPage() {
   const router = useRouter();
@@ -81,23 +82,26 @@ export default function CreateProjectPage() {
       
       <Container className="py-8 relative z-10">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            onClick={() => router.back()}
-            variant="ghost"
-            size="sm"
-            leftIcon={<IconArrowLeft className="w-5 h-5" />}
-          >
-            Back
-          </Button>
-          <div>
-            <Heading size="h1" className="mb-2">
-              Create New Project
-            </Heading>
-            <Text className="text-slate-400">
-              Add a new project to your portfolio
-            </Text>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => router.back()}
+              variant="ghost"
+              size="sm"
+              leftIcon={<IconArrowLeft className="w-5 h-5" />}
+            >
+              Back
+            </Button>
+            <div>
+              <Heading size="h1" className="mb-2">
+                Create New Project
+              </Heading>
+              <Text className="text-slate-400">
+                Add a new project to your portfolio
+              </Text>
+            </div>
           </div>
+          <NotificationBell />
         </div>
 
         {/* Form */}

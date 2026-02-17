@@ -28,6 +28,7 @@ import {
   IconFilter,
 } from '@tabler/icons-react';
 import { Button, Badge, GlassCard, Input, toast } from '@repo/ui';
+import NotificationBell from '../../../../../components/notifications/notification-bell';
 import {
   getDeployment,
   getDeploymentLogs,
@@ -321,6 +322,7 @@ export default function DeploymentDetailPage() {
                 </Button>
               </a>
             )}
+            <NotificationBell />
           </div>
         </div>
       </div>

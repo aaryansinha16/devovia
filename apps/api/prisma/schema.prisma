@@ -56,6 +56,9 @@ model User {
   superchargedMacros    SuperchargedMacro[]
   superchargedOrchestrators SuperchargedOrchestrator[]
   superchargedSchedules SuperchargedSchedule[]
+  notifications         Notification[]
+  notificationPreference NotificationPreference?
+  pushSubscriptions     PushSubscription[]
 }
 
 // User sessions for authentication and token management
@@ -1361,6 +1364,56 @@ model SuperchargedSchedule {
   @@map("supercharged_schedules")
 }
 
+// ============================================================================
+// NOTIFICATIONS MODELS
+// ============================================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      String   // project_invite, deployment_failed, deployment_success, session_invite,
+                     // runbook_completed, runbook_failed, mention, security, system
+  title     String
+  message   String   @db.Text
+  data      Json?    // Arbitrary payload: { projectId, deploymentId, url, ... }
+
+  read      Boolean  @default(false)
+  readAt    DateTime?
+
+  // Grouping
+  groupKey  String?  // For batching related notifications
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Channel toggles
+  emailEnabled Boolean @default(true)
+  pushEnabled  Boolean @default(false)
+  inAppEnabled Boolean @default(true)
+
+  // Per-type channel overrides: { "deployment_failed": { email: true, push: true, inApp: true } }
+  channelOverrides Json?
+
+  // Digest preference
+  digestFrequency String @default("daily") // "daily", "weekly", "never"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
 // Personalized AI Memory for Supercharged Mode
 model SuperchargedMemory {
   id        String   @id @default(cuid())
@@ -1384,4 +1437,18 @@ model SuperchargedMemory {
   @@unique([userId, category, key])
   @@index([userId])
   @@map("supercharged_memories")
+}
+
+// Web Push subscriptions for browser push notifications
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  keys      Json     // { p256dh, auth }
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

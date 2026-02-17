@@ -7,8 +7,9 @@ import Link from "next/link";
 import { useAuth } from "../../lib/auth-context";
 import { DashboardCanvasLayout } from "../../components/dashboard-canvas-layout";
 import { fetchDashboardStats, fetchDashboardActivity, DashboardStats, DashboardActivity } from "../../lib/dashboard-api";
-import { IconPlus, IconBell } from "@tabler/icons-react";
-import { Button, Container, Heading, Text, BackgroundDecorative, toast, IconButton } from "@repo/ui";
+import { IconPlus } from "@tabler/icons-react";
+import NotificationBell from "../../components/notifications/notification-bell";
+import { Button, Container, Heading, Text, BackgroundDecorative, toast } from "@repo/ui";
 import { useRouter } from "next/navigation";
 import Loader from "../../components/ui/loader";
 
@@ -65,7 +66,7 @@ export default function DashboardPage() {
               Here's what's happening with your projects today.
             </Text>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             <Link
               href="/dashboard/blogs/create"
               className="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 text-white flex items-center gap-2 shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-105"
@@ -73,7 +74,7 @@ export default function DashboardPage() {
               <IconPlus className="w-5 h-5" />
               <span>New Project</span>
             </Link>
-            <IconButton icon={<IconBell className="w-5 h-5 text-slate-700 dark:text-slate-300" />} />
+            <NotificationBell />
           </div>
         </div>
 
