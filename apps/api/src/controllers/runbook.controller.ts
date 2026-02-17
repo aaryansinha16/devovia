@@ -20,8 +20,59 @@ import {
   permissionError 
 } from '../utils/response.util';
 import { buildPaginationMeta } from '../utils/pagination.util';
+import { notify } from '../services/notification.service';
 
 const executionService = new RunbookExecutionService(prisma);
+
+// Listen for execution completion/failure events and send notifications
+executionService.on('execution:completed', async (data: any) => {
+  try {
+    const execution = await prisma.runbookExecution.findUnique({
+      where: { id: data.executionId },
+      include: { runbook: true },
+    });
+    if (execution) {
+      await notify(execution.triggeredBy, {
+        type: 'runbook_completed',
+        title: 'Runbook Completed',
+        message: `Runbook "${execution.runbook.name}" completed successfully.`,
+        data: {
+          runbookId: execution.runbookId,
+          executionId: execution.id,
+          runbookName: execution.runbook.name,
+          url: `/dashboard/runbooks/${execution.runbookId}`,
+        },
+      });
+    }
+  } catch (err) {
+    console.error('Notification error (runbook completed):', err);
+  }
+});
+
+executionService.on('execution:failed', async (data: any) => {
+  try {
+    const execution = await prisma.runbookExecution.findUnique({
+      where: { id: data.executionId },
+      include: { runbook: true },
+    });
+    if (execution) {
+      await notify(execution.triggeredBy, {
+        type: 'runbook_failed',
+        title: 'Runbook Failed',
+        message: `Runbook "${execution.runbook.name}" failed: ${data.error || 'Unknown error'}`,
+        data: {
+          runbookId: execution.runbookId,
+          executionId: execution.id,
+          runbookName: execution.runbook.name,
+          error: data.error,
+          url: `/dashboard/runbooks/${execution.runbookId}`,
+        },
+      });
+    }
+  } catch (err) {
+    console.error('Notification error (runbook failed):', err);
+  }
+});
 
 // ============================================================================
 // RUNBOOK CRUD OPERATIONS

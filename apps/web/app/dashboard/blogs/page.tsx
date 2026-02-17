@@ -19,6 +19,7 @@ import {
   type BlogPost,
 } from "../../../lib/services/blog-service";
 import { Container, Heading, Text, EmptyState, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, GlassCard, toast } from "@repo/ui";
+import NotificationBell from "../../../components/notifications/notification-bell";
 
 export default function BlogsDashboardPage() {
   const router = useRouter();
@@ -113,6 +114,7 @@ export default function BlogsDashboardPage() {
             >
               Create Blog
             </Button>
+            <NotificationBell />
           </div>
         </div>
 

@@ -14,6 +14,18 @@ const config: Config = {
   darkMode: "class",
   theme: {
     extend: {
+      keyframes: {
+        wiggle: {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "20%": { transform: "rotate(12deg)" },
+          "40%": { transform: "rotate(-10deg)" },
+          "60%": { transform: "rotate(6deg)" },
+          "80%": { transform: "rotate(-4deg)" },
+        },
+      },
+      animation: {
+        wiggle: "wiggle 0.4s ease-in-out",
+      },
       colors: {
         border: "rgb(var(--border) / <alpha-value>)",
         input: "rgb(var(--input) / <alpha-value>)",

@@ -12,6 +12,7 @@ import {
   IconAlertCircle,
 } from '@tabler/icons-react';
 import { Button, Input, Label, GlassCard, toast } from '@repo/ui';
+import NotificationBell from '../../../../components/notifications/notification-bell';
 import {
   createConnection,
   type DeploymentPlatform,
@@ -139,13 +140,16 @@ export default function ConnectPlatformPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <Link
-          href="/dashboard/deployments"
-          className="inline-flex items-center text-neutral-400 hover:text-white mb-4"
-        >
-          <IconArrowLeft className="h-4 w-4 mr-2" />
-          Back to Deployments
-        </Link>
+        <div className="flex items-center justify-between mb-4">
+          <Link
+            href="/dashboard/deployments"
+            className="inline-flex items-center text-neutral-400 hover:text-white"
+          >
+            <IconArrowLeft className="h-4 w-4 mr-2" />
+            Back to Deployments
+          </Link>
+          <NotificationBell />
+        </div>
         <h1 className="text-3xl font-bold text-white">Connect Platform</h1>
         <p className="text-neutral-400 mt-1">
           Connect your deployment platform to track and manage deployments

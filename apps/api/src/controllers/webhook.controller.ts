@@ -13,6 +13,7 @@ import {
   badRequestError,
 } from '../utils/response.util';
 import { decrypt } from '../utils/encryption.util';
+import { notify } from '../services/notification.service';
 
 const db = prisma;
 
@@ -272,6 +273,27 @@ async function handleGitHubDeploymentStatus(payload: any) {
           },
         },
       });
+
+      // Send notification for deployment success/failure
+      if (newStatus === 'READY' || newStatus === 'ERROR') {
+        const siteOwner = await db.platformConnection.findFirst({
+          where: { deploymentSites: { some: { id: site.id } } },
+          select: { userId: true },
+        });
+        if (siteOwner) {
+          await notify(siteOwner.userId, {
+            type: newStatus === 'READY' ? 'deployment_success' : 'deployment_failed',
+            title: newStatus === 'READY' ? 'Deployment Succeeded' : 'Deployment Failed',
+            message: `${site.name}: ${deployment_status?.description || (newStatus === 'READY' ? 'Deployment completed successfully.' : 'Deployment failed.')}`,
+            data: {
+              deploymentId: existingDeployment.id,
+              siteId: site.id,
+              siteName: site.name,
+              url: `/dashboard/deployments`,
+            },
+          });
+        }
+      }
     }
   }
 }

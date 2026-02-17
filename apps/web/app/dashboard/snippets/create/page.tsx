@@ -22,6 +22,7 @@ import {
 import { IconArrowLeft, IconPlus, IconX } from "@tabler/icons-react";
 import Editor from "@monaco-editor/react";
 import { useCreateSnippet } from "../../../../lib/hooks/useSnippet";
+import NotificationBell from "../../../../components/notifications/notification-bell";
 
 export default function CreateSnippetPage() {
   const router = useRouter();
@@ -75,15 +76,17 @@ export default function CreateSnippetPage() {
       <Container className="relative z-10 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<IconArrowLeft className="w-4 h-4" />}
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            Back to Snippets
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<IconArrowLeft className="w-4 h-4" />}
+              onClick={() => router.back()}
+            >
+              Back to Snippets
+            </Button>
+            <NotificationBell />
+          </div>
           <Heading size="h1" variant="gradient" spacing="sm">
             Create New Snippet
           </Heading>

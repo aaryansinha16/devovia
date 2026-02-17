@@ -10,6 +10,7 @@ import {
   BlogFormData,
 } from "../../../../lib/services/blog-service";
 import { BlogCreationStepper } from "../../../../components/blog-creation-stepper";
+import NotificationBell from "../../../../components/notifications/notification-bell";
 
 export default function CreateBlogPage() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function CreateBlogPage() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center justify-between mb-8">
           <button
             onClick={() => router.back()}
             className="p-3 bg-slate-900/50 rounded-xl hover:bg-slate-900/70 transition-all hover:shadow-xl hover:scale-105"
@@ -59,6 +60,7 @@ export default function CreateBlogPage() {
           >
             <IconArrowLeft size={20} className="text-slate-300" />
           </button>
+          <NotificationBell />
         </div>
 
         <BlogCreationStepper

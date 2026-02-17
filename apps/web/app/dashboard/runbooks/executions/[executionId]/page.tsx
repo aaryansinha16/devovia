@@ -12,6 +12,7 @@ import {
 import { API_URL } from "../../../../../lib/api-config";
 import { Container, Heading, Text, GlassCard, IconButton, BackgroundDecorative } from "@repo/ui";
 import Loader from '../../../../../components/ui/loader';
+import NotificationBell from '../../../../../components/notifications/notification-bell';
 
 const statusColors: Record<string, string> = {
   QUEUED: "bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400",
@@ -203,16 +204,19 @@ export default function ExecutionDetailsPage() {
               </button>
             </div>
           </div>
-          {isRunning && (
-            <button
-              onClick={handleCancel}
-              disabled={cancelling}
-              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <IconSquare size={16} />
-              {cancelling ? "Cancelling..." : "Cancel"}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {isRunning && (
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <IconSquare size={16} />
+                {cancelling ? "Cancelling..." : "Cancel"}
+              </button>
+            )}
+            <NotificationBell />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

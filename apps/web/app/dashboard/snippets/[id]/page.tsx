@@ -28,6 +28,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useSnippetById, useDeleteSnippet } from "../../../../lib/hooks/useSnippet";
 import Loader from '../../../../components/ui/loader';
+import NotificationBell from '../../../../components/notifications/notification-bell';
 
 export default function SnippetDetailPage() {
   const params = useParams();
@@ -186,6 +187,7 @@ export default function SnippetDetailPage() {
               >
                 Delete
               </Button>
+              <NotificationBell />
             </div>
           </div>
         </div>

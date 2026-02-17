@@ -27,6 +27,7 @@ import {
   IconClock,
 } from "@tabler/icons-react";
 import { useProjects } from "../../../lib/hooks/useProject";
+import NotificationBell from "../../../components/notifications/notification-bell";
 import { useDebouncedValue } from "../../../lib/hooks/useDebounce";
 import Loader from "../../../components/ui/loader";
 
@@ -85,14 +86,17 @@ export default function ProjectsPage() {
               Manage and showcase your development projects
             </Text>
           </div>
-          <Button
-            onClick={() => router.push("/dashboard/projects/create")}
-            variant="gradient"
-            size="md"
-            leftIcon={<IconPlus className="w-5 h-5" />}
-          >
-            New Project
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => router.push("/dashboard/projects/create")}
+              variant="gradient"
+              size="md"
+              leftIcon={<IconPlus className="w-5 h-5" />}
+            >
+              New Project
+            </Button>
+            <NotificationBell />
+          </div>
         </div>
 
         {/* Filters */}

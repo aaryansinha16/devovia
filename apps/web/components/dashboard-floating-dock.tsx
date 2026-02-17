@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FloatingDock } from "@repo/ui";
 import {
   IconDashboard,
@@ -16,12 +16,25 @@ import {
   IconPlayerPlay,
   IconBriefcase,
   IconBolt,
+  IconLogout,
 } from "@tabler/icons-react";
 import { useSupercharged } from "./supercharged/supercharged-context";
+import { useAuth } from "../lib/auth-context";
 
 export function DashboardFloatingDock() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const { toggle, isOpen, isActivating } = useSupercharged();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   const links = [
     {
@@ -103,6 +116,15 @@ export function DashboardFloatingDock() {
       ),
       href: "/settings",
       isActive: pathname.startsWith("/settings"),
+    },
+    {
+      title: "Logout",
+      icon: (
+        <IconLogout className="h-full w-full text-red-500 dark:text-red-400" />
+      ),
+      href: "#",
+      isActive: false,
+      onClick: handleLogout,
     },
   ];
 

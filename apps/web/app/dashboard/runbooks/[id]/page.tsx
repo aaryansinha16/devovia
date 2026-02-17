@@ -14,6 +14,7 @@ import Loader from '../../../../components/ui/loader';
 import { type RunbookStep } from "../../../../lib/services/runbooks-service";
 import { useRunbookById, useUpdateRunbook, useExecuteRunbook } from "../../../../lib/hooks/useRunbook";
 import { Container, Heading, Text, GlassCard, IconButton, Input, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, toast } from "@repo/ui";
+import NotificationBell from "../../../../components/notifications/notification-bell";
 
 // Dynamic import to avoid SSR issues with ReactFlow
 const RunbookFlowEditor = dynamic(
@@ -175,6 +176,7 @@ export default function EditRunbookPage() {
             >
               {saving ? "Saving..." : "Save Changes"}
             </Button>
+            <NotificationBell />
           </div>
         </div>
 

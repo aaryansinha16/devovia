@@ -7,6 +7,7 @@ import { getTokens } from "../../../../lib/services/auth-service";
 import { API_URL } from "../../../../lib/api-config";
 import { useProjectById, useDeleteProject } from "../../../../lib/hooks/useProject";
 import Loader from "../../../../components/ui/loader";
+import NotificationBell from "../../../../components/notifications/notification-bell";
 import {
   IconArrowLeft,
   IconEdit,
@@ -103,7 +104,7 @@ export default function ProjectDetailPage() {
         return;
       }
 
-      const { user } = await searchResponse.json();
+      const { data } = await searchResponse.json();
 
       // Then add the user as a member
       const addResponse = await fetch(
@@ -115,7 +116,7 @@ export default function ProjectDetailPage() {
             "Authorization": `Bearer ${tokens.accessToken}`,
           },
           body: JSON.stringify({
-            userId: user.id,
+            userId: data.id,
             role: memberRole,
           }),
         }
@@ -305,7 +306,7 @@ export default function ProjectDetailPage() {
               </Text>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button
               onClick={() => router.push(`/dashboard/projects/${params.id}/edit`)}
               variant="outline"
@@ -321,6 +322,7 @@ export default function ProjectDetailPage() {
             >
               Delete
             </Button>
+            <NotificationBell />
           </div>
         </div>
 

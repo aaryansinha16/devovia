@@ -23,6 +23,7 @@ import Editor from "@monaco-editor/react";
 import { useSnippetById, useUpdateSnippet } from '../../../../../lib/hooks/useSnippet';
 import { toast } from "@repo/ui";
 import Loader from '../../../../../components/ui/loader';
+import NotificationBell from '../../../../../components/notifications/notification-bell';
 
 export default function EditSnippetPage() {
   const params = useParams();
@@ -107,15 +108,17 @@ export default function EditSnippetPage() {
       <Container className="relative z-10 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<IconArrowLeft className="w-4 h-4" />}
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            Back
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<IconArrowLeft className="w-4 h-4" />}
+              onClick={() => router.back()}
+            >
+              Back
+            </Button>
+            <NotificationBell />
+          </div>
           <Heading size="h1" variant="gradient" spacing="sm">
             Edit Snippet
           </Heading>

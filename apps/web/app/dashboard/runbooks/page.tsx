@@ -14,6 +14,7 @@ import { type Runbook, deleteRunbook, executeRunbook } from "../../../lib/servic
 import { useRunbooks } from "../../../lib/hooks/useRunbook";
 import { Container, Heading, Text, Input, EmptyState, GlassCard, BackgroundDecorative, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Button, toast } from "@repo/ui";
 import Loader from "../../../components/ui/loader";
+import NotificationBell from "../../../components/notifications/notification-bell";
 
 const statusColors: Record<string, string> = {
   DRAFT: "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
@@ -118,6 +119,7 @@ export default function RunbooksPage() {
             >
               Create Runbook
             </Button>
+            <NotificationBell />
           </div>
         </div>
 

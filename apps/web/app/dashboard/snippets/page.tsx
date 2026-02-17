@@ -37,6 +37,7 @@ import { useAuth } from "../../../lib/auth-context";
 import { useSnippets, useDeleteSnippet } from "../../../lib/hooks/useSnippet";
 import { useDebouncedValue } from "../../../lib/hooks/useDebounce";
 import Loader from "../../../components/ui/loader";
+import NotificationBell from "../../../components/notifications/notification-bell";
 
 export default function SnippetsPage() {
   const router = useRouter();
@@ -95,14 +96,17 @@ export default function SnippetsPage() {
               Save and organize your code snippets with syntax highlighting
             </Text>
           </div>
-          <Button
-            variant="gradient"
-            size="md"
-            leftIcon={<IconPlus className="w-5 h-5" />}
-            onClick={handleCreateSnippet}
-          >
-            New Snippet
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="gradient"
+              size="md"
+              leftIcon={<IconPlus className="w-5 h-5" />}
+              onClick={handleCreateSnippet}
+            >
+              New Snippet
+            </Button>
+            <NotificationBell />
+          </div>
         </div>
 
         {/* Filters and Search */}
