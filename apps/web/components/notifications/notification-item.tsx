@@ -47,8 +47,8 @@ export default function NotificationItem({ notification }: { notification: Notif
   const router = useRouter();
   const { markAsRead, deleteNotification, setIsDropdownOpen } = useNotifications();
 
-  const config = TYPE_CONFIG[notification.type] || TYPE_CONFIG.system;
-  const Icon = config.icon;
+  const config = TYPE_CONFIG[notification.type] || TYPE_CONFIG.system || { icon: IconInfoCircle, color: "text-slate-400" };
+  const Icon: React.ElementType = config.icon;
 
   const handleClick = async () => {
     if (!notification.read) {
@@ -79,7 +79,7 @@ export default function NotificationItem({ notification }: { notification: Notif
     >
       {/* Icon */}
       <div className={`mt-0.5 shrink-0 ${config.color}`}>
-        <Icon className="w-5 h-5" />
+        {React.createElement(Icon, { className: "w-5 h-5" })}
       </div>
 
       {/* Content */}
