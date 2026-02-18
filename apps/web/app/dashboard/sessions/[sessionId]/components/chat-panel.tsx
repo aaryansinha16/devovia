@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, MessageSquare, Paperclip, X, FileText, Image, File, Download, Loader2, Calendar as CalendarIcon, ChevronDown, Search } from 'lucide-react';
+import { Send, MessageSquare, Paperclip, X, FileText, Image, File, Download, Loader2, Calendar as CalendarIcon, ChevronDown, Search, Reply, Edit2, CheckCheck } from 'lucide-react';
 import { Button, Input, IconButton, Popover, PopoverTrigger, PopoverContent, Calendar, cn } from '@repo/ui';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
@@ -17,14 +17,25 @@ interface ChatAttachment {
   type: string;
 }
 
+interface ReplyTo {
+  id: string;
+  userId: string;
+  userName: string;
+  content: string;
+}
+
 interface ChatMessage {
   id: string;
   userId: string;
   userName: string;
+  userAvatar?: string;
   userColor: string;
   content: string;
   timestamp: number;
   attachment?: ChatAttachment;
+  replyTo?: ReplyTo;
+  readBy?: string[];
+  editedAt?: number;
   error?: boolean;
   retrying?: boolean;
 }
@@ -40,6 +51,8 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,9 +64,12 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const readObserverRef = useRef<IntersectionObserver | null>(null);
+  const shouldScrollToBottom = useRef(true);
   const ydocRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
   const yMessagesRef = useRef<Y.Array<ChatMessage> | null>(null);
+  const yReadReceiptsRef = useRef<Y.Map<string[]> | null>(null);
 
   // Generate user color based on user ID
   const generateUserColor = (userId: string): string => {
@@ -79,47 +95,140 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
   useEffect(() => {
     if (!token || !sessionId) return;
 
-    // Create Yjs document for chat
     const ydoc = new Y.Doc();
     ydocRef.current = ydoc;
 
-    // Connect to WebSocket server with chat-specific room
     const wsUrl = `${WS_URL}?token=${encodeURIComponent(token)}`;
     const provider = new WebsocketProvider(wsUrl, `chat-${sessionId}`, ydoc);
     providerRef.current = provider;
 
-    // Get shared messages array
     const yMessages = ydoc.getArray<ChatMessage>('messages');
     yMessagesRef.current = yMessages;
 
-    // Sync messages from Yjs
+    const yReadReceipts = ydoc.getMap<string[]>('readReceipts');
+    yReadReceiptsRef.current = yReadReceipts;
+
     const syncMessages = () => {
       setMessages(yMessages.toArray());
     };
 
-    // Listen for changes
+    const syncReadReceipts = () => {
+      setMessages((prev) => {
+        let changed = false;
+        const updated = prev.map((msg) => {
+          const readers = yReadReceipts.get(msg.id);
+          if (readers && JSON.stringify(msg.readBy) !== JSON.stringify(readers)) {
+            changed = true;
+            return { ...msg, readBy: readers };
+          }
+          return msg;
+        });
+        return changed ? updated : prev;
+      });
+    };
+
     yMessages.observe(syncMessages);
-    
-    // Initial sync
+    yReadReceipts.observe(syncReadReceipts);
     syncMessages();
 
-    // Connection status
     provider.on('status', ({ status }: { status: string }) => {
       setIsConnected(status === 'connected');
     });
 
     return () => {
       yMessages.unobserve(syncMessages);
+      yReadReceipts.unobserve(syncReadReceipts);
       provider.disconnect();
       provider.destroy();
       ydoc.destroy();
     };
   }, [token, sessionId]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom only when user is near the bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (shouldScrollToBottom.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
+
+  const markMessageAsRead = useCallback((messageId: string) => {
+    if (!user?.id) return;
+
+    setMessages((prev) => {
+      const msgIndex = prev.findIndex((m) => m.id === messageId);
+      if (msgIndex === -1) return prev;
+      const msg = prev[msgIndex];
+      if (!msg) return prev;
+      if (msg.userId === user.id) return prev;
+      if (msg.readBy?.includes(user.id)) return prev;
+      const updated = [...prev] as typeof prev;
+      updated[msgIndex] = { ...msg, readBy: [...(msg.readBy || []), user.id] };
+      return updated;
+    });
+
+    if (yReadReceiptsRef.current) {
+      const existing = yReadReceiptsRef.current.get(messageId) || [];
+      if (!existing.includes(user.id)) {
+        yReadReceiptsRef.current.set(messageId, [...existing, user.id]);
+      }
+    }
+  }, [user?.id]);
+
+  // Intersection Observer: mark messages as read when they scroll into view
+  useEffect(() => {
+    if (!user?.id) return;
+
+    if (readObserverRef.current) readObserverRef.current.disconnect();
+
+    readObserverRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const messageId = (entry.target as HTMLElement).dataset.messageId;
+            if (messageId) markMessageAsRead(messageId);
+          }
+        });
+      },
+      { threshold: 0.5, root: messagesContainerRef.current },
+    );
+
+    messageRefs.current.forEach((el, messageId) => {
+      const msg = messages.find((m) => m.id === messageId);
+      if (msg && msg.userId !== user.id && !msg.readBy?.includes(user.id)) {
+        readObserverRef.current?.observe(el);
+      }
+    });
+
+    return () => readObserverRef.current?.disconnect();
+  }, [messages, user?.id, markMessageAsRead]);
+
+  // Viewport scan: catch already-visible messages after render
+  useEffect(() => {
+    if (!user?.id || messages.length === 0) return;
+
+    const currentMessages = messages;
+    const currentUserId = user.id;
+
+    const scan = () => {
+      const scrollContainer = messagesContainerRef.current;
+      if (!scrollContainer) return;
+      const containerRect = scrollContainer.getBoundingClientRect();
+      messageRefs.current.forEach((el, messageId) => {
+        const msg = currentMessages.find((m) => m.id === messageId);
+        if (!msg || msg.userId === currentUserId || msg.readBy?.includes(currentUserId)) return;
+        const elRect = el.getBoundingClientRect();
+        const isVisible =
+          elRect.top < containerRect.bottom &&
+          elRect.bottom > containerRect.top &&
+          elRect.height > 0;
+        if (isVisible) markMessageAsRead(messageId);
+      });
+    };
+
+    scan();
+    const raf = requestAnimationFrame(scan);
+    return () => cancelAnimationFrame(raf);
+  }, [messages, user?.id, markMessageAsRead]);
 
   const uploadFile = async (file: File): Promise<ChatAttachment | null> => {
     try {
@@ -156,16 +265,21 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
   const handleSendMessage = async () => {
     if ((!message.trim() && !pendingFile) || !yMessagesRef.current || !user || !user.id) return;
 
-    // Capture values before clearing (optimistic UI)
+    if (editingMessage) {
+      handleSaveEdit();
+      return;
+    }
+
     const messageContent = message.trim();
     const fileToUpload = pendingFile;
+    const currentReply = replyingTo;
 
-    // Clear input immediately for instant UX feedback
     setMessage('');
     setPendingFile(null);
+    setReplyingTo(null);
 
     const userId = user.id as string;
-    const userColor = generateUserColor(userId);
+    const msgUserColor = generateUserColor(userId);
 
     let attachment: ChatAttachment | undefined;
 
@@ -173,25 +287,69 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
       setIsUploading(true);
       const uploaded = await uploadFile(fileToUpload);
       setIsUploading(false);
-      if (uploaded) {
-        attachment = uploaded;
-      } else {
-        return;
-      }
+      if (!uploaded) return;
+      attachment = uploaded;
     }
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
-      userId: userId,
+      userId,
       userName: user.name || user.email || 'Anonymous',
-      userColor: userColor,
+      userAvatar: user.avatar ?? undefined,
+      userColor: msgUserColor,
       content: messageContent,
       timestamp: Date.now(),
       ...(attachment && { attachment }),
+      ...(currentReply && {
+        replyTo: {
+          id: currentReply.id,
+          userId: currentReply.userId,
+          userName: currentReply.userName,
+          content: currentReply.content,
+        },
+      }),
     };
 
+    shouldScrollToBottom.current = true;
     yMessagesRef.current.push([newMessage]);
     clearTyping();
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingMessage || !yMessagesRef.current || !message.trim()) return;
+
+    const messageContent = message.trim();
+    const updatedMessage: ChatMessage = {
+      ...editingMessage,
+      content: messageContent,
+      editedAt: Date.now(),
+    };
+
+    const yjsIndex = yMessagesRef.current.toArray().findIndex((m) => m.id === editingMessage.id);
+    if (yjsIndex !== -1) {
+      yMessagesRef.current.delete(yjsIndex, 1);
+      yMessagesRef.current.insert(yjsIndex, [updatedMessage]);
+    }
+
+    setEditingMessage(null);
+    setMessage('');
+  };
+
+  const handleEdit = (msg: ChatMessage) => {
+    if (msg.userId !== user?.id) return;
+    setReplyingTo(null);
+    setEditingMessage(msg);
+    setMessage(msg.content);
+  };
+
+  const handleReply = (msg: ChatMessage) => {
+    setEditingMessage(null);
+    setReplyingTo(msg);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setMessage('');
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,6 +407,10 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+    if (e.key === 'Escape') {
+      if (editingMessage) handleCancelEdit();
+      if (replyingTo) setReplyingTo(null);
     }
   };
 
@@ -578,67 +740,117 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
 
             <div
               ref={(el) => { if (el) messageRefs.current.set(msg.id, el); }}
-              className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''}`}
+              data-message-id={msg.id}
+              className={`group flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''} transition-all duration-300`}
             >
-              <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
-                style={{ backgroundColor: msg.userColor }}
-              >
-                {msg.userName.charAt(0).toUpperCase()}
-              </div>
-              
-              <div className={`flex-1 min-w-0 max-w-[80%] ${isOwnMessage ? 'text-right' : ''}`}>
-                <div className={`flex items-center gap-2 mb-1 ${isOwnMessage ? 'justify-end' : ''}`}>
+              {msg.userAvatar ? (
+                <img
+                  src={msg.userAvatar}
+                  alt={msg.userName}
+                  className="w-8 h-8 rounded-full flex-shrink-0"
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
+                  style={{ backgroundColor: msg.userColor }}
+                >
+                  {msg.userName.charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              <div className={`min-w-0 flex flex-col ${isOwnMessage ? 'text-right' : ''}`}>
+                <div className={`flex items-center gap-1.5 mb-1 ${isOwnMessage ? 'justify-end' : ''}`}>
                   <span className="text-xs font-medium text-slate-300">
                     {isOwnMessage ? 'You' : msg.userName}
                   </span>
-                  <span className="text-xs text-slate-500">
-                    {formatTime(msg.timestamp)}
-                  </span>
+                  <span className="text-xs text-slate-500">{formatTime(msg.timestamp)}</span>
+                  {isOwnMessage && !msg.error && !msg.retrying && (
+                    msg.readBy && msg.readBy.length > 0
+                      ? <span title={`Seen by ${msg.readBy.length}`}><CheckCheck className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" /></span>
+                      : <span title="Delivered"><CheckCheck className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" /></span>
+                  )}
                 </div>
-                <div 
-                  onClick={() => msg.error && isOwnMessage ? handleRetryMessage(index, msg) : undefined}
-                  title={msg.error ? 'Message not sent. Click to retry.' : undefined}
-                  className={`inline-block px-3 py-2 rounded-2xl text-sm ${
-                    msg.error
-                      ? 'bg-red-600/80 text-white rounded-br-md cursor-pointer hover:bg-red-600 transition-colors'
-                      : msg.retrying
-                        ? 'bg-yellow-600/80 text-white rounded-br-md opacity-70'
-                        : isOwnMessage 
-                          ? 'bg-blue-600 text-white rounded-br-md' 
-                          : 'bg-slate-800 text-slate-200 rounded-bl-md'
-                  }`}
-                >
-                  {msg.attachment && (
-                    <div className="mb-1.5">
-                      {isImageType(msg.attachment.type) ? (
-                        <a href={getFileUrl(msg.attachment.url)} target="_blank" rel="noopener noreferrer">
-                          <img
-                            src={getFileUrl(msg.attachment.url)}
-                            alt={msg.attachment.name}
-                            className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          />
-                        </a>
-                      ) : (
+                <div className="relative">
+                  <div
+                    onClick={() => msg.error && isOwnMessage ? handleRetryMessage(index, msg) : undefined}
+                    title={msg.error ? 'Message not sent. Click to retry.' : undefined}
+                    className={`inline-block px-3 py-2 rounded-2xl text-sm relative ${
+                      msg.error
+                        ? 'bg-red-600/80 text-white rounded-br-md cursor-pointer hover:bg-red-600 transition-colors'
+                        : msg.retrying
+                          ? 'bg-yellow-600/80 text-white rounded-br-md opacity-70'
+                          : isOwnMessage
+                            ? 'bg-blue-600 text-white rounded-br-md'
+                            : 'bg-slate-800 text-slate-200 rounded-bl-md'
+                    }`}
+                  >
+                    {msg.replyTo && (
+                      <div className={`mb-2 text-xs rounded-lg p-1.5 -mx-1 shadow-[inset_2px_0_0_0_rgba(148,163,184,0.35)] ${
+                        isOwnMessage ? 'bg-blue-700/20' : 'bg-slate-700/20'
+                      }`}>
+                        <div className="font-medium opacity-90">{msg.replyTo.userName}</div>
+                        <div className="truncate opacity-70">{msg.replyTo.content}</div>
+                      </div>
+                    )}
+
+                    {msg.attachment && (
+                      <div className="mb-1.5">
+                        {isImageType(msg.attachment.type) ? (
+                          <a href={getFileUrl(msg.attachment.url)} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={getFileUrl(msg.attachment.url)}
+                              alt={msg.attachment.name}
+                              className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            />
+                          </a>
+                        ) : (
+                          <button
+                            onClick={() => handleDownload(msg.attachment!.url, msg.attachment!.name)}
+                            className={`flex items-center gap-2 p-2 rounded-lg transition-colors text-left ${
+                              isOwnMessage ? 'bg-blue-700/50 hover:bg-blue-700/70' : 'bg-slate-700/50 hover:bg-slate-700/70'
+                            }`}
+                          >
+                            <FileText className="w-5 h-5 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium truncate">{msg.attachment.name}</p>
+                              <p className={`text-[10px] ${isOwnMessage ? 'text-blue-200' : 'text-slate-400'}`}>
+                                {formatFileSize(msg.attachment.size)}
+                              </p>
+                            </div>
+                            <Download className="w-4 h-4 flex-shrink-0 opacity-60" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {msg.content && <span>{searchQuery ? highlightText(msg.content, searchQuery) : msg.content}</span>}
+
+                    {msg.editedAt && (
+                      <div className={`text-[10px] mt-1 opacity-60 ${isOwnMessage ? 'text-blue-100' : 'text-slate-400'}`}>
+                        (edited)
+                      </div>
+                    )}
+                  </div>
+
+                  {!msg.error && !msg.retrying && (
+                    <div className={`absolute ${isOwnMessage ? 'right-full mr-1.5' : 'left-full ml-1.5'} top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-1`}>
+                      <button
+                        onClick={() => handleReply(msg)}
+                        className="p-1 bg-slate-800/95 hover:bg-slate-700 rounded-md transition-colors shadow-lg"
+                        title="Reply"
+                      >
+                        <Reply className="w-3 h-3 text-slate-300" />
+                      </button>
+                      {isOwnMessage && (
                         <button
-                          onClick={() => handleDownload(msg.attachment!.url, msg.attachment!.name)}
-                          className={`flex items-center gap-2 p-2 rounded-lg transition-colors text-left ${
-                            isOwnMessage ? 'bg-blue-700/50 hover:bg-blue-700/70' : 'bg-slate-700/50 hover:bg-slate-700/70'
-                          }`}
+                          onClick={() => handleEdit(msg)}
+                          className="p-1 bg-slate-800/95 hover:bg-slate-700 rounded-md transition-colors shadow-lg"
+                          title="Edit"
                         >
-                          <FileText className="w-5 h-5 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium truncate">{msg.attachment.name}</p>
-                            <p className={`text-[10px] ${isOwnMessage ? 'text-blue-200' : 'text-slate-400'}`}>
-                              {formatFileSize(msg.attachment.size)}
-                            </p>
-                          </div>
-                          <Download className="w-4 h-4 flex-shrink-0 opacity-60" />
+                          <Edit2 className="w-3 h-3 text-slate-300" />
                         </button>
                       )}
                     </div>
                   )}
-                  {msg.content && <span>{searchQuery ? highlightText(msg.content, searchQuery) : msg.content}</span>}
                 </div>
               </div>
             </div>
@@ -659,6 +871,34 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
       
       {/* Message input */}
       <div className="p-4 border-t border-slate-700/50">
+        {/* Reply banner */}
+        {replyingTo && (
+          <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-slate-800/60 rounded-lg border-l-2 border-blue-500">
+            <Reply className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-[11px] font-medium text-blue-400">{replyingTo.userName}</span>
+              <p className="text-[11px] text-slate-400 truncate">{replyingTo.content}</p>
+            </div>
+            <button onClick={() => setReplyingTo(null)} className="p-0.5 hover:bg-slate-700 rounded flex-shrink-0">
+              <X className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          </div>
+        )}
+
+        {/* Edit banner */}
+        {editingMessage && (
+          <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-slate-800/60 rounded-lg border-l-2 border-yellow-500">
+            <Edit2 className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-[11px] font-medium text-yellow-400">Editing message</span>
+              <p className="text-[11px] text-slate-400 truncate">{editingMessage.content}</p>
+            </div>
+            <button onClick={handleCancelEdit} className="p-0.5 hover:bg-slate-700 rounded flex-shrink-0">
+              <X className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          </div>
+        )}
+
         {/* File preview */}
         {pendingFile && (
           <div className="flex items-center gap-2 mb-2 p-2 bg-slate-800/50 rounded-lg border border-slate-600/30">
@@ -686,25 +926,26 @@ export default function ChatPanel({ sessionId }: ChatPanelProps) {
             accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt,.md,.csv,.xls,.xlsx,.zip,.json"
             onChange={handleFileSelect}
           />
-          <IconButton
-            variant="ghost"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={!isConnected || isUploading}
-            className="text-slate-400 hover:text-sky-400 shadow-none"
-            title="Attach file"
-            icon={<Paperclip className="w-4 h-4" />}
-          />
+          {!editingMessage && (
+            <IconButton
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!isConnected || isUploading}
+              className="text-slate-400 hover:text-sky-400 shadow-none"
+              title="Attach file"
+              icon={<Paperclip className="w-4 h-4" />}
+            />
+          )}
           <Input
             value={message}
             onChange={(e) => {
               setMessage(e.target.value);
-              broadcastTyping();
+              if (!editingMessage) broadcastTyping();
             }}
             variant={'glass'}
-            onKeyPress={handleKeyPress}
-            placeholder={pendingFile ? 'Add a message (optional)...' : 'Type a message...'}
-            // className="flex-1 px-4 py-2.5 bg-slate-800/50 border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm"
+            onKeyDown={handleKeyPress}
+            placeholder={editingMessage ? 'Edit message...' : pendingFile ? 'Add a message (optional)...' : 'Type a message...'}
             disabled={!isConnected || isUploading}
           />
           <Button

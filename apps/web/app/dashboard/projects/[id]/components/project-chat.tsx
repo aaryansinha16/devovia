@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, MessageSquare, Trash2, Paperclip, X, FileText, Image, File, Download, Loader2, Calendar as CalendarIcon, ChevronDown, Search } from 'lucide-react';
+import { Send, MessageSquare, Trash2, Paperclip, X, FileText, Image, File, Download, Loader2, Calendar as CalendarIcon, ChevronDown, Search, Reply, Edit2, Check, CheckCheck } from 'lucide-react';
 import { Button, Input, IconButton, Popover, PopoverTrigger, PopoverContent, Calendar, cn } from '@repo/ui';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
@@ -29,6 +29,13 @@ interface ChatMessage {
   attachment?: ChatAttachment;
   error?: boolean;
   retrying?: boolean;
+  replyTo?: {
+    id: string;
+    userName: string;
+    content: string;
+  };
+  editedAt?: number;
+  readBy?: string[]; // Array of user IDs who have read this message
 }
 
 interface ProjectChatProps {
@@ -65,6 +72,14 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
   const ydocRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
   const yMessagesRef = useRef<Y.Array<ChatMessage> | null>(null);
+  const yReadReceiptsRef = useRef<Y.Map<string[]> | null>(null);
+  const replacedIdsRef = useRef<Map<string, string>>(new Map()); // uuid -> dbId
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
+  const readObserverRef = useRef<IntersectionObserver | null>(null);
+  const [isYjsSynced, setIsYjsSynced] = useState(false);
+  const messagesRef = useRef<ChatMessage[]>([]);
+  const yjsSyncedRef = useRef(false);
 
   // Generate user color based on user ID
   const generateUserColor = (userId: string): string => {
@@ -105,6 +120,17 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
           publicId: msg.attachmentPublicId,
         },
       }),
+      ...(msg.replyToId && {
+        replyTo: {
+          id: msg.replyToId,
+          userId: msg.replyToUserId || '',
+          userName: msg.replyToUserName || 'Unknown',
+          content: msg.replyToContent || '',
+        },
+      }),
+      ...(msg.updatedAt && msg.createdAt && new Date(msg.updatedAt).getTime() > new Date(msg.createdAt).getTime() + 1000
+        ? { editedAt: new Date(msg.updatedAt).getTime() }
+        : {}),
     }));
   };
 
@@ -131,13 +157,33 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     };
   };
 
+  // Keep messagesRef in sync with messages state for synchronous access
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   // Load initial (most recent) messages
   useEffect(() => {
     const loadMessages = async () => {
       try {
         const result = await fetchMessages();
         if (result) {
-          setMessages(result.messages);
+          setMessages((prev) => {
+            // Merge: start from existing state (may have Yjs-pushed messages not yet in DB)
+            const byId = new Map(prev.map((m) => [m.id, m]));
+            result.messages.forEach((apiMsg) => {
+              const existing = byId.get(apiMsg.id);
+              // Apply any read receipts already in the Yjs map
+              const readers = yReadReceiptsRef.current?.get(apiMsg.id);
+              if (!existing) {
+                byId.set(apiMsg.id, readers ? { ...apiMsg, readBy: readers } : apiMsg);
+              } else {
+                // Keep existing readBy if Yjs map has no entry (local state may be ahead)
+                byId.set(apiMsg.id, { ...apiMsg, readBy: readers || existing.readBy });
+              }
+            });
+            return Array.from(byId.values()).sort((a, b) => a.timestamp - b.timestamp);
+          });
           setHasOlder(result.hasOlder);
           setHasNewer(result.hasNewer);
           shouldScrollToBottom.current = true;
@@ -290,38 +336,91 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     const yMessages = ydoc.getArray<ChatMessage>('messages');
     yMessagesRef.current = yMessages;
 
+    // Separate shared map for read receipts: messageId -> userId[]
+    const yReadReceipts = ydoc.getMap<string[]>('readReceipts');
+    yReadReceiptsRef.current = yReadReceipts;
+
     // Track the count of Yjs messages at initial sync so we can
     // ignore stale messages that are already loaded from the API.
     let initialYjsCount: number | null = null;
 
-    // Sync only NEW Yjs messages (added after initial sync) into state
+    // Sync Yjs messages into state:
+    // - Messages not in state by ID are added (genuinely new, sent this session)
+    // - Messages already in state are updated if content/editedAt changed
+    // NOTE: readBy is now handled separately via yReadReceipts map
     const syncMessages = () => {
       if (initialYjsCount === null) return;
-      const allYjs = yMessages.toArray();
-      // Only consider messages added after the initial sync snapshot
-      const newYjsMessages = allYjs.slice(initialYjsCount);
-      if (newYjsMessages.length === 0) return;
+      const newYjsMsgs = yMessages.toArray().slice(initialYjsCount);
+      if (newYjsMsgs.length === 0) return;
 
       setMessages((prev) => {
-        const combined = [...prev];
-        newYjsMessages.forEach((yjsMsg) => {
-          // Only check for duplicate IDs, not content - allow identical messages
-          const isDuplicate = combined.some((m) => m.id === yjsMsg.id);
-          if (!isDuplicate) {
-            combined.push(yjsMsg);
+        const byId = new Map(prev.map((m) => [m.id, m]));
+        let changed = false;
+
+        newYjsMsgs.forEach((yjsMsg) => {
+          // Skip if this UUID has been replaced by a DB ID in React state already (sender side)
+          if (replacedIdsRef.current.has(yjsMsg.id)) return;
+
+          const existing = byId.get(yjsMsg.id);
+          if (!existing) {
+            // Not found by ID — check if it's a UUID→DB ID update for an existing message
+            // Match by userId + timestamp (both are stable across the ID replacement)
+            const staleEntry = Array.from(byId.entries()).find(
+              ([, m]) => m.userId === yjsMsg.userId && m.timestamp === yjsMsg.timestamp && m.id !== yjsMsg.id,
+            );
+            if (staleEntry) {
+              // This is an ID update — remove old UUID entry, add with new DB ID
+              // Also record in replacedIdsRef so markMessageAsRead poll can find DB ID
+              replacedIdsRef.current.set(staleEntry[0], yjsMsg.id);
+              byId.delete(staleEntry[0]);
+              byId.set(yjsMsg.id, { ...yjsMsg, readBy: staleEntry[1].readBy });
+              changed = true;
+            } else {
+              // Genuinely new message
+              byId.set(yjsMsg.id, yjsMsg);
+              changed = true;
+            }
+          } else {
+            const contentChanged = existing.content !== yjsMsg.content;
+            const editedChanged = existing.editedAt !== yjsMsg.editedAt;
+            if (contentChanged || editedChanged) {
+              byId.set(yjsMsg.id, { ...yjsMsg, readBy: existing.readBy });
+              changed = true;
+            }
           }
         });
-        return combined.sort((a, b) => a.timestamp - b.timestamp);
+
+        if (!changed) return prev;
+        return Array.from(byId.values()).sort((a, b) => a.timestamp - b.timestamp);
       });
     };
 
-    // Listen for changes
+    // Listen for message changes
     yMessages.observe(syncMessages);
+
+    // Listen for read receipt changes — update React state when any readBy changes
+    const syncReadReceipts = () => {
+      setMessages((prev) => {
+        let changed = false;
+        const updated = prev.map((msg) => {
+          const readers = yReadReceipts.get(msg.id);
+          if (readers && JSON.stringify(msg.readBy) !== JSON.stringify(readers)) {
+            changed = true;
+            return { ...msg, readBy: readers };
+          }
+          return msg;
+        });
+        return changed ? updated : prev;
+      });
+    };
+    yReadReceipts.observe(syncReadReceipts);
 
     // Once Yjs finishes initial sync, snapshot the current count
     // so we only process messages added after this point.
     provider.on('synced', () => {
+      yjsSyncedRef.current = true;
       initialYjsCount = yMessages.length;
+      setIsYjsSynced(true);
     });
 
     // Connection status
@@ -331,9 +430,13 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
 
     return () => {
       yMessages.unobserve(syncMessages);
+      yReadReceipts.unobserve(syncReadReceipts);
       provider.disconnect();
       provider.destroy();
       ydoc.destroy();
+      yjsSyncedRef.current = false;
+      setIsYjsSynced(false);
+      replacedIdsRef.current.clear();
     };
   }, [token, projectId]);
 
@@ -343,6 +446,127 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  const markMessageAsRead = useCallback((messageId: string) => {
+    if (!user?.id) return;
+
+    // Update React state immediately for local feedback
+    setMessages((prev) => {
+      const msgIndex = prev.findIndex((m) => m.id === messageId);
+      if (msgIndex === -1) return prev;
+      const msg = prev[msgIndex];
+      if (!msg) return prev;
+      if (msg.userId === user.id) return prev;
+      if (msg.readBy?.includes(user.id)) return prev;
+      const updated = [...prev] as typeof prev;
+      updated[msgIndex] = { ...msg, readBy: [...(msg.readBy || []), user.id] };
+      return updated;
+    });
+
+    const writeReceipt = (id: string) => {
+      if (!yReadReceiptsRef.current) return;
+      const existing = yReadReceiptsRef.current.get(id) || [];
+      if (!existing.includes(user.id)) {
+        yReadReceiptsRef.current.set(id, [...existing, user.id]);
+      }
+    };
+
+    // UUIDs are temp IDs — the sender will replace them with DB IDs shortly.
+    // If we write a receipt under a UUID, the sender won't find it (their state has DB ID).
+    // Detect UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(messageId);
+
+    if (!isUUID) {
+      // Already a DB ID — write immediately
+      writeReceipt(messageId);
+      return;
+    }
+
+    // UUID: poll for DB ID replacement (sender updates Yjs within ~200ms of API response)
+    let attempts = 0;
+    const poll = () => {
+      const dbId = replacedIdsRef.current.get(messageId);
+      if (dbId) {
+        writeReceipt(dbId);
+        // Also update React state to use DB ID
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? { ...m, id: dbId } : m)),
+        );
+        return;
+      }
+      attempts++;
+      if (attempts < 20) {
+        // Retry up to 20 times × 100ms = 2 seconds
+        setTimeout(poll, 100);
+      } else {
+        // Fallback: write under UUID anyway (better than nothing)
+        writeReceipt(messageId);
+      }
+    };
+    setTimeout(poll, 50);
+  }, [user?.id]);
+
+  // Intersection Observer: mark messages as read when they scroll into view
+  useEffect(() => {
+    if (!user?.id) return;
+
+    if (readObserverRef.current) {
+      readObserverRef.current.disconnect();
+    }
+
+    readObserverRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const messageId = (entry.target as HTMLElement).dataset.messageId;
+            if (messageId) markMessageAsRead(messageId);
+          }
+        });
+      },
+      { threshold: 0.5, root: messagesContainerRef.current },
+    );
+
+    messageRefs.current.forEach((el, messageId) => {
+      const msg = messages.find((m) => m.id === messageId);
+      if (msg && msg.userId !== user.id && !msg.readBy?.includes(user.id)) {
+        readObserverRef.current?.observe(el);
+      }
+    });
+
+    return () => readObserverRef.current?.disconnect();
+  }, [messages, user?.id, markMessageAsRead]);
+
+  // Initial viewport scan: runs after DOM paint to catch already-visible messages
+  // Runs when messages load AND when Yjs syncs (two separate triggers)
+  useEffect(() => {
+    if (!user?.id || messages.length === 0) return;
+
+    // Capture current messages in closure so rAF sees the latest values
+    const currentMessages = messages;
+    const currentUserId = user.id;
+
+    const scan = () => {
+      const scrollContainer = messagesContainerRef.current;
+      if (!scrollContainer) return;
+      const containerRect = scrollContainer.getBoundingClientRect();
+
+      messageRefs.current.forEach((el, messageId) => {
+        const msg = currentMessages.find((m) => m.id === messageId);
+        if (!msg || msg.userId === currentUserId || msg.readBy?.includes(currentUserId)) return;
+
+        const elRect = el.getBoundingClientRect();
+        const isVisible =
+          elRect.top < containerRect.bottom &&
+          elRect.bottom > containerRect.top &&
+          elRect.height > 0;
+        if (isVisible) markMessageAsRead(messageId);
+      });
+    };
+
+    // Use rAF to ensure DOM is painted before measuring
+    const raf = requestAnimationFrame(scan);
+    return () => cancelAnimationFrame(raf);
+  }, [messages, user?.id, isYjsSynced, markMessageAsRead]);
 
   const uploadFile = async (file: File): Promise<ChatAttachment | null> => {
     try {
@@ -383,10 +607,12 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     // Capture values before clearing (optimistic UI)
     const messageContent = message.trim();
     const fileToUpload = pendingFile;
+    const replyData = replyingTo;
 
     // Clear input immediately for instant UX feedback
     setMessage('');
     setPendingFile(null);
+    setReplyingTo(null);
 
     const userId = user.id as string;
     const userColor = generateUserColor(userId);
@@ -414,6 +640,13 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
       content: messageContent,
       timestamp: Date.now(),
       ...(attachment && { attachment }),
+      ...(replyData && {
+        replyTo: {
+          id: replyData.id,
+          userName: replyData.userName,
+          content: replyData.content,
+        },
+      }),
     };
 
     // Add to Yjs for real-time sync
@@ -441,11 +674,51 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
               attachmentType: attachment.type,
               attachmentPublicId: attachment.publicId,
             }),
+            ...(replyData && {
+              replyToId: replyData.id,
+              replyToUserId: replyData.userId,
+              replyToUserName: replyData.userName,
+              replyToContent: replyData.content,
+            }),
           }),
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to send message');
+        }
+
+        // Replace the temporary UUID with the real DB ID.
+        const data = await response.json();
+        const dbId: string | undefined = data?.data?.id;
+        if (dbId && dbId !== newMessage.id) {
+          // Mark UUID as replaced BEFORE updating Yjs so syncMessages skips it
+          replacedIdsRef.current.set(newMessage.id, dbId);
+
+          // 1. Update React state FIRST so syncReadReceipts (triggered by Yjs migration below)
+          //    finds the message under DB ID when it runs
+          setMessages((prev) =>
+            prev.map((m) => (m.id === newMessage.id ? { ...m, id: dbId } : m)),
+          );
+
+          // 2. Update in Yjs so receiver's syncMessages replaces UUID with DB ID
+          if (yMessagesRef.current) {
+            const idx = yMessagesRef.current.toArray().findIndex((m) => m.id === newMessage.id);
+            if (idx !== -1) {
+              const msg = yMessagesRef.current.get(idx);
+              yMessagesRef.current.delete(idx, 1);
+              yMessagesRef.current.insert(idx, [{ ...msg, id: dbId }]);
+            }
+          }
+
+          // 3. Migrate any existing yReadReceipts entry from UUID to DB ID LAST
+          //    This triggers syncReadReceipts — by now state already has DB ID
+          if (yReadReceiptsRef.current) {
+            const existing = yReadReceiptsRef.current.get(newMessage.id);
+            if (existing) {
+              yReadReceiptsRef.current.set(dbId, existing);
+              yReadReceiptsRef.current.delete(newMessage.id);
+            }
+          }
         }
       }
     } catch (error) {
@@ -532,10 +805,80 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     }
   };
 
+  const handleReply = (msg: ChatMessage) => {
+    setReplyingTo(msg);
+  };
+
+  const handleEdit = (msg: ChatMessage) => {
+    if (msg.userId !== user?.id) return; // Only allow editing own messages
+    setEditingMessage(msg);
+    setMessage(msg.content);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingMessage || !message.trim()) return;
+
+    const messageContent = message.trim();
+    const updatedMessage = {
+      ...editingMessage,
+      content: messageContent,
+      editedAt: Date.now(),
+    };
+
+    // Find the message in the Yjs array (may differ from React state index)
+    const yjsIndex = yMessagesRef.current
+      ? yMessagesRef.current.toArray().findIndex((m) => m.id === editingMessage.id)
+      : -1;
+
+    if (yjsIndex !== -1 && yMessagesRef.current) {
+      // Message exists in Yjs — update there (propagates to all clients)
+      yMessagesRef.current.delete(yjsIndex, 1);
+      yMessagesRef.current.insert(yjsIndex, [updatedMessage]);
+    } else {
+      // Message is API-loaded (not in Yjs) — update React state directly
+      setMessages((prev) =>
+        prev.map((m) => (m.id === editingMessage.id ? updatedMessage : m)),
+      );
+    }
+
+    // Clear edit state
+    setEditingMessage(null);
+    setMessage('');
+
+    // Persist to API
+    try {
+      const tokens = await getTokens();
+      if (tokens?.accessToken) {
+        await fetch(`${API_URL}/project-chat/${projectId}/messages/${editingMessage.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
+          body: JSON.stringify({ content: messageContent }),
+        });
+      }
+    } catch (error) {
+      console.error('Error updating message:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setMessage('');
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      if (editingMessage) {
+        handleSaveEdit();
+      } else {
+        handleSendMessage();
+      }
+    }
+    if (e.key === 'Escape' && editingMessage) {
+      handleCancelEdit();
     }
   };
 
@@ -944,7 +1287,8 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
 
             <div
               ref={(el) => { if (el) messageRefs.current.set(msg.id, el); }}
-              className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''} transition-all duration-300`}
+              data-message-id={msg.id}
+              className={`group flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''} transition-all duration-300`}
             >
               {msg.userAvatar ? (
                 <img
@@ -961,56 +1305,103 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
                 </div>
               )}
 
-              <div className={`flex-1 min-w-0 max-w-[80%] ${isOwnMessage ? 'text-right' : ''}`}>
-                <div className={`flex items-center gap-2 mb-1 ${isOwnMessage ? 'justify-end' : ''}`}>
+              <div className={`min-w-0 flex flex-col ${isOwnMessage ? 'text-right' : ''}`}>
+                <div className={`flex items-center gap-1.5 mb-1 ${isOwnMessage ? 'justify-end' : ''}`}>
                   <span className="text-xs font-medium text-slate-300">
                     {isOwnMessage ? 'You' : msg.userName}
                   </span>
                   <span className="text-xs text-slate-500">{formatTime(msg.timestamp)}</span>
+                  {isOwnMessage && !msg.error && !msg.retrying && (
+                    msg.readBy && msg.readBy.length > 0
+                      ? <span title={`Seen by ${msg.readBy.length}`}><CheckCheck className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" /></span>
+                      : <span title="Delivered"><CheckCheck className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" /></span>
+                  )}
                 </div>
-                <div
-                  onClick={() => msg.error && isOwnMessage ? handleRetryMessage(index, msg) : undefined}
-                  title={msg.error ? 'Message not sent. Click to retry.' : undefined}
-                  className={`inline-block px-3 py-2 rounded-2xl text-sm ${
-                    msg.error
-                      ? 'bg-red-600/80 text-white rounded-br-md cursor-pointer hover:bg-red-600 transition-colors'
-                      : msg.retrying
-                        ? 'bg-yellow-600/80 text-white rounded-br-md opacity-70'
-                        : isOwnMessage
-                          ? 'bg-blue-600 text-white rounded-br-md'
-                          : 'bg-slate-800 text-slate-200 rounded-bl-md'
-                  }`}
-                >
-                  {msg.attachment && (
-                    <div className="mb-1.5">
-                      {isImageType(msg.attachment.type) ? (
-                        <a href={getFileUrl(msg.attachment.url)} target="_blank" rel="noopener noreferrer">
-                          <img
-                            src={getFileUrl(msg.attachment.url)}
-                            alt={msg.attachment.name}
-                            className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          />
-                        </a>
-                      ) : (
+                <div className="relative">
+                  <div
+                    onClick={() => msg.error && isOwnMessage ? handleRetryMessage(index, msg) : undefined}
+                    title={msg.error ? 'Message not sent. Click to retry.' : undefined}
+                    className={`inline-block px-3 py-2 rounded-2xl text-sm relative ${
+                      msg.error
+                        ? 'bg-red-600/80 text-white rounded-br-md cursor-pointer hover:bg-red-600 transition-colors'
+                        : msg.retrying
+                          ? 'bg-yellow-600/80 text-white rounded-br-md opacity-70'
+                          : isOwnMessage
+                            ? 'bg-blue-600 text-white rounded-br-md'
+                            : 'bg-slate-800 text-slate-200 rounded-bl-md'
+                    }`}
+                  >
+                    {/* Reply preview */}
+                    {msg.replyTo && (
+                      <div className={`mb-2 text-xs rounded-lg p-1.5 -mx-1 shadow-[inset_2px_0_0_0_rgba(148,163,184,0.35)] ${
+                        isOwnMessage ? 'bg-blue-700/20' : 'bg-slate-700/20'
+                      }`}>
+                        <div className="font-medium opacity-90">{msg.replyTo.userName}</div>
+                        <div className="truncate opacity-70">{msg.replyTo.content}</div>
+                      </div>
+                    )}
+
+                    {msg.attachment && (
+                      <div className="mb-1.5">
+                        {isImageType(msg.attachment.type) ? (
+                          <a href={getFileUrl(msg.attachment.url)} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={getFileUrl(msg.attachment.url)}
+                              alt={msg.attachment.name}
+                              className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            />
+                          </a>
+                        ) : (
+                          <button
+                            onClick={() => handleDownload(msg.attachment!.url, msg.attachment!.name)}
+                            className={`flex items-center gap-2 p-2 rounded-lg transition-colors text-left ${
+                              isOwnMessage ? 'bg-blue-700/50 hover:bg-blue-700/70' : 'bg-slate-700/50 hover:bg-slate-700/70'
+                            }`}
+                          >
+                            <FileText className="w-5 h-5 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium truncate">{msg.attachment.name}</p>
+                              <p className={`text-[10px] ${isOwnMessage ? 'text-blue-200' : 'text-slate-400'}`}>
+                                {formatFileSize(msg.attachment.size)}
+                              </p>
+                            </div>
+                            <Download className="w-4 h-4 flex-shrink-0 opacity-60" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {msg.content && <span>{searchQuery ? highlightText(msg.content, searchQuery) : msg.content}</span>}
+                    
+                    {/* Edit indicator */}
+                    {msg.editedAt && (
+                      <div className={`text-[10px] mt-1 opacity-60 ${isOwnMessage ? 'text-blue-100' : 'text-slate-400'}`}>
+                        (edited)
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action buttons on hover - positioned next to message */}
+                  {!msg.error && !msg.retrying && (
+                    <div className={`absolute ${isOwnMessage ? 'right-full mr-1.5' : 'left-full ml-1.5'} top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-1`}>
+                      <button
+                        onClick={() => handleReply(msg)}
+                        className="p-1 bg-slate-800/95 hover:bg-slate-700 rounded-md transition-colors shadow-lg"
+                        title="Reply"
+                      >
+                        <Reply className="w-3 h-3 text-slate-300" />
+                      </button>
+                      {isOwnMessage && (
                         <button
-                          onClick={() => handleDownload(msg.attachment!.url, msg.attachment!.name)}
-                          className={`flex items-center gap-2 p-2 rounded-lg transition-colors text-left ${
-                            isOwnMessage ? 'bg-blue-700/50 hover:bg-blue-700/70' : 'bg-slate-700/50 hover:bg-slate-700/70'
-                          }`}
+                          onClick={() => handleEdit(msg)}
+                          className="p-1 bg-slate-800/95 hover:bg-slate-700 rounded-md transition-colors shadow-lg"
+                          title="Edit"
                         >
-                          <FileText className="w-5 h-5 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium truncate">{msg.attachment.name}</p>
-                            <p className={`text-[10px] ${isOwnMessage ? 'text-blue-200' : 'text-slate-400'}`}>
-                              {formatFileSize(msg.attachment.size)}
-                            </p>
-                          </div>
-                          <Download className="w-4 h-4 flex-shrink-0 opacity-60" />
+                          <Edit2 className="w-3 h-3 text-slate-300" />
                         </button>
                       )}
                     </div>
                   )}
-                  {msg.content && <span>{searchQuery ? highlightText(msg.content, searchQuery) : msg.content}</span>}
+
                 </div>
               </div>
             </div>
@@ -1050,6 +1441,46 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
 
       {/* Message input */}
       <div className="p-4 border-t border-slate-700/50">
+        {/* Reply preview */}
+        {replyingTo && (
+          <div className="flex items-start gap-3 mb-3 p-3 bg-slate-800/50 rounded-xl shadow-lg shadow-black/20">
+            <div className="p-1.5 bg-blue-500/10 rounded-lg">
+              <Reply className="w-4 h-4 text-blue-400 flex-shrink-0" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium text-slate-200 mb-0.5">Replying to {replyingTo.userName}</div>
+              <div className="text-xs text-slate-400 truncate">{replyingTo.content}</div>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="p-1 hover:bg-slate-700/50 rounded-lg transition-colors flex-shrink-0"
+              title="Cancel reply"
+            >
+              <X className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+        )}
+
+        {/* Edit preview */}
+        {editingMessage && (
+          <div className="flex items-start gap-3 mb-3 p-3 bg-slate-800/50 rounded-xl shadow-lg shadow-black/20">
+            <div className="p-1.5 bg-amber-500/10 rounded-lg">
+              <Edit2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium text-slate-200 mb-0.5">Editing message</div>
+              <div className="text-xs text-slate-400">Press Enter to save • Esc to cancel</div>
+            </div>
+            <button
+              onClick={handleCancelEdit}
+              className="p-1 hover:bg-slate-700/50 rounded-lg transition-colors flex-shrink-0"
+              title="Cancel edit"
+            >
+              <X className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+        )}
+
         {/* File preview */}
         {pendingFile && (
           <div className="flex items-center gap-2 mb-2 p-2 bg-slate-800/50 rounded-lg border border-slate-600/30">
@@ -1094,17 +1525,25 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
             }}
             variant={'glass'}
             onKeyPress={handleKeyPress}
-            placeholder={pendingFile ? 'Add a message (optional)...' : 'Type a message...'}
+            placeholder={
+              editingMessage 
+                ? 'Edit your message...' 
+                : pendingFile 
+                  ? 'Add a message (optional)...' 
+                  : 'Type a message...'
+            }
             className="flex-1 px-4 py-2.5 bg-slate-800/50 border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm"
             disabled={!isConnected || isUploading}
           />
           <Button
-            onClick={handleSendMessage}
+            onClick={editingMessage ? handleSaveEdit : handleSendMessage}
             disabled={(!message.trim() && !pendingFile) || !isConnected || isUploading}
             className="px-4 py-2.5"
           >
             {isUploading ? (
               <Loader2 className="w-4 h-4 text-white animate-spin" />
+            ) : editingMessage ? (
+              <Check className="w-4 h-4 text-white" />
             ) : (
               <Send className="w-4 h-4 text-white" />
             )}
