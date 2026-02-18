@@ -88,8 +88,17 @@ export class SimpleYjsServer {
         }
         // Check if this is a project chat room (format: project-chat-{projectId})
         else if (roomId.startsWith('project-chat-')) {
-          // Chat uses Yjs array for messages, no persistence needed here
-          console.log(`💬 Project chat room initialized: ${roomId}`);
+          // Messages are owned by the API/DB — clear any accumulated Yjs state
+          // so clients always start fresh (no stale messages from previous sessions)
+          const yMessages = doc.getArray('messages');
+          const yReadReceipts = doc.getMap('readReceipts');
+          const staleCount = yMessages.length;
+          if (staleCount > 0) {
+            yMessages.delete(0, staleCount);
+            console.log(`💬 Cleared ${staleCount} stale messages from Yjs doc for room: ${roomId}`);
+          }
+          yReadReceipts.clear();
+          console.log(`💬 Project chat room initialized fresh: ${roomId}`);
         }
         // Otherwise, load collaborative session
         else {
@@ -233,7 +242,7 @@ export class SimpleYjsServer {
       }
 
       console.log(
-        `Authenticated user ${decoded.email} joined room: ${roomName}`,
+        `Authenticated user ${decoded.sub || decoded.userId} joined room: ${roomName}`,
       );
 
       try {

@@ -128,6 +128,10 @@ export const sendProjectMessage = async (req: AuthRequest, res: Response) => {
       attachmentSize,
       attachmentType,
       attachmentPublicId,
+      replyToId,
+      replyToUserId,
+      replyToUserName,
+      replyToContent,
     } = req.body;
     const userId = req.user?.sub;
 
@@ -173,6 +177,12 @@ export const sendProjectMessage = async (req: AuthRequest, res: Response) => {
           attachmentSize: attachmentSize ? parseInt(attachmentSize) : null,
           attachmentType,
           attachmentPublicId,
+        }),
+        ...(replyToId && {
+          replyToId,
+          replyToUserId,
+          replyToUserName,
+          replyToContent,
         }),
       },
       include: {
@@ -381,6 +391,74 @@ export const searchProjectMessages = async (req: AuthRequest, res: Response) => 
     );
   } catch (error) {
     console.error('Error searching project messages:', error);
+    res.status(500).json(internalServerError(error));
+  }
+};
+
+// Update project message
+export const updateProjectMessage = async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId, messageId } = req.params;
+    const { content } = req.body;
+    const userId = req.user?.sub;
+
+    if (!userId) {
+      return res.status(401).json(permissionError('Unauthorized'));
+    }
+
+    if (!content || !content.trim()) {
+      return res.status(400).json(validationError('Message content is required'));
+    }
+
+    // Find message
+    const message = await prisma.projectMessage.findUnique({
+      where: { id: messageId },
+      include: {
+        project: {
+          include: {
+            members: true,
+          },
+        },
+      },
+    });
+
+    if (!message) {
+      return res.status(404).json(notFoundError('Message not found'));
+    }
+
+    if (message.projectId !== projectId) {
+      return res
+        .status(400)
+        .json(notFoundError('Message does not belong to this project'));
+    }
+
+    // Only message author can edit
+    if (message.userId !== userId) {
+      return res.status(403).json(permissionError('You can only edit your own messages'));
+    }
+
+    // Update message
+    const updatedMessage = await prisma.projectMessage.update({
+      where: { id: messageId },
+      data: {
+        content: content.trim(),
+        updatedAt: new Date(),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    res.json(successResponse(updatedMessage, 'Message updated successfully'));
+  } catch (error) {
+    console.error('Error updating project message:', error);
     res.status(500).json(internalServerError(error));
   }
 };

@@ -206,6 +206,12 @@ model ProjectMessage {
   attachmentType     String?  // MIME type e.g. "image/png", "application/pdf"
   attachmentPublicId String?  // Cloudinary public ID for cleanup
 
+  // Reply fields
+  replyToId       String?
+  replyToUserId   String?
+  replyToUserName String?
+  replyToContent  String?  @db.Text
+
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)

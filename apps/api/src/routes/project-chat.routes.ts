@@ -5,6 +5,7 @@ import {
   getProjectMessages,
   sendProjectMessage,
   deleteProjectMessage,
+  updateProjectMessage,
   uploadChatFile,
   searchProjectMessages,
 } from '../controllers/project-chat.controller';
@@ -20,6 +21,11 @@ router.post(
   requireAuth,
   chatFileUpload.single('file'),
   uploadChatFile,
+);
+router.patch(
+  '/:projectId/messages/:messageId',
+  requireAuth,
+  updateProjectMessage,
 );
 router.delete(
   '/:projectId/messages/:messageId',
