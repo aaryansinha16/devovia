@@ -200,8 +200,22 @@ export class SimpleYjsServer {
 
     // If an HTTP server is provided, attach to it; otherwise create standalone server
     if (httpServer) {
-      this.wss = new WebSocketServer({ server: httpServer });
-      console.log('✅ WebSocket server attached to HTTP server');
+      // Use noServer mode and manually handle upgrades so we can filter out
+      // Socket.IO paths before the Yjs ws server ever accepts them.
+      this.wss = new WebSocketServer({ noServer: true });
+
+      httpServer.on('upgrade', (request, socket, head) => {
+        const url = request.url || '';
+        // Let Socket.IO handle its own upgrade — ignore /socket.io paths here
+        if (url.startsWith('/socket.io')) {
+          return;
+        }
+        this.wss!.handleUpgrade(request, socket as any, head, (ws) => {
+          this.wss!.emit('connection', ws, request);
+        });
+      });
+
+      console.log('✅ WebSocket server attached to HTTP server (noServer mode)');
     } else {
       this.wss = new WebSocketServer({ port: this.port });
       console.log(`✅ WebSocket server listening on port ${this.port}`);
