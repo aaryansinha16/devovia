@@ -352,7 +352,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const socket = io(wsUrl, {
       path: "/socket.io",
       auth: { token },
-      transports: ["websocket", "polling"],
+      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,

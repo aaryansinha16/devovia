@@ -34,6 +34,7 @@ export class WebSocketLogsService {
         credentials: true,
       },
       path: '/socket.io',
+      transports: ['websocket'],
     });
 
     // Authentication middleware
