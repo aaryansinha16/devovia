@@ -56,11 +56,6 @@ const server = http.createServer((req, res) => {
   }
 });
 
-// Debug: log all WebSocket upgrade attempts
-server.on('upgrade', (req) => {
-  console.log(`[Upgrade] ${req.method} ${req.url} from origin: ${req.headers.origin}`);
-});
-
 // Start the HTTP server IMMEDIATELY
 server.listen(PORT, () => {
   console.log(`✅ HTTP server listening on port ${PORT}`);

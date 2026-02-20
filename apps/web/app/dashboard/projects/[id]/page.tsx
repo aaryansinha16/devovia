@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, useCallback } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../lib/auth-context";
 import { getTokens } from "../../../../lib/services/auth-service";
 import { API_URL } from "../../../../lib/api-config";
@@ -52,9 +52,20 @@ export default function ProjectDetailPage() {
   const { data: project, loading, error, refetch } = useProjectById(projectId);
   const { mutate: deleteProject, loading: deleting } = useDeleteProject(projectId);
 
+  const searchParams = useSearchParams();
+  const VALID_TABS = ["overview", "team", "links", "notes", "chat"] as const;
+  type Tab = typeof VALID_TABS[number];
+  const rawTab = searchParams.get("tab");
+  const activeTab: Tab = VALID_TABS.includes(rawTab as Tab) ? (rawTab as Tab) : "overview";
+
+  const setActiveTab = useCallback((tab: Tab) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
   const [showAddMember, setShowAddMember] = useState(false);
   const [showAddLink, setShowAddLink] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "team" | "links" | "notes" | "chat">("overview");
   const [memberEmail, setMemberEmail] = useState("");
   const [memberRole, setMemberRole] = useState("MEMBER");
 
