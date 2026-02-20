@@ -22,12 +22,22 @@ export class WebSocketLogsService {
       .map((o) => o.trim())
       .filter(Boolean);
 
+    console.log('[SocketIO] Allowed origins:', allowedOrigins);
+
     this.io = new SocketIOServer(httpServer, {
       cors: {
         origin: (origin, callback) => {
-          if (!origin || allowedOrigins.includes(origin)) {
+          console.log('[SocketIO] Upgrade from origin:', origin);
+          if (
+            !origin ||
+            allowedOrigins.includes(origin) ||
+            origin.includes('localhost') ||
+            origin.includes('devovia.com') ||
+            origin.includes('vercel.app')
+          ) {
             callback(null, true);
           } else {
+            console.warn('[SocketIO] CORS blocked origin:', origin);
             callback(new Error(`CORS: origin ${origin} not allowed`));
           }
         },
